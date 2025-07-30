@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>Ficha de Personagem RPG</title>
+ <style>
+  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=MedievalSharp&display=swap');
+
+  /* Scrollbar para navegadores WebKit (Chrome, Edge, Opera, etc.) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #3e2f1c; /* tom de couro escuro */
+  border: 2px solid #8b5a2b; /* moldura bronze */
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: repeating-linear-gradient(
+    45deg,
+    #b8860b,
+    #b8860b 4px,
+    #8b5a2b 4px,
+    #8b5a2b 8px
+  ); /* dourado com listras bronze */
+  border-radius: 6px;
+  border: 1px solid #3e2f1c;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: repeating-linear-gradient(
+    45deg,
+    #d4af37,
+    #d4af37 4px,
+    #a0522d 4px,
+    #a0522d 8px
+  );
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b8860b #3e2f1c;
+}
+
+
+  body {
+    font-family: 'IM Fell DW Pica', serif;
+    margin: 0;
+    padding: 10px;
+    background: url('maps-middle-ages-catalan-atlas.jpg') repeat; /* textura pergaminho */
+    color: #3e2f1c;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: auto;
+    margin-top: 10px;
+    background: #f9f5ec  url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+    padding: 10px;
+    border: 8px double #6b4c28;
+    border-radius: 20px;
+    box-shadow: 5px 5px 15px rgba(80, 55, 20, 0.6);
+
+  }
+
+  h1, h2 {
+    font-family: 'MedievalSharp', cursive;
+    text-align: center;
+    color: #4b3621;
+    text-shadow: 1px 1px 0 #a67c00;
+    margin-bottom: 15px;
+    margin-top: 10px;
+  }
+
+  .foto-preview {
+    display: block;
+    margin: 10px auto 25px;
+        max-width: calc(100% - 10px);
+    border-radius: 15px;
+    border: 5px solid #6b4c28;
+    box-shadow: 0 0 12px #a67c00;
+    background-color: #f0e6d2;
+  }
+
+  .field {
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    border-bottom: 1px dotted #6b4c28;
+    padding-bottom: 4px;
+  }
+
+  .field strong {
+    color: #5a3e1b;
+    font-weight: 700;
+    text-shadow: 0 0 1px #a67c00;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  
+  .card-item {
+    background: #e6d9b8;
+    padding: 14px 16px;
+    border-left: 6px solid #6b4c28;
+    border-radius: 12px;
+    box-shadow: inset 0 0 5px #c4ad6a;
+    font-family: 'IM Fell DW Pica', serif;
+    color: #4b3621;
+    position: relative;
+  }
+.card-item div{width: 100% !important;}
+  .remove-btn {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    background: #9b2c0e;
+    color: #f9f5ec;
+    border: none;
+    border-radius: 6px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 0 5px #5a1604;
+    transition: background-color 0.3s ease;
+  }
+
+  .remove-btn:hover {
+    background-color: #bf4224;
+  }
+
+  .btn-edit {
+    display: block;
+    margin: auto;
+    padding: 12px 28px;
+    background-color: #6b4c28;
+    color: #f9f5ec;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-family: 'MedievalSharp', cursive;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(107, 76, 40, 0.8);
+    transition: background-color 0.4s ease;
+  }
+
+  .btn-edit:hover {
+    background-color: #845f35;
+  }
+
+  /* Fonte temática (use Google Fonts se quiser algo mais rústico) */
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+ .foto-preview {
+    display: block;
+    margin: 10px auto 25px;
+        max-width: calc(100% - 10px);
+    border-radius: 15px;
+    border: 5px solid #6b4c28;
+    box-shadow: 0 0 12px #a67c00;
+    background-color: #f0e6d2;
+  }
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  background: #fdf6e3; /* cor de pergaminho */
+  border: 2px solid #8b5a2b; /* borda marrom escuro */
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'MedievalSharp', 'Georgia', serif;
+  font-size: 1rem;
+  color: #3e2f1c;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  width: calc(100% - 30px);
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #a67843;
+  box-shadow: 0 0 8px rgba(138, 100, 54, 0.4);
+  background: #fef9e6;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Labels medievais opcionais */
+label {
+  font-family: 'MedievalSharp', 'Georgia', serif;
+  font-size: 1rem;
+  color: #4e3923;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+
+
+button{
+  width: 100%;
+    margin-top: 5px;
+    padding: 10px;
+    background-color: #6b4c28;
+    color: #f9f5ec;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-family: 'MedievalSharp', cursive;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(107, 76, 40, 0.8);
+    transition: background-color 0.4s ease;
+}
+
+  .btnDiv
+  {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    margin-top: 20px;
+  }
+
+  .flex-row div{
+    width: calc(50% - 10px);
+  }
+
+  .flex-row{
+    display: flex; flex-wrap: wrap;
+    justify-content: space-around;
+  }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Ficha do Personagem</h1>
+
+    <div class="section">
+      <label for="fotoPersonagem">Foto do Personagem:</label>
+      <input type="file" id="fotoPersonagem" accept="image/*" />
+      <img id="previewFoto" class="foto-preview" alt="Preview da foto" src="guest.png" />
+    </div>
+
+    <div class="section flex-row" style=" display: flex; flex-wrap: wrap;">
+      <div style="width: calc(100% - 10px);"><label>Nome:</label><input type="text" id="nome" /></div>
+      <div><label>Idade:</label><input type="number" id="idade" /></div>
+      <div><label>Classe:</label><input type="text" id="classe" /></div>
+      <div><label>Raça:</label><input type="text" id="raca" /></div>
+      <div><label>Nível:</label><input type="number" id="nivel" /></div>
+    </div>
+    <div class="section">
+      <label>Traços de Personalidade:</label>
+      <textarea id="tracos"></textarea>
+    </div>
+</div>
+ <div class="container">
+    <div class="section">
+      <h2>Status</h2>
+      <div class="flex-row">
+        <div><label>Vida:</label><input type="number" id="pv" /></div>
+        <div><label>Mana:</label><input type="number" id="pm" /></div>
+        <div><label>Armadura:</label><input type="number" id="ca" /></div>
+        <div><label>Esquiva:</label><input type="number" id="esquiva" /></div>
+        <div><label>Bloqueio:</label><input type="number" id="bloqueio" /></div>
+        <div><label>Deslocamento:</label><input type="number" id="deslocamento" /></div>
+      </div>
+    </div>
+</div>
+ <div class="container">
+    <div class="section">
+      <h2>Atributos</h2>
+      <div class="flex-row">
+        <div><label>Agilidade:</label><input type="number" id="agilidade" /></div>
+        <div><label>Carisma:</label><input type="number" id="carisma" /></div>
+        <div><label>Força:</label><input type="number" id="forca" /></div>
+        <div><label>Inteligência:</label><input type="number" id="inteligencia" /></div>
+        <div><label>Sabedoria:</label><input type="number" id="sabedoria" /></div>
+        <div><label>Vigor:</label><input type="number" id="vigor" /></div>
+      </div>
+    </div>
+</div>
+ <div class="container">
+    <div class="section">
+      <h2>Perícias</h2>
+      <input type="text" id="novaPericia" placeholder="Nova perícia" />
+      <button type="button" onclick="adicionarPericia()">Adicionar Perícia</button>
+      <div id="listaPericias" class="card-list"></div>
+    </div>
+</div>
+ <div class="container">
+    <div class="section">
+      <h2>Inventário</h2>
+      <input type="text" id="novoItem" placeholder="Novo item" />
+      <button type="button" onclick="adicionarItem()">Adicionar Item</button>
+      <div id="listaItens" class="card-list"></div>
+    </div>
+</div>
+ <div class="container">
+    <div class="section">
+      <h2>Habilidades</h2>
+      <input type="text" id="nomeHabilidade" placeholder="Nome da habilidade" />
+      <textarea id="descHabilidade" placeholder="Descrição da habilidade"></textarea>
+      <button type="button" onclick="adicionarHabilidade()">Adicionar Habilidade</button>
+      <div id="listaHabilidades" class="card-list"></div>
+    </div>
+</div>
+ <div class="container">
+    <div class="section">
+      <h2>Magias</h2>
+      <div class="flex-row">
+        <div><label for="nomeMagia">Nome:</label><input type="text" id="nomeMagia" /></div>
+        <div><label for="nivelMagia">Nível:</label><input type="text" id="nivelMagia" /></div>
+        <div><label for="execucaoMagia">Execução:</label><input type="text" id="execucaoMagia" /></div>
+        <div><label for="alcanceMagia">Alcance:</label><input type="text" id="alcanceMagia" /></div>
+        <div><label for="alvoMagia">Alvo:</label><input type="text" id="alvoMagia" /></div>
+        <div><label for="duracaoMagia">Duração:</label><input type="text" id="duracaoMagia" /></div>
+      </div>
+      <label for="descMagia">Descrição:</label>
+      <textarea id="descMagia"></textarea>
+
+      <div class="flex-row">
+        <div style="width: 100%;"><label for="aprimorarMagia">Aprimorar:</label><textarea type="text" id="aprimorarMagia" ></textarea></div>
+        <div style="width: 100%;"><label for="verdadeiroMagia">Verdadeiro:</label><textarea type="text" id="verdadeiroMagia" ></textarea></div>
+      </div>
+
+      <button type="button" onclick="adicionarMagia()">Adicionar Magia</button>
+      <div id="listaMagias" class="card-list"></div>
+    </div>
+
+</div>
+ <div class="container">
+    <!-- Substitua a parte do botão no final -->
+    <div style="text-align: center;">
+      <button onclick="salvarFicha()">Salvar Ficha</button>
+    </div>
+  </div>
+
+  <script>
+    const inputFoto = document.getElementById('fotoPersonagem');
+const previewFoto = document.getElementById('previewFoto');
+
+inputFoto.addEventListener('change', function () {
+  const file = this.files[0];
+  if (file) {
+    const reader = new FileReader();
+reader.onload = function (e) {
+  const img = new Image();
+  img.src = e.target.result;
+
+  img.onload = function () {
+    const canvas = document.createElement('canvas');
+    const MAX_WIDTH = 600; // você pode ajustar
+    const scaleSize = MAX_WIDTH / img.width;
+    canvas.width = MAX_WIDTH;
+    canvas.height = img.height * scaleSize;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // Salva imagem em qualidade menor (0.7 é boa qualidade)
+    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+    previewFoto.src = compressedDataUrl;
+  };
+};
+reader.readAsDataURL(file);
+
+  } else {
+    previewFoto.src = "";
+  }
+});
+
+function criarCard(textoHTML) {
+  const div = document.createElement('div');
+  div.className = 'card-item';
+
+  // Container conteúdo e botões
+  const contentDiv = document.createElement('div');
+  contentDiv.innerHTML = textoHTML;
+  contentDiv.style.display = 'inline-block';
+  contentDiv.style.width = '80%';
+  contentDiv.style.verticalAlign = 'middle';
+
+  const btnEditar = document.createElement('button');
+  btnEditar.textContent = 'Editar';
+  btnEditar.style.marginRight = '8px';
+  btnEditar.style.cursor = 'pointer';
+
+  const btnRemover = document.createElement('button');
+  btnRemover.textContent = 'Remover';
+  btnRemover.style.cursor = 'pointer';
+
+  [btnEditar, btnRemover].forEach(btn => {
+    btn.style.padding = '4px 8px';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '4px';
+    btn.style.backgroundColor = '#3498db';
+    btn.style.color = 'white';
+    btn.style.fontSize = '0.85rem';
+  });
+
+  btnEditar.style.backgroundColor = '#f39c12';
+  btnEditar.onmouseover = () => btnEditar.style.backgroundColor = '#e67e22';
+  btnEditar.onmouseout = () => btnEditar.style.backgroundColor = '#f39c12';
+
+  btnRemover.style.backgroundColor = '#e74c3c';
+  btnRemover.onmouseover = () => btnRemover.style.backgroundColor = '#c0392b';
+  btnRemover.onmouseout = () => btnRemover.style.backgroundColor = '#e74c3c';
+
+  // Remover card
+  btnRemover.onclick = () => {
+    if (confirm('Remover este item?')) {
+      div.remove();
+    }
+  };
+
+  // Editar card
+  btnEditar.onclick = () => {
+  const html = contentDiv.innerHTML;
+
+  if (html.includes("Perícia:")) {
+    const match = html.match(/<strong>Perícia:<\/strong>\s*(.+)/);
+    if (match) {
+      document.getElementById("novaPericia").value = match[1];
+    }
+  } else if (html.includes("Item:")) {
+    const match = html.match(/<strong>Item:<\/strong>\s*(.+)/);
+    if (match) {
+      document.getElementById("novoItem").value = match[1];
+    }
+  } else if (html.includes("<h3")) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    document.getElementById("nomeMagia").value = doc.querySelector("h3").childNodes[0].textContent.trim();
+    document.getElementById("nivelMagia").value =  doc.querySelector("small")?.textContent || "";
+    document.getElementById("execucaoMagia").value = doc.querySelector("p:nth-of-type(1)")?.textContent.replace("Execução:", "").trim();
+    document.getElementById("alcanceMagia").value = doc.querySelector("p:nth-of-type(2)")?.textContent.replace("Alcance:", "").trim();
+    document.getElementById("alvoMagia").value = doc.querySelector("p:nth-of-type(3)")?.textContent.replace("Alvo:", "").trim();
+    document.getElementById("duracaoMagia").value = doc.querySelector("p:nth-of-type(4)")?.textContent.replace("Duração:", "").trim();
+    document.getElementById("descMagia").value = doc.querySelector("p:nth-of-type(5)")?.textContent.replace("Descrição:", "").trim();
+    document.getElementById("aprimorarMagia").value = doc.querySelector("p:nth-of-type(6)")?.textContent.replace("Aprimorar:", "").trim();
+    document.getElementById("verdadeiroMagia").value = doc.querySelector("p:nth-of-type(7)")?.textContent.replace("Verdadeiro:", "").trim();
+  } else {
+    // Habilidade ou outro formato
+    const match = html.match(/<strong>([^:]+):<\/strong>\s*(.+)/);
+    if (match) {
+      document.getElementById("nomeHabilidade").value = match[1];
+      document.getElementById("descHabilidade").value = match[2];
+    } else {
+      alert("Formato inesperado para edição.");
+      return;
+    }
+  }
+
+  // Remove o card após popular os campos
+  div.remove();
+};
+
+
+ const divBtn = document.createElement('div');
+ divBtn.classList.add("btnDiv");
+  div.appendChild(contentDiv);
+  
+  divBtn.appendChild(btnEditar);
+  divBtn.appendChild(btnRemover);
+  div.appendChild(divBtn);
+
+  return div;
+}
+
+function adicionarPericia() {
+  const input = document.getElementById('novaPericia');
+  const lista = document.getElementById('listaPericias');
+  const valor = input.value.trim();
+  if (valor) {
+    lista.appendChild(criarCard(`<strong>Perícia:</strong> ${valor}`));
+    input.value = '';
+  }
+}
+
+function adicionarItem() {
+  const input = document.getElementById('novoItem');
+  const lista = document.getElementById('listaItens');
+  const valor = input.value.trim();
+  if (valor) {
+    lista.appendChild(criarCard(`<strong>Item:</strong> ${valor}`));
+    input.value = '';
+  }
+}
+
+function adicionarHabilidade() {
+  const nome = document.getElementById('nomeHabilidade').value.trim();
+  const desc = document.getElementById('descHabilidade').value.trim();
+  const lista = document.getElementById('listaHabilidades');
+  if (nome && desc) {
+    lista.appendChild(criarCard(`<strong>${nome}:</strong> ${desc}`));
+    document.getElementById('nomeHabilidade').value = '';
+    document.getElementById('descHabilidade').value = '';
+  }
+}
+
+function adicionarMagia() {
+  const nome = document.getElementById('nomeMagia').value.trim();
+  const nivel = document.getElementById('nivelMagia').value.trim();
+  const execucao = document.getElementById('execucaoMagia').value.trim();
+  const alcance = document.getElementById('alcanceMagia').value.trim();
+  const alvo = document.getElementById('alvoMagia').value.trim();
+  const duracao = document.getElementById('duracaoMagia').value.trim();
+  const descricao = document.getElementById('descMagia').value.trim();
+  const aprimorar = document.getElementById('aprimorarMagia').value.trim();
+  const verdadeiro = document.getElementById('verdadeiroMagia').value.trim();
+  const lista = document.getElementById('listaMagias');
+
+  if (nome && descricao) {
+    const textoHTML = `
+  <div style="width: 100%">
+    <h3 style="margin: 0 0 8px; font-size: 1.2em; color: #5e2b00;">
+      ${nome} <small style="font-weight: normal;">${nivel}</small>
+    </h3>
+    <p style="margin: 4px 0;"><strong>Execução:</strong> ${execucao}</p>
+    <p style="margin: 4px 0;"><strong>Alcance:</strong> ${alcance}</p>
+    <p style="margin: 4px 0;"><strong>Alvo:</strong> ${alvo}</p>
+    <p style="margin: 4px 0;"><strong>Duração:</strong> ${duracao}</p>
+    <hr style="border: 0; border-top: 1px dashed #a07b4d; margin: 10px 0;">
+    <p style="margin: 4px 0;"><strong>Descrição:</strong><br>${descricao}</p>
+    <hr style="border: 0; border-top: 1px dashed #a07b4d; margin: 10px 0;">
+    <p style="margin: 4px 0;"><strong>Aprimorar:</strong><br>${aprimorar || '-'}</p>
+    <hr style="border: 0; border-top: 1px dashed #a07b4d; margin: 10px 0;">
+    <p style="margin: 4px 0;"><strong>Verdadeiro:</strong><br>${verdadeiro || '-'}</p>
+  </div>
+`;
+
+    lista.appendChild(criarCard(textoHTML));
+
+    // Limpa os campos
+    ['nomeMagia', 'nivelMagia', 'execucaoMagia', 'alcanceMagia', 'alvoMagia', 'duracaoMagia', 'descMagia', 'aprimorarMagia', 'verdadeiroMagia']
+      .forEach(id => document.getElementById(id).value = '');
+  }
+}
+
+
+function gerarPDF() {
+  const element = document.querySelector('.container');
+  const opt = {
+    margin: 0.5,
+    filename: 'ficha-personagem.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+
+function salvarFicha() {
+  // Função auxiliar que pega o texto HTML simples dos cards em array
+  function extrairCards(idLista) {
+    const lista = document.getElementById(idLista);
+    const cards = [];
+    lista.querySelectorAll('.card-item > div:first-child').forEach(div => {
+      cards.push(div.innerHTML);
+    });
+    return cards;
+  }
+
+  const dados = {
+    nome: document.getElementById('nome').value,
+    idade: document.getElementById('idade').value,
+    classe: document.getElementById('classe').value,
+    raca: document.getElementById('raca').value,
+    nivel: document.getElementById('nivel').value,
+    tracos: document.getElementById('tracos').value, // id corrido para 'tracos'
+    pv: document.getElementById('pv').value,
+    pm: document.getElementById('pm').value,
+    ca: document.getElementById('ca').value,
+    esquiva: document.getElementById('esquiva').value,
+    bloqueio: document.getElementById('bloqueio').value,
+    deslocamento: document.getElementById('deslocamento').value,
+    agilidade: document.getElementById('agilidade').value,
+    carisma: document.getElementById('carisma').value,
+    forca: document.getElementById('forca').value,
+    inteligencia: document.getElementById('inteligencia').value,
+    sabedoria: document.getElementById('sabedoria').value,
+    vigor: document.getElementById('vigor').value,
+    pericias: extrairCards('listaPericias'),
+    itens: extrairCards('listaItens'),
+    habilidades: extrairCards('listaHabilidades'),
+    magias: extrairCards('listaMagias'),
+    imagem: previewFoto.src || ''
+  };
+
+  localStorage.setItem('fichaRPG', JSON.stringify(dados));
+  alert("Ficha salva com sucesso!");
+}
+
+function carregarFicha() {
+  const dados = JSON.parse(localStorage.getItem('fichaRPG'));
+  if (!dados) return;
+
+  document.getElementById('nome').value = dados.nome || '';
+  document.getElementById('idade').value = dados.idade || '';
+  document.getElementById('classe').value = dados.classe || '';
+  document.getElementById('raca').value = dados.raca || '';
+  document.getElementById('nivel').value = dados.nivel || '';
+  document.getElementById('tracos').value = dados.tracos || '';
+  document.getElementById('pv').value = dados.pv || '';
+  document.getElementById('pm').value = dados.pm || '';
+  document.getElementById('ca').value = dados.ca || '';
+  document.getElementById('esquiva').value = dados.esquiva || '';
+  document.getElementById('bloqueio').value = dados.bloqueio || '';
+  document.getElementById('deslocamento').value = dados.deslocamento || '';
+  document.getElementById('agilidade').value = dados.agilidade || '';
+  document.getElementById('carisma').value = dados.carisma || '';
+  document.getElementById('forca').value = dados.forca || '';
+  document.getElementById('inteligencia').value = dados.inteligencia || '';
+  document.getElementById('sabedoria').value = dados.sabedoria || '';
+  document.getElementById('vigor').value = dados.vigor || '';
+
+  // Limpa e monta listas novamente
+  ['listaPericias', 'listaItens', 'listaHabilidades', 'listaMagias'].forEach(idLista => {
+    const lista = document.getElementById(idLista);
+    lista.innerHTML = ''; // limpa
+    const arrayCards = dados[idLista.replace('lista', '').toLowerCase()] || [];
+    arrayCards.forEach(texto => {
+      lista.appendChild(criarCard(texto));
+    });
+  });
+
+  if (dados.imagem) {
+    previewFoto.src = dados.imagem;
+  }
+}
+
+// Carrega ao iniciar
+window.onload = carregarFicha;
+
+  </script>
+</body>
+</html>
