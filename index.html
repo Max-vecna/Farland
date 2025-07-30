@@ -282,20 +282,44 @@
 
 
 <script>
-  window.addEventListener("message", (event) => {
-  if (!event.data || event.data.tipo !== 'ficha') return;
-
-  const dadosRecebidos = event.data.dados;
+  function carregarFicha(dados) {
   try {
-    const ficha = JSON.parse(dadosRecebidos);
-    console.log("Ficha recebida:", ficha);
+    const ficha = typeof dados === "string" ? JSON.parse(dados) : dados;
 
-    // Aqui você pode preencher os campos com os dados recebidos
-    // Exemplo: document.getElementById("nome").textContent = ficha.nome;
+    // Atualiza spans simples
+    const campos = [
+      "nome", "idade", "classe", "raca", "nivel", "tracos",
+      "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
+      "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
+    ];
+    campos.forEach(c => renderSpan(c, ficha[c]));
+
+    if (ficha.imagem) {
+      document.getElementById("fotoPreview").src = ficha.imagem;
+    }
+
+    renderCardList("listaPericias", garantirArray(ficha.pericias));
+    renderCardList("listaItens", garantirArray(ficha.itens));
+    renderCardList("listaHabilidades", garantirArray(ficha.habilidades));
+    renderCardList("listaMagias", garantirArray(ficha.magias));
+
   } catch (e) {
-    console.error("Erro ao interpretar dados recebidos:", e);
+    console.error("Erro ao carregar ficha:", e);
   }
+}
+
+// Recebe dados via postMessage
+window.addEventListener("message", (event) => {
+  if (!event.data || event.data.tipo !== 'ficha') return;
+  carregarFicha(event.data.dados);
 });
+
+// Fallback: tenta carregar localStorage se não for aberto via postMessage
+window.addEventListener("DOMContentLoaded", () => {
+  const local = localStorage.getItem("fichaRPG");
+  if (local) carregarFicha(local);
+});
+
   
 async function exportarPDF() {
   const { jsPDF } = window.jspdf;
