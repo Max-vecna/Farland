@@ -282,6 +282,21 @@
 
 
 <script>
+  window.addEventListener("message", (event) => {
+  if (!event.data || event.data.tipo !== 'ficha') return;
+
+  const dadosRecebidos = event.data.dados;
+  try {
+    const ficha = JSON.parse(dadosRecebidos);
+    console.log("Ficha recebida:", ficha);
+
+    // Aqui você pode preencher os campos com os dados recebidos
+    // Exemplo: document.getElementById("nome").textContent = ficha.nome;
+  } catch (e) {
+    console.error("Erro ao interpretar dados recebidos:", e);
+  }
+});
+  
 async function exportarPDF() {
   const { jsPDF } = window.jspdf;
   const container = document.body;
