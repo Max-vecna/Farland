@@ -283,129 +283,117 @@
 
 <script>
   function carregarFicha(dados) {
-  try {
-    const ficha = typeof dados === "string" ? JSON.parse(dados) : dados;
+    try {
+      const ficha = typeof dados === "string" ? JSON.parse(dados) : dados;
 
-    // Atualiza spans simples
-    const campos = [
-      "nome", "idade", "classe", "raca", "nivel", "tracos",
-      "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
-      "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
-    ];
-    campos.forEach(c => renderSpan(c, ficha[c]));
+      // Atualiza spans simples
+      const campos = [
+        "nome", "idade", "classe", "raca", "nivel", "tracos",
+        "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
+        "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
+      ];
+      campos.forEach(c => renderSpan(c, ficha[c]));
 
-    if (ficha.imagem) {
-      document.getElementById("fotoPreview").src = ficha.imagem;
+      if (ficha.imagem) {
+        document.getElementById("fotoPreview").src = ficha.imagem;
+      }
+
+      renderCardList("listaPericias", garantirArray(ficha.pericias));
+      renderCardList("listaItens", garantirArray(ficha.itens));
+      renderCardList("listaHabilidades", garantirArray(ficha.habilidades));
+      renderCardList("listaMagias", garantirArray(ficha.magias));
+
+    } catch (e) {
+      console.error("Erro ao carregar ficha:", e);
     }
-
-    renderCardList("listaPericias", garantirArray(ficha.pericias));
-    renderCardList("listaItens", garantirArray(ficha.itens));
-    renderCardList("listaHabilidades", garantirArray(ficha.habilidades));
-    renderCardList("listaMagias", garantirArray(ficha.magias));
-
-  } catch (e) {
-    console.error("Erro ao carregar ficha:", e);
   }
-}
 
-// Recebe dados via postMessage
-window.addEventListener("message", (event) => {
-  if (!event.data || event.data.tipo !== 'ficha') return;
-  carregarFicha(event.data.dados);
-});
+  // Recebe dados via postMessage e salva no localStorage
+  window.addEventListener("message", (event) => {
+    if (!event.data || event.data.tipo !== 'ficha') return;
+    const dados = event.data.dados;
+    localStorage.setItem("fichaRPG", JSON.stringify(dados));
+    carregarFicha(dados);
+  });
 
-// Fallback: tenta carregar localStorage se não for aberto via postMessage
-window.addEventListener("DOMContentLoaded", () => {
-  const local = localStorage.getItem("fichaRPG");
-  if (local) carregarFicha(local);
-});
+  // Fallback: tenta carregar do localStorage
+  window.addEventListener("DOMContentLoaded", () => {
+    const local = localStorage.getItem("fichaRPG");
+    if (local) carregarFicha(local);
+  });
 
-  
-async function exportarPDF() {
-  const { jsPDF } = window.jspdf;
-  const container = document.body;
+  async function exportarPDF() {
+    const { jsPDF } = window.jspdf;
+    const container = document.body;
 
-  try {
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true
-    });
+    try {
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true
+      });
 
-    const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/png");
+      const pxToMm = px => px * 0.264583;
+      const canvasWidthMm = pxToMm(canvas.width);
+      const canvasHeightMm = pxToMm(canvas.height);
 
-    // Conversão de pixel para milímetro (1px ≈ 0.264583 mm)
-    const pxToMm = px => px * 0.264583;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [canvasWidthMm, canvasHeightMm]
+      });
 
-    const canvasWidthMm = pxToMm(canvas.width);
-    const canvasHeightMm = pxToMm(canvas.height);
+      pdf.addImage(imgData, "PNG", 0, 0, canvasWidthMm, canvasHeightMm);
 
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [canvasWidthMm, canvasHeightMm]
-    });
+      const nomeArquivo = (dados?.nome || "ficha") + "_ficha.pdf";
+      pdf.save(nomeArquivo);
 
-    pdf.addImage(imgData, "PNG", 0, 0, canvasWidthMm, canvasHeightMm);
-
-    const nomeArquivo = (dados?.nome || "ficha") + "_ficha.pdf";
-    pdf.save(nomeArquivo);
-
-  } catch (err) {
-    alert("Erro ao exportar o PDF.");
-    console.error(err);
+    } catch (err) {
+      alert("Erro ao exportar o PDF.");
+      console.error(err);
+    }
   }
-}
 
-  // Pega os dados do localStorage ou cria objeto vazio
   const dados = JSON.parse(localStorage.getItem("fichaRPG")) || {};
 
-  // Garante que o valor seja um array, senão retorna array vazio
   function garantirArray(valor) {
     return Array.isArray(valor) ? valor : [];
   }
 
-  // Atualiza o texto do span pelo id
   function renderSpan(id, value) {
     document.getElementById(id).textContent = value || '-';
   }
 
-  // Renderiza a lista de cards, com botão de remover
   function renderCardList(listaId, items) {
     const container = document.getElementById(listaId);
     container.innerHTML = '';
 
-    (items || []).forEach((item, index) => {
+    (items || []).forEach(item => {
       const div = document.createElement('div');
       div.className = 'card-item';
       div.innerHTML = item;
-
-     
       container.appendChild(div);
     });
   }
 
-  // Lista dos campos simples para preencher os spans
   const campos = [
     "nome", "idade", "classe", "raca", "nivel", "tracos",
     "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
     "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
   ];
 
-  // Preenche cada campo simples
   campos.forEach(c => renderSpan(c, dados[c]));
 
-  // Se tiver foto, mostra a imagem
   if (dados.imagem) {
     document.getElementById("fotoPreview").src = dados.imagem;
   }
 
-  // Renderiza as listas garantindo que sejam arrays
   renderCardList("listaPericias", garantirArray(dados.pericias));
   renderCardList("listaItens", garantirArray(dados.itens));
   renderCardList("listaHabilidades", garantirArray(dados.habilidades));
   renderCardList("listaMagias", garantirArray(dados.magias));
-
 </script>
+
 
 </body>
 </html> 
