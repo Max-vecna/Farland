@@ -1,399 +1,278 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visualizar Ficha</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visualizar Ficha</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
 
- <style>
-  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica&family=MedievalSharp&display=swap');
+    <link rel="stylesheet" href="style.css" />
 
-  /* Scrollbar para navegadores WebKit (Chrome, Edge, Opera, etc.) */
-::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
+    <style>
+        /* Estilos para o modal de visualização de imagem */
+        .modal-overlay {
+            display: none; /* Inicia oculto */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
 
-::-webkit-scrollbar-track {
-  background: #3e2f1c; /* tom de couro escuro */
-  border: 2px solid #8b5a2b; /* moldura bronze */
-  border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: repeating-linear-gradient(
-    45deg,
-    #b8860b,
-    #b8860b 4px,
-    #8b5a2b 4px,
-    #8b5a2b 8px
-  ); /* dourado com listras bronze */
-  border-radius: 6px;
-  border: 1px solid #3e2f1c;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: repeating-linear-gradient(
-    45deg,
-    #d4af37,
-    #d4af37 4px,
-    #a0522d 4px,
-    #a0522d 8px
-  );
-}
-
-/* Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #b8860b #3e2f1c;
-}
-
-
-  body {
-    font-family: 'IM Fell DW Pica', serif;
-    margin: 0;
-    padding: 10px;
-    background: url('maps-middle-ages-catalan-atlas.jpg') repeat; /* textura pergaminho */
-    color: #3e2f1c;
-  }
-.button{
-  width: 100%;
-    margin-top: 5px;
-    padding: 10px;
-    background-color: #6b4c28;
-    color: #f9f5ec;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.2rem;
-    font-family: 'MedievalSharp', cursive;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(107, 76, 40, 0.8);
-    transition: background-color 0.4s ease;
-}
-  .container {
-    max-width: 800px;
-    margin: auto;
-    margin-top: 10px;
-    background: #f9f5ec  url('paper-fibers.png');
-    padding: 10px;
-    border: 8px double #6b4c28;
-    border-radius: 20px;
-    box-shadow: 5px 5px 15px rgba(80, 55, 20, 0.6);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  h1, h2 {
-    font-family: 'MedievalSharp', cursive;
-    text-align: center;
-    color: #4b3621;
-    text-shadow: 1px 1px 0 #a67c00;
-    margin-bottom: 15px;
-    margin-top: 10px;
-    width: 100%;
-  }
-
-  .foto-preview {
-    display: block;
-    margin: 10px auto 25px;
-        max-width: calc(100% - 10px);
-    border-radius: 15px;
-    border: 5px solid #6b4c28;
-    box-shadow: 0 0 12px #a67c00;
-    background-color: #f0e6d2;
-  }
-
-  .field {
-    margin-bottom: 12px;
-    font-size: 1.1rem;
-    border-bottom: 1px dotted #6b4c28;
-    padding-bottom: 4px;
-    width: calc(50% - 5px);
-  }
-
-  .field strong {
-    color: #5a3e1b;
-    font-weight: 700;
-    text-shadow: 0 0 1px #a67c00;
-  }
-
-  .card-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 20px;
-    width: 100%;
-  }
-
-  .card-item {
-    background: #e6d9b8;
-    padding: 14px 16px;
-    border-left: 6px solid #6b4c28;
-    border-radius: 12px;
-    box-shadow: inset 0 0 5px #c4ad6a;
-    font-family: 'IM Fell DW Pica', serif;
-    color: #4b3621;
-    position: relative;
-  }
-
-  .remove-btn {
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    background: #9b2c0e;
-    color: #f9f5ec;
-    border: none;
-    border-radius: 6px;
-    padding: 3px 8px;
-    cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 0 5px #5a1604;
-    transition: background-color 0.3s ease;
-  }
-
-  .remove-btn:hover {
-    background-color: #bf4224;
-  }
-
-  .btn-edit {
-    display: block;
-    margin: auto;
-    padding: 12px 28px;
-    background-color: #6b4c28;
-    color: #f9f5ec;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.2rem;
-    font-family: 'MedievalSharp', cursive;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(107, 76, 40, 0.8);
-    transition: background-color 0.4s ease;
-  }
-
-  .btn-edit:hover {
-    background-color: #845f35;
-  }
-
- .upload-container {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
-
-.upload-container input[type="file"] {
-  display: none;
-}
-
-.btn-medieval {
-  display: inline-block;
-  padding: 12px 24px;
-  background: linear-gradient(to bottom, #d4af37, #a67c00);
-  color: #2e1a06;
-  font-family: 'Cinzel', serif;
-  font-size: 1rem;
-  border: 3px solid #5c3a0a;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 2px #fff3b0, 0 4px 8px rgba(0,0,0,0.4);
-  text-shadow: 0 1px 0 #fff;
-  cursor: pointer;
-  transition: transform 0.1s ease-in-out;
-  width: 100%;
-}
-
-.btn-medieval:hover {
-  background: linear-gradient(to bottom, #e1c066, #8b6500);
-}
-
-
-</style>
-
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1 id="nomeTitulo">Ficha do Personagem</h1>
+    <div class="container">
+        <h1 id="nomeTitulo">Ficha do Personagem</h1>
     </div>
- <div class="container">
-    <img id="fotoPreview" class="foto-preview" alt="Foto do Personagem"  src="guest.png"/>
 
-    <div class="field" style="width: 100%;"><strong>Nome:</strong> <span id="nome"></span></div>
-    <div class="field"><strong>Idade:</strong> <span id="idade"></span></div>
-    <div class="field"><strong>Classe:</strong> <span id="classe"></span></div>
-    <div class="field"><strong>Raça:</strong> <span id="raca"></span></div>
-    <div class="field"><strong>Nível:</strong> <span id="nivel"></span></div>
+    <div class="container">
+        <img id="fotoPreview" class="foto-preview" alt="Foto do Personagem" src="guest.png"/>
+        <div class="field" style="width: 100%;"><strong>Nome:</strong> <span id="nome"></span></div>
+        <div class="field"><strong>Idade:</strong> <span id="idade"></span></div>
+        <div class="field"><strong>Classe:</strong> <span id="classe"></span></div>
+        <div class="field"><strong>Raça:</strong> <span id="raca"></span></div>
+        <div class="field"><strong>Nível:</strong> <span id="nivel"></span></div>
+        
+        <div class="field" style="width: 100%;display: flex; flex-wrap: wrap; padding-bottom: 10px;">
+            <strong style="width: 100%; margin-bottom: 10px;">História:</strong>
+            <span id="historia" style="text-align: justify;">
+                <img id="fotoPreviewhistoria" class="foto-preview" alt="Foto do Personagem" src="guest.png" style="margin: 0;float: left; max-width: calc(50% - 10px); margin-right: 10px;"/>
+            </span>
+        </div>
 
-    <div class="field" style="width: 100%;"><strong>Traços de Personalidade:</strong> <span id="tracos"></span></div>
-</div>
- <div class="container">
-    <h2>Status</h2>
-    <div class="field"><strong>Vida:</strong> <span id="pv"></span></div>
-    <div class="field"><strong>Mana:</strong> <span id="pm"></span></div>
-    <div class="field"><strong>Armadura:</strong> <span id="ca"></span></div>
-    <div class="field"><strong>Esquiva:</strong> <span id="esquiva"></span></div>
-    <div class="field"><strong>Bloqueio:</strong> <span id="bloqueio"></span></div>
-    <div class="field"><strong>Deslocamento:</strong> <span id="deslocamento"></span></div>
-</div>
- <div class="container">
-    <h2>Atributos</h2>
-    <div class="field"><strong>Agilidade:</strong> <span id="agilidade"></span></div>
-    <div class="field"><strong>Carisma:</strong> <span id="carisma"></span></div>
-    <div class="field"><strong>Força:</strong> <span id="forca"></span></div>
-    <div class="field"><strong>Inteligência:</strong> <span id="inteligencia"></span></div>
-    <div class="field"><strong>Sabedoria:</strong> <span id="sabedoria"></span></div>
-    <div class="field"><strong>Vigor:</strong> <span id="vigor"></span></div>
-</div>
- <div class="container">
-    <h2>Perícias</h2>
-    <div id="listaPericias" class="card-list"></div>
-</div>
- <div class="container">
-    <h2>Inventário</h2>
-    <div id="listaItens" class="card-list"></div>
-</div>
- <div class="container">
-    <h2>Habilidades</h2>
-    <div id="listaHabilidades" class="card-list"></div>
-</div>
- <div class="container">
-    <h2>Magias</h2>
-    <div id="listaMagias" class="card-list"></div>
-</div>
-
-<div class="container">
-    <!-- Substitua a parte do botão no final -->
-   <div style="text-align: center; max-width: 400px; margin: auto;">
-  <button onclick="window.location.href='editar.html'" class="btn-medieval" style="width: 100%; margin-bottom: 12px;">
-    ✒️ Editar Ficha
-  </button>
-
-  <button onclick="exportarPDF()" class="btn-medieval" style="width: 100%; margin-bottom: 12px;">
-  📄 Exportar como PDF
-</button>
-  </div>
-</div>
-
-</div>
-
-
+        <div class="field" style="width: 100%;display: flex; flex-wrap: wrap; padding-bottom: 10px;">
+            <strong style="width: 100%; margin-bottom: 10px;">Traços de Personalidade:</strong>
+            <br>
+            <span id="tracos" style="text-align: justify;">
+                <img id="fotoPreviewPersonalidade" class="foto-preview" alt="Foto do Personagem" src="guest.png" style="margin: 0;float: left; max-width: calc(50% - 10px); margin-right: 10px;"/>
+            </span>
+        </div>
+        
+        <div class="field" style="width: 100%;display: flex;flex-wrap: wrap; padding-bottom: 10px;">
+            <strong style="width: 100%; margin-bottom: 10px">Motivação :</strong>
+            <span id="motivacao" style="text-align: justify;">
+                <img id="fotoPreviewMotivacao" class="foto-preview" alt="Foto do Personagem" src="guest.png" style="margin: 0;float: left; max-width: calc(50% - 10px); margin-right: 10px;"/>
+            </span>
+        </div>
     </div>
-  </div>
 
+    <div class="container">
+        <h2>Status</h2>
+        <div class="field"><strong>Vida:</strong> <span id="pv"></span></div>
+        <div class="field"><strong>Mana:</strong> <span id="pm"></span></div>
+        <div class="field"><strong>Armadura:</strong> <span id="ca"></span></div>
+        <div class="field"><strong>Esquiva:</strong> <span id="esquiva"></span></div>
+        <div class="field"><strong>Bloqueio:</strong> <span id="bloqueio"></span></div>
+        <div class="field"><strong>Deslocamento:</strong> <span id="deslocamento"></span></div>
+    </div>
 
-<script>
-  function carregarFicha(dados) {
-    try {
-      const ficha = typeof dados === "string" ? JSON.parse(dados) : dados;
+    <div class="container">
+        <h2>Atributos</h2>
+        <div class="field"><strong>Agilidade:</strong> <span id="agilidade"></span></div>
+        <div class="field"><strong>Carisma:</strong> <span id="carisma"></span></div>
+        <div class="field"><strong>Força:</strong> <span id="forca"></span></div>
+        <div class="field"><strong>Inteligência:</strong> <span id="inteligencia"></span></div>
+        <div class="field"><strong>Sabedoria:</strong> <span id="sabedoria"></span></div>
+        <div class="field"><strong>Vigor:</strong> <span id="vigor"></span></div>
+    </div>
 
-      // Atualiza spans simples
-      const campos = [
-        "nome", "idade", "classe", "raca", "nivel", "tracos",
-        "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
-        "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
-      ];
-      campos.forEach(c => renderSpan(c, ficha[c]));
+    <div class="container">
+        <h2>Perícias</h2>
+        <div id="listaPericias" class="card-list"></div>
+    </div>
 
-      if (ficha.imagem) {
-        document.getElementById("fotoPreview").src = ficha.imagem;
-      }
+    <div class="container">
+        <h2>Inventário</h2>
+        <div id="listaItens" class="card-list"></div>
+    </div>
 
-      renderCardList("listaPericias", garantirArray(ficha.pericias));
-      renderCardList("listaItens", garantirArray(ficha.itens));
-      renderCardList("listaHabilidades", garantirArray(ficha.habilidades));
-      renderCardList("listaMagias", garantirArray(ficha.magias));
+    <div class="container">
+        <h2>Habilidades</h2>
+        <div id="listaHabilidades" class="card-list"></div>
+    </div>
 
-    } catch (e) {
-      console.error("Erro ao carregar ficha:", e);
-    }
-  }
+    <div class="container">
+        <h2>Magias</h2>
+        <div id="listaMagias" class="card-list spell-slider"></div>
+    </div>
 
-  // Recebe dados via postMessage e salva no localStorage
-  window.addEventListener("message", (event) => {
-    if (!event.data || event.data.tipo !== 'ficha') return;
-    const dados = event.data.dados;
-    localStorage.setItem("fichaRPG", JSON.stringify(dados));
-    carregarFicha(dados);
-  });
+    <div class="container">
+        <div style="text-align: center; width: 100%;">
+            <button onclick="window.location.href='editar.html'" class="btn-medieval" style="width: 100%;">
+                ✒️ Editar Ficha
+            </button>
+        </div>
+    </div>
+    
+    <!-- Modal para visualização da imagem expandida -->
+    <div id="imageModal" class="modal-overlay">
+        <img id="expandedImage" class="modal-content" src="" alt="Imagem Expandida">
+    </div>
 
-  // Fallback: tenta carregar do localStorage
-  window.addEventListener("DOMContentLoaded", () => {
-    const local = localStorage.getItem("fichaRPG");
-    if (local) carregarFicha(local);
-  });
+    <script>
+        let dbInstance = null;
+        const DB_NAME = 'FichaRPGDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'ficha';
 
-  async function exportarPDF() {
-    const { jsPDF } = window.jspdf;
-    const container = document.body;
+        function abrirDB() {
+            if (dbInstance) {
+                return Promise.resolve(dbInstance);
+            }
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    dbInstance = request.result;
+                    resolve(dbInstance);
+                };
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+            });
+        }
 
-    try {
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        useCORS: true
-      });
+        function pegarFicha() {
+            return abrirDB().then(db => {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, "readonly");
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get("dados");
+                    request.onerror = () => {
+                        console.error("Erro na requisição get:", request.error);
+                        reject(request.error);
+                    };
+                    request.onsuccess = () => {
+                        console.log("Dados obtidos:", request.result);
+                        resolve(request.result);
+                    };
+                });
+            });
+        }
 
-      const imgData = canvas.toDataURL("image/png");
-      const pxToMm = px => px * 0.264583;
-      const canvasWidthMm = pxToMm(canvas.width);
-      const canvasHeightMm = pxToMm(canvas.height);
+        function garantirArray(valor) {
+            return Array.isArray(valor) ? valor : [];
+        }
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [canvasWidthMm, canvasHeightMm]
-      });
+        function renderSpan(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML += value.trim() || '-';
+            } else {
+                console.warn(`Elemento com id '${id}' não encontrado.`);
+            }
+        }
 
-      pdf.addImage(imgData, "PNG", 0, 0, canvasWidthMm, canvasHeightMm);
+        function renderCardList(listaId, items) {
+            const container = document.getElementById(listaId);
+            if (!container) {
+                console.warn(`Container com id '${listaId}' não encontrado.`);
+                return;
+            }
+            container.innerHTML = '';
+            (items || []).forEach(item => {
+                const div = document.createElement('div');
+                if(listaId == "listaHabilidades"){div.style.display="block"}
+                if(listaId == "listaMagias"){div.style.alignItems= "flex-start"}
+                div.className = 'card-item';
+                div.style.flexDirection = 'row';
+                div.style.justifyContent = 'flex-start';
+                div.innerHTML = item;
+                div.style.flexWrap = "nowrap";
+                container.appendChild(div);
+            });
+        }
 
-      const nomeArquivo = (dados?.nome || "ficha") + "_ficha.pdf";
-      pdf.save(nomeArquivo);
+        const campos = [
+            "nome", "idade", "classe", "raca", "nivel", "tracos", "historia", "motivacao",
+            "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
+            "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
+        ];
 
-    } catch (err) {
-      alert("Erro ao exportar o PDF.");
-      console.error(err);
-    }
-  }
+        window.onload = () => {
+            pegarFicha()
+            .then(dados => {
+                if (!dados) {
+                    console.log("Nenhum dado encontrado no banco.");
+                    return;
+                }
 
-  const dados = JSON.parse(localStorage.getItem("fichaRPG")) || {};
+                console.log("Renderizando ficha:", dados);
 
-  function garantirArray(valor) {
-    return Array.isArray(valor) ? valor : [];
-  }
+                campos.forEach(c => renderSpan(c, dados[c]));
+                
+                if (dados.imagemMotivacaoBase64) {
+                    const Motivacao = document.getElementById("fotoPreviewMotivacao"); 
+                    if (Motivacao) { Motivacao.src = dados.imagemMotivacaoBase64; } else {
+                        console.warn("Elemento 'fotoPreviewMotivacao' não encontrado.");
+                    }
+                }
 
-  function renderSpan(id, value) {
-    document.getElementById(id).textContent = value || '-';
-  }
+                if (dados.imagemHistoriaBase64) {
+                    const historia = document.getElementById("fotoPreviewhistoria"); 
+                    if (historia) { historia.src = dados.imagemHistoriaBase64; } else {
+                        console.warn("Elemento 'fotoPreviewhistoria' não encontrado.");
+                    }
+                }
 
-  function renderCardList(listaId, items) {
-    const container = document.getElementById(listaId);
-    container.innerHTML = '';
+                if (dados.imagemPersonalidadeBase64) {
+                    const Personalidade = document.getElementById("fotoPreviewPersonalidade"); 
+                    if (Personalidade) { Personalidade.src = dados.imagemPersonalidadeBase64; } else {
+                        console.warn("Elemento 'fotoPreviewPersonalidade' não encontrado.");
+                    }
+                }
 
-    (items || []).forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'card-item';
-      div.innerHTML = item;
-      container.appendChild(div);
-    });
-  }
+                if (dados.imagem) {
+                    const foto = document.getElementById("fotoPreview"); 
+                    if (foto) { foto.src = dados.imagem; } else {
+                        console.warn("Elemento 'fotoPreview' não encontrado.");
+                    }
+                }
 
-  const campos = [
-    "nome", "idade", "classe", "raca", "nivel", "tracos",
-    "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
-    "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
-  ];
+                renderCardList("listaPericias", garantirArray(dados.pericias));
+                renderCardList("listaItens", garantirArray(dados.itens));
+                renderCardList("listaHabilidades", garantirArray(dados.habilidades));
+                renderCardList("listaMagias", garantirArray(dados.magias));
+                
+                // Adiciona o evento de clique para expandir a imagem
+                document.querySelectorAll('img').forEach(img => {
+                    img.addEventListener('click', () => {
+                        const modal = document.getElementById('imageModal');
+                        const expandedImage = document.getElementById('expandedImage');
+                        expandedImage.src = img.src;
+                        modal.style.display = 'flex';
+                    });
+                });
+            })
+            .catch(err => {
+                console.error("Erro ao carregar ficha do IndexedDB:", err);
+            });
+        };
 
-  campos.forEach(c => renderSpan(c, dados[c]));
+        // Adiciona o evento de clique para fechar o modal
+        document.getElementById('imageModal').addEventListener('click', () => {
+            document.getElementById('imageModal').style.display = 'none';
+        });
 
-  if (dados.imagem) {
-    document.getElementById("fotoPreview").src = dados.imagem;
-  }
-
-  renderCardList("listaPericias", garantirArray(dados.pericias));
-  renderCardList("listaItens", garantirArray(dados.itens));
-  renderCardList("listaHabilidades", garantirArray(dados.habilidades));
-  renderCardList("listaMagias", garantirArray(dados.magias));
-</script>
-
-
+    </script>
 </body>
-</html> 
+</html>
