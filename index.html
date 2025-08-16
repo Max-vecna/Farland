@@ -1,276 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Visualizar Ficha</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="style.css" />
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesa de Jogo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilos para o modal de visualização de imagem */
-        .modal-overlay {
-            display: none; /* Inicia oculto */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-        }
+        /* Cole aqui os mesmos estilos <style> do seu mesa.html anterior */
+        body { background: linear-gradient(to bottom right, #111827, #1f2937); color: #d1d5db; font-family: 'Inter', sans-serif; overflow: hidden; }
+        #mesa { display: flex; flex-wrap: wrap; gap: 16px; padding: 24px; align-content: flex-start; min-height: 100vh; background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%); }
+        .carta-na-mesa { width: 120px; height: 168px; border-radius: 8px; background-size: cover; background-position: center; border: 3px solid #4f46e5; box-shadow: 0 6px 12px rgba(0,0,0,0.4); position: relative; transform: scale(0.8) translateY(20px); opacity: 0; animation: surgir 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; overflow: hidden; }
+        .carta-na-mesa::after { content: attr(data-title); position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); color: white; font-size: 12px; font-weight: bold; padding: 12px 4px 4px 4px; text-align: center; text-shadow: 1px 1px 2px black; }
+        @keyframes surgir { to { transform: scale(1) translateY(0); opacity: 1; } }
+        #limpar-mesa-btn { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 id="nomeTitulo">Ficha do Personagem</h1>
-    </div>
+    <div id="mesa"></div>
+    <button id="limpar-mesa-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full shadow-lg">
+        Limpar Mesa
+    </button>
 
-    <div class="container">
-        <img id="fotoPreview" class="foto-preview" alt="Foto do Personagem" src="guest.png"/>
-        <div class="field" style="width: 100%;"><strong>Nome:</strong> <span id="nome"></span></div>
-        <div class="field"><strong>Idade:</strong> <span id="idade"></span></div>
-        <div class="field"><strong>Classe:</strong> <span id="classe"></span></div>
-        <div class="field"><strong>Raça:</strong> <span id="raca"></span></div>
-        <div class="field"><strong>Nível:</strong> <span id="nivel"></span></div>
-        
-        <div class="field" style="width: 100%;display: flex; flex-wrap: wrap; padding-bottom: 10px;">
-            <strong style="width: 100%; margin-bottom: 10px;">História:</strong>
-            <span id="historia" style="text-align: justify;">
-                <img id="fotoPreviewhistoria" class="foto-preview" alt="Foto do Personagem" src="guest.png" style="margin: 0;float: left; max-width: calc(50% - 10px); margin-right: 10px;"/>
-            </span>
-        </div>
-
-        <div class="field" style="width: 100%;display: flex; flex-wrap: wrap; padding-bottom: 10px;">
-            <strong style="width: 100%; margin-bottom: 10px;">Traços de Personalidade:</strong>
-            <br>
-            <span id="tracos" style="text-align: justify;">
-                <img id="fotoPreviewPersonalidade" class="foto-preview" alt="Foto do Personagem" src="guest.png" style="margin: 0;float: left; max-width: calc(50% - 10px); margin-right: 10px;"/>
-            </span>
-        </div>
-        
-        <div class="field" style="width: 100%;display: flex;flex-wrap: wrap; padding-bottom: 10px;">
-            <strong style="width: 100%; margin-bottom: 10px">Motivação :</strong>
-            <span id="motivacao" style="text-align: justify;">
-                <img id="fotoPreviewMotivacao" class="foto-preview" alt="Foto do Personagem" src="guest.png" style="margin: 0;float: left; max-width: calc(50% - 10px); margin-right: 10px;"/>
-            </span>
-        </div>
-    </div>
-
-    <div class="container">
-        <h2>Status</h2>
-        <div class="field"><strong>Vida:</strong> <span id="pv"></span></div>
-        <div class="field"><strong>Mana:</strong> <span id="pm"></span></div>
-        <div class="field"><strong>Armadura:</strong> <span id="ca"></span></div>
-        <div class="field"><strong>Esquiva:</strong> <span id="esquiva"></span></div>
-        <div class="field"><strong>Bloqueio:</strong> <span id="bloqueio"></span></div>
-        <div class="field"><strong>Deslocamento:</strong> <span id="deslocamento"></span></div>
-    </div>
-
-    <div class="container">
-        <h2>Atributos</h2>
-        <div class="field"><strong>Agilidade:</strong> <span id="agilidade"></span></div>
-        <div class="field"><strong>Carisma:</strong> <span id="carisma"></span></div>
-        <div class="field"><strong>Força:</strong> <span id="forca"></span></div>
-        <div class="field"><strong>Inteligência:</strong> <span id="inteligencia"></span></div>
-        <div class="field"><strong>Sabedoria:</strong> <span id="sabedoria"></span></div>
-        <div class="field"><strong>Vigor:</strong> <span id="vigor"></span></div>
-    </div>
-
-    <div class="container">
-        <h2>Perícias</h2>
-        <div id="listaPericias" class="card-list"></div>
-    </div>
-
-    <div class="container">
-        <h2>Inventário</h2>
-        <div id="listaItens" class="card-list"></div>
-    </div>
-
-    <div class="container">
-        <h2>Habilidades</h2>
-        <div id="listaHabilidades" class="card-list"></div>
-    </div>
-
-    <div class="container">
-        <h2>Magias</h2>
-        <div id="listaMagias" class="card-list spell-slider"></div>
-    </div>
-
-    <div class="container">
-        <div style="text-align: center; width: 100%;">
-            <button onclick="window.location.href='editar.html'" class="btn-medieval" style="width: 100%;">
-                ✒️ Editar Ficha
-            </button>
-        </div>
-    </div>
-    
-    <!-- Modal para visualização da imagem expandida -->
-    <div id="imageModal" class="modal-overlay">
-        <img id="expandedImage" class="modal-content" src="" alt="Imagem Expandida">
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-        let dbInstance = null;
-        const DB_NAME = 'FichaRPGDB';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'ficha';
-
-        function abrirDB() {
-            if (dbInstance) {
-                return Promise.resolve(dbInstance);
-            }
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    dbInstance = request.result;
-                    resolve(dbInstance);
-                };
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
-                    }
-                };
-            });
-        }
-
-        function pegarFicha() {
-            return abrirDB().then(db => {
-                return new Promise((resolve, reject) => {
-                    const transaction = db.transaction(STORE_NAME, "readonly");
-                    const store = transaction.objectStore(STORE_NAME);
-                    const request = store.get("dados");
-                    request.onerror = () => {
-                        console.error("Erro na requisição get:", request.error);
-                        reject(request.error);
-                    };
-                    request.onsuccess = () => {
-                        console.log("Dados obtidos:", request.result);
-                        resolve(request.result);
-                    };
-                });
-            });
-        }
-
-        function garantirArray(valor) {
-            return Array.isArray(valor) ? valor : [];
-        }
-
-        function renderSpan(id, value) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.innerHTML += value.trim() || '-';
-            } else {
-                console.warn(`Elemento com id '${id}' não encontrado.`);
-            }
-        }
-
-        function renderCardList(listaId, items) {
-            const container = document.getElementById(listaId);
-            if (!container) {
-                console.warn(`Container com id '${listaId}' não encontrado.`);
-                return;
-            }
-            container.innerHTML = '';
-            (items || []).forEach(item => {
-                const div = document.createElement('div');
-                if(listaId == "listaHabilidades"){div.style.display="block"}
-                if(listaId == "listaMagias"){div.style.alignItems= "flex-start"}
-                div.className = 'card-item';
-                div.style.flexDirection = 'row';
-                div.style.justifyContent = 'flex-start';
-                div.innerHTML = item;
-                div.style.flexWrap = "nowrap";
-                container.appendChild(div);
-            });
-        }
-
-        const campos = [
-            "nome", "idade", "classe", "raca", "nivel", "tracos", "historia", "motivacao",
-            "pv", "pm", "ca", "esquiva", "bloqueio", "deslocamento",
-            "agilidade", "carisma", "forca", "inteligencia", "sabedoria", "vigor"
-        ];
-
-        window.onload = () => {
-            pegarFicha()
-            .then(dados => {
-                if (!dados) {
-                    console.log("Nenhum dado encontrado no banco.");
-                    return;
-                }
-
-                console.log("Renderizando ficha:", dados);
-
-                campos.forEach(c => renderSpan(c, dados[c]));
-                
-                if (dados.imagemMotivacaoBase64) {
-                    const Motivacao = document.getElementById("fotoPreviewMotivacao"); 
-                    if (Motivacao) { Motivacao.src = dados.imagemMotivacaoBase64; } else {
-                        console.warn("Elemento 'fotoPreviewMotivacao' não encontrado.");
-                    }
-                }
-
-                if (dados.imagemHistoriaBase64) {
-                    const historia = document.getElementById("fotoPreviewhistoria"); 
-                    if (historia) { historia.src = dados.imagemHistoriaBase64; } else {
-                        console.warn("Elemento 'fotoPreviewhistoria' não encontrado.");
-                    }
-                }
-
-                if (dados.imagemPersonalidadeBase64) {
-                    const Personalidade = document.getElementById("fotoPreviewPersonalidade"); 
-                    if (Personalidade) { Personalidade.src = dados.imagemPersonalidadeBase64; } else {
-                        console.warn("Elemento 'fotoPreviewPersonalidade' não encontrado.");
-                    }
-                }
-
-                if (dados.imagem) {
-                    const foto = document.getElementById("fotoPreview"); 
-                    if (foto) { foto.src = dados.imagem; } else {
-                        console.warn("Elemento 'fotoPreview' não encontrado.");
-                    }
-                }
-
-                renderCardList("listaPericias", garantirArray(dados.pericias));
-                renderCardList("listaItens", garantirArray(dados.itens));
-                renderCardList("listaHabilidades", garantirArray(dados.habilidades));
-                renderCardList("listaMagias", garantirArray(dados.magias));
-                
-                // Adiciona o evento de clique para expandir a imagem
-                document.querySelectorAll('img').forEach(img => {
-                    img.addEventListener('click', () => {
-                        const modal = document.getElementById('imageModal');
-                        const expandedImage = document.getElementById('expandedImage');
-                        expandedImage.src = img.src;
-                        modal.style.display = 'flex';
-                    });
-                });
-            })
-            .catch(err => {
-                console.error("Erro ao carregar ficha do IndexedDB:", err);
-            });
+        // COLE AQUI O SEU OBJETO firebaseConfig
+        const firebaseConfig = {
+           apiKey: "AIzaSyCSFhUNp0weU09S13kZmUd0-J50-eHW1YU",
+            authDomain: "farland-cards.firebaseapp.com",
+            projectId: "farland-cards",
+            storageBucket: "farland-cards.firebasestorage.app",
+            messagingSenderId: "347739610452",
+            appId: "1:347739610452:web:d3b172dea431944365fcc1",
+            measurementId: "G-8T74ETC4GV"
         };
 
-        // Adiciona o evento de clique para fechar o modal
-        document.getElementById('imageModal').addEventListener('click', () => {
-            document.getElementById('imageModal').style.display = 'none';
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const mesaRef = database.ref('cartas'); // O "endereço" das nossas cartas no banco
+
+        const mesaDiv = document.getElementById('mesa');
+        const limparMesaBtn = document.getElementById('limpar-mesa-btn');
+
+        // Função para adicionar uma carta à tela
+        function adicionarCartaNaTela(dadosDaCarta, idUnico) {
+            if (document.getElementById(idUnico)) return; // Evita duplicatas
+
+            const cartaDiv = document.createElement('div');
+            cartaDiv.id = idUnico;
+            cartaDiv.className = 'carta-na-mesa';
+            cartaDiv.style.backgroundImage = `url(${dadosDaCarta.imagemUrl})`;
+            cartaDiv.setAttribute('data-title', dadosDaCarta.nome);
+            mesaDiv.appendChild(cartaDiv);
+        }
+
+        // FICA OUVINDO QUANDO UMA NOVA CARTA É ADICIONADA no Firebase
+        mesaRef.on('child_added', (snapshot) => {
+            const idUnico = snapshot.key; // A chave única da carta jogada
+            const dadosDaCarta = snapshot.val(); // Os dados da carta
+            adicionarCartaNaTela(dadosDaCarta, idUnico);
+        });
+
+        // FICA OUVINDO QUANDO AS CARTAS SÃO REMOVIDAS do Firebase
+        mesaRef.on('child_removed', () => {
+            // Simplesmente limpa a mesa inteira
+            mesaDiv.innerHTML = '';
+        });
+        
+        // Limpa todas as cartas do banco de dados
+        limparMesaBtn.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja limpar a mesa para todos?')) {
+                mesaRef.remove();
+            }
         });
 
     </script>
