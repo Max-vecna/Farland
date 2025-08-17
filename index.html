@@ -491,27 +491,28 @@
         }
         .slot-blocked::before { transform: rotate(45deg); }
         .slot-blocked::after { transform: rotate(-45deg); }
+        
+        /* MODIFICAÇÃO 1: Estilo do nome do item no slot para ser sempre visível */
         .slot-item-name {
             position: absolute;
-            bottom: -22px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(17, 24, 39, 0.9);
+            bottom: 2px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background-color: rgba(17, 24, 39, 0.85);
             color: white;
-            padding: 2px 8px;
+            padding: 1px 4px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 600;
             white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s;
+            overflow: hidden;
+            text-overflow: ellipsis;
             z-index: 10;
+            width: 90%;
+            margin: 0 auto;
         }
-        .slot:hover .slot-item-name {
-            opacity: 1;
-            visibility: visible;
-        }
+        
         .spell-mini-card {
             display: flex;
             flex-direction: column;
@@ -736,7 +737,7 @@
                  <div class="flex justify-between items-center mb-6">
                     <h2 id="item-form-title" class="text-2xl font-bold text-amber-300">Novo Item (Pré-criado)</h2>
                     <button class="back-btn text-gray-400 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg xmlns="http="www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
                 <form id="itemForm" class="space-y-6">
@@ -772,7 +773,6 @@
                 </div>
         </div>
 
-        <!-- SEÇÃO DE VINCULAR ITENS E MAGIAS (ATUALIZADA) -->
         <div id="link-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl space-y-6">
                 <div class="text-center">
@@ -788,7 +788,6 @@
                 </div>
 
                 <div id="character-management-area" class="hidden grid md:grid-cols-2 gap-6">
-                    <!-- Coluna do Inventário -->
                     <div id="inventory-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
                         <div class="flex justify-between items-center mb-4">
                             <div>
@@ -801,11 +800,9 @@
                             </button>
                         </div>
                         <div id="item-slots-container" class="grid grid-cols-5 gap-4">
-                            <!-- Slots serão gerados aqui via JS -->
-                        </div>
+                            </div>
                     </div>
 
-                    <!-- Coluna das Magias -->
                     <div id="spell-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
                         <div class="flex justify-between items-center mb-4">
                             <div>
@@ -818,8 +815,7 @@
                             </button>
                         </div>
                         <div id="linked-spells-container" class="min-h-[80px] flex flex-wrap gap-3 content-start">
-                            <!-- Magias vinculadas como mini-cards aqui -->
-                        </div>
+                            </div>
                     </div>
                 </div>
 
@@ -828,7 +824,6 @@
 
     </div>
     
-    <!-- MODAL PARA SELECIONAR ITENS/MAGIAS -->
     <div id="selection-modal" class="modal hidden">
       <div class="modal-content">
         <div class="flex justify-between items-center mb-4">
@@ -836,12 +831,10 @@
             <button id="modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
         </div>
         <div id="modal-list" class="space-y-2 max-h-80 overflow-y-auto">
-          <!-- Lista de itens/magias disponíveis -->
-        </div>
+          </div>
       </div>
     </div>
 
-    <!-- NOVO MODAL PARA ALTERAR STATUS -->
     <div id="status-modal" class="modal hidden">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -869,7 +862,6 @@
     </div>
 
 
-    <!-- MENU DE NAVEGAÇÃO MODIFICADO -->
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/80 backdrop-blur-sm rounded-full p-2 flex items-center gap-2 z-50 shadow-lg" id="nav">
         <button id="showDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Personagens">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>
@@ -1538,10 +1530,10 @@
                                     <div class="wave-container flex justify-center img-max" style="position: relative; width: 180px !important; height: 180px;"><img style="border-color: ${palette.borderColor}; z-index: 1; height: 180px" src="${cardData.imageURL}" onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';" alt="Imagem do personagem" class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
                                     <div class="p-3 rounded-3xl text-center w-full rpg-card-frame" style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
                                         <div class="grid grid-cols-4 gap-x-4 gap-y-1 text-xs my-2 mb-4">
-                                            <div class="text-center">🛡️<br>${cardData.attributes.armadura || 0}</div>
-                                            <div class="text-center">🤸<br>${cardData.attributes.esquiva || 0}</div>
-                                            <div class="text-center">✋<br>${cardData.attributes.bloqueio || 0}</div>
-                                            <div class="text-center">👟<br>${cardData.attributes.deslocamento || 0}m</div>
+                                            <div class="text-center">CA<br>${cardData.attributes.armadura || 0}</div>
+                                            <div class="text-center">ES<br>${cardData.attributes.esquiva || 0}</div>
+                                            <div class="text-center">BL<br>${cardData.attributes.bloqueio || 0}</div>
+                                            <div class="text-center">DL<br>${cardData.attributes.deslocamento || 0}m</div>
                                         </div>
                                         ${Object.entries(cardData.attributes).filter(([key]) => ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'].includes(key)).map(([key, value]) => `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${(value * 100) / 3}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / 3</span></div>`).join('')}
                                         <div class="flex flex-col gap-2 mt-4"><div class="flex items-center justify-center w-full"></div><p class="text-xs text-gray-400 italic">Perícias</p><p class="text-xs text-gray-400 italic" style="font-size: 11px;">${periciasString}</p></div>
@@ -1710,13 +1702,21 @@
                 return cardWrapper;
             }
 
+            // MODIFICAÇÃO 2: Adicionado nome da magia na miniatura
             function createSpellThumbnailElement(spellData) {
                 const thumb = document.createElement('div');
                 thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-teal-500 transition-colors duration-200';
                 thumb.dataset.spellId = spellData.id;
-                thumb.style.background = 'linear-gradient(45deg, #0f172a, #1e293b)';
+                thumb.style.background = `linear-gradient(45deg, #0f172a, #1e293b), url(${spellData.imageURL})`;
+                thumb.style.backgroundSize = 'cover';
+                thumb.style.backgroundPosition = 'center';
+                thumb.style.backgroundBlendMode = 'multiply';
                 thumb.style.minWidth = '5rem';
-                thumb.innerHTML = `<div class="absolute inset-0 bg-opacity-40 flex items-center justify-center" style="background: url(${spellData.imageURL}); background-size: cover;"><img src="${spellData.imageURL}" onerror="this.src='https://placehold.co/40x40/14b8a6/1f2937?text=M';" alt="Miniatura da Magia" class="w-10 h-10 object-cover rounded-full border-2 border-teal-400"></div>`;
+                thumb.innerHTML = `
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-1 text-center">
+                        <img src="${spellData.imageURL}" onerror="this.src='https://placehold.co/40x40/14b8a6/1f2937?text=M';" alt="Miniatura da Magia" class="w-10 h-10 object-cover rounded-full border-2 border-teal-400 mb-1">
+                        <p class="text-white text-[10px] font-bold leading-tight" style="text-shadow: 1px 1px 2px black;">${spellData.name}</p>
+                    </div>`;
                 
                 thumb.addEventListener('click', () => displaySpell(spellData.id));
                 return thumb;
@@ -1876,13 +1876,22 @@
                 return cardWrapper;
             }
             
+            // MODIFICAÇÃO 3: Adicionado nome e carga do item na miniatura
             function createItemThumbnailElement(itemData) {
                 const thumb = document.createElement('div');
                 thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-amber-500 transition-colors duration-200';
                 thumb.dataset.itemId = itemData.id;
-                thumb.style.background = 'linear-gradient(45deg, #272011, #422006)';
+                thumb.style.background = `linear-gradient(45deg, #272011, #422006), url(${itemData.imageURL})`;
+                thumb.style.backgroundSize = 'cover';
+                thumb.style.backgroundPosition = 'center';
+                thumb.style.backgroundBlendMode = 'multiply';
                 thumb.style.minWidth = '5rem';
-                thumb.innerHTML = `<div class="absolute inset-0 bg-opacity-40 flex items-center justify-center" style="background: url(${itemData.imageURL}); background-size: cover;"><img src="${itemData.imageURL}" onerror="this.src='https://placehold.co/40x40/f59e0b/422006?text=I';" alt="Miniatura do Item" class="w-10 h-10 object-cover rounded-full border-2 border-amber-400"></div>`;
+                thumb.innerHTML = `
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-1 text-center">
+                        <img src="${itemData.imageURL}" onerror="this.src='https://placehold.co/40x40/f59e0b/422006?text=I';" alt="Miniatura do Item" class="w-10 h-10 object-cover rounded-full border-2 border-amber-400 mb-1">
+                        <p class="text-white text-[10px] font-bold leading-tight" style="text-shadow: 1px 1px 2px black;">${itemData.name}</p>
+                        <p class="text-amber-300 text-[9px] font-semibold">Carga: ${itemData.charge || 1}</p>
+                    </div>`;
                 
                 thumb.addEventListener('click', () => displayItem(itemData.id));
                 return thumb;
@@ -2384,7 +2393,7 @@
                 
                 let totalSlots = strength * 5;
                 if (items.some(item => item.name.toLowerCase().includes('mochila'))) {
-                    totalSlots += 2;
+                    totalSlots += 3;
                 }
                 
                 const totalCharge = items.reduce((acc, item) => acc + (item.charge || 1), 0);
@@ -2444,7 +2453,7 @@
                 const strength = parseInt(character.attributes.forca) || 0;
                 let totalSlots = strength * 5;
                 if (items.some(item => item.name.toLowerCase().includes('mochila'))) {
-                    totalSlots += 2;
+                    totalSlots += 3;
                 }
 
                 for (let i = 0; i < totalSlots; i++) {
@@ -2469,7 +2478,7 @@
                 
                 let totalSlots = strength * 5;
                  if (charItems.some(item => item.name.toLowerCase().includes('mochila')) || templateItem.name.toLowerCase().includes('mochila')) {
-                    totalSlots += 2;
+                    totalSlots += 3;
                 }
 
                 const totalCharge = charItems.reduce((acc, item) => acc + (item.charge || 1), 0);
