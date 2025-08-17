@@ -3,79 +3,2748 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesa de Jogo</title>
+    <title>Criador de Cartões Estilo RPG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        /* Cole aqui os mesmos estilos <style> do seu mesa.html anterior */
-        body { background: linear-gradient(to bottom right, #111827, #1f2937); color: #d1d5db; font-family: 'Inter', sans-serif; overflow: hidden; }
-        #mesa { display: flex; flex-wrap: wrap; gap: 16px; padding: 24px; align-content: flex-start; min-height: 100vh; background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%); }
-        .carta-na-mesa { width: 120px; height: 168px; border-radius: 8px; background-size: cover; background-position: center; border: 3px solid #4f46e5; box-shadow: 0 6px 12px rgba(0,0,0,0.4); position: relative; transform: scale(0.8) translateY(20px); opacity: 0; animation: surgir 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; overflow: hidden; }
-        .carta-na-mesa::after { content: attr(data-title); position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); color: white; font-size: 12px; font-weight: bold; padding: 12px 4px 4px 4px; text-align: center; text-shadow: 1px 1px 2px black; }
-        @keyframes surgir { to { transform: scale(1) translateY(0); opacity: 1; } }
-        #limpar-mesa-btn { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
-    </style>
-</head>
-<body>
-    <div id="mesa"></div>
-    <button id="limpar-mesa-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full shadow-lg">
-        Limpar Mesa
-    </button>
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-    <script>
-        // COLE AQUI O SEU OBJETO firebaseConfig
-        const firebaseConfig = {
-           apiKey: "AIzaSyCSFhUNp0weU09S13kZmUd0-J50-eHW1YU",
-            authDomain: "farland-cards.firebaseapp.com",
-            projectId: "farland-cards",
-            storageBucket: "farland-cards.firebasestorage.app",
-            messagingSenderId: "347739610452",
-            appId: "1:347739610452:web:d3b172dea431944365fcc1",
-            measurementId: "G-8T74ETC4GV"
-        };
-
-        // Inicializa o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const mesaRef = database.ref('cartas'); // O "endereço" das nossas cartas no banco
-
-        const mesaDiv = document.getElementById('mesa');
-        const limparMesaBtn = document.getElementById('limpar-mesa-btn');
-
-        // Função para adicionar uma carta à tela
-        function adicionarCartaNaTela(dadosDaCarta, idUnico) {
-            if (document.getElementById(idUnico)) return; // Evita duplicatas
-
-            const cartaDiv = document.createElement('div');
-            cartaDiv.id = idUnico;
-            cartaDiv.className = 'carta-na-mesa';
-            cartaDiv.style.backgroundImage = `url(${dadosDaCarta.imagemUrl})`;
-            cartaDiv.setAttribute('data-title', dadosDaCarta.nome);
-            mesaDiv.appendChild(cartaDiv);
+          /* Variáveis de Cor e Animação para fácil customização */
+        :root {
+            --progress-bar-bg: #333;
+            
+            /* Variáveis para a Vida */
+            --life-percent: 100;
+            --beat-duration: 0.8s;
+            
+            /* Variáveis para a Mana */
+            --mana-percent: 100;
         }
 
-        // FICA OUVINDO QUANDO UMA NOVA CARTA É ADICIONADA no Firebase
-        mesaRef.on('child_added', (snapshot) => {
-            const idUnico = snapshot.key; // A chave única da carta jogada
-            const dadosDaCarta = snapshot.val(); // Os dados da carta
-            adicionarCartaNaTela(dadosDaCarta, idUnico);
-        });
-
-        // FICA OUVINDO QUANDO AS CARTAS SÃO REMOVIDAS do Firebase
-        mesaRef.on('child_removed', () => {
-            // Simplesmente limpa a mesa inteira
-            mesaDiv.innerHTML = '';
-        });
+        /* Container do ícone (coração ou poção) */
+        .icon-container {
+          width: 100px;
+          height: 100px; 
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1;
+          cursor: pointer;
+        }
         
-        // Limpa todas as cartas do banco de dados
-        limparMesaBtn.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja limpar a mesa para todos?')) {
-                mesaRef.remove();
-            }
-        });
+        .heart-container {
+             animation: beat var(--beat-duration) infinite cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        
+        /* SVG do coração */
+        .heart-svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            fill: hsl(0, calc(var(--life-percent) * 1%), calc(25% + var(--life-percent) * 0.3%));
+            transition: fill 0.3s ease;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+        }
+        
+        /* Estilos para a poção */
+        .potion-svg {
+            width: 80%;
+            height: 80%;
+            overflow: visible; /* Garante que as bolhas não sejam cortadas */
+        }
 
+        .potion-liquid {
+            fill: #8e44ad; /* Cor roxa para o líquido */
+            transform-origin: bottom;
+            transform: scaleY(calc(var(--mana-percent) / 100));
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .potion-glass {
+            fill: rgba(200, 200, 255, 0.15);
+            stroke: rgba(200, 200, 255, 0.4);
+            stroke-width: 2.5;
+        }
+        
+        .potion-cork {
+            fill: #d2a679;
+        }
+
+        /* Animação de bolhas */
+        .bubble {
+            fill: #c39bd3;
+            animation: bubble-rise 4s infinite ease-in-out;
+            opacity: 0.8;
+            transition: r 0.3s ease;
+        }
+        .bubble:nth-child(2) { animation-delay: 1.5s; animation-duration: 5s; }
+        .bubble:nth-child(3) { animation-delay: 2.8s; animation-duration: 3.5s; }
+
+        @keyframes bubble-rise {
+            0% { transform: translateY(0); opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-35px); opacity: 0; }
+        }
+        
+        /* Container geral para o texto de status */
+        .status-text-container {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-weight: bold;
+          color: white;
+          z-index: 2;
+          user-select: none;
+        }
+        
+        /* Estilo para o formato de fração (atual/max) */
+        .status-fraction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 0.9;
+        }
+
+        .fraction-line {
+            width: 70%;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.8);
+            margin: 1px 0;
+            border-radius: 1px;
+        }
+
+        /* Posicionamento e estilo específico para o texto de vida */
+        #life-status-container {
+            font-size: 24px;
+        }
+
+        /* Posicionamento e estilo específico para os textos de mana */
+        #mana-status-container {
+            position: absolute;
+            top: 5px;
+            font-size: 14px;
+        }
+
+        #mana-percentage-text {
+            font-size: 28px;
+            opacity: 0.8;
+        }
+
+        /* Animação de batida do coração */
+        @keyframes beat {
+            0%, 100% { transform: scale(0.95); }
+            30% { transform: scale(1.1); }
+            60% { transform: scale(0.9); }
+        }
+        
+
+        /* Estilos gerais e de animação (sem alterações) */
+        .divPartculas h2 {
+            font-size: 2em;
+            margin: 0 0 10px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        .divPartculas p { font-size: 1em; }
+        .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0; 
+            animation: disperse var(--duration) forwards; 
+        }
+        @keyframes disperse {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: .3; }
+            100% { transform: translate(var(--x), var(--y)) scale(0) rotate(var(--r)); opacity: 0; }
+        }
+        .back-content{
+            width: 100%;
+            height: calc(100% - 30px);
+            margin: 15px;
+            border-radius: 7px;
+        }
+        .card-3d-container { perspective: 1500px; width: 100%; height: 650px; }
+        .card-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d; 
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; 
+            border-radius: 20px;
+            box-shadow: 0px 0px 6px 0px #0f1908;
+        }
+        .card-back {
+            transform: rotateY(180deg); 
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .rpg-card .ex-max { background-size: cover; background-blend-mode: multiply; }
+        .rpg-card:fullscreen .card-3d-container{ width: 90%;}
+        .rpg-card:fullscreen .ex-max, .rpg-card:fullscreen .card-3d-container {
+            display: flex;
+            border-radius: 10px;
+            justify-content: center;
+            background-size: cover !important;
+        }
+        .rpg-card:fullscreen .img-max {
+            width: 200px !important;
+            height: 200px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: auto;
+        }
+        .rpg-card:fullscreen .img-max img { width: 100%; height: 100%; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #111827, #1f2937);
+            color: #d1d5db;
+        }
+        #mainContent {
+             padding-bottom: 70px; /* Adiciona espaço para o menu fixo */
+        }
+        input:focus, textarea:focus, select:focus {
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5);
+            border-color: #8b5cf6;
+            outline: none;
+        }
+        .btn-gradient-pulse {
+            background-size: 200% 200%;
+            animation: pulse-gradient 2s linear infinite;
+        }
+        @keyframes pulse-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .rpg-card {
+            background-image: url('https://placehold.co/400x600/1e293b/d1d5db?text=Fundo+do+Cart%C3%A3o');
+            background-size: cover;
+            background-position: center;
+            border: 4px solid #1f2937;
+            position: relative;
+        }
+        .rpg-card-frame {
+            backdrop-filter: blur(8px);
+            border: 2px solid var(--border-color, #4b5563);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease-in-out;
+            background-color: var(--card-bg-color, rgba(31, 41, 55, 0.9));
+            color: var(--text-color, #f3f4f6);
+            width: 100%;
+        }
+        .rpg-card:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: 0;
+            border-radius: 0;
+            background-blend-mode: multiply;
+        }
+        .rpg-card:fullscreen .rpg-card-frame { max-width: 100%; max-height: 90vh; overflow-y: auto; }
+        .rpg-card:fullscreen button, .rpg-card:fullscreen .swiper-navigation { display: none; }
+        .rpg-card-title-divider {
+            height: 2px;
+            width: 80%;
+            background: linear-gradient(to right, transparent, var(--border-color, #6b7280), transparent);
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .file-upload-input {
+            width: 100%; padding: 0.5rem 1rem; margin-top: 0.25rem; background-color: #4b5563;
+            color: white; border-radius: 0.5rem; border: 1px solid #4b5563;
+            transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .file-upload-input:hover { border-color: #6b7280; }
+        .file-upload-input::-webkit-file-upload-button {
+            background-color: #6366f1; color: white; padding: 0.5rem 1rem; border: none;
+            border-radius: 9999px; font-weight: 600; margin-right: 1rem; cursor: pointer;
+        }
+        .file-upload-input::-webkit-file-upload-button:hover { background-color: #4f46e5; }
+        small {
+            position: absolute; left: -10px; top: -10px; padding: 5px; border-radius: 50px;
+            font-size: 11px !important; width: 30px; height: 30px; display: flex;            
+            align-items: center; justify-content: center; transform: scale(0.8);
+        }
+        #thumbnail-list, #spell-thumbnail-list, #item-thumbnail-list {
+            min-height: 7rem;
+            max-height: 8rem; overflow-y: hidden; overflow-x: auto; display: flex; flex-direction: row;
+            flex-wrap: nowrap; justify-content: flex-start; align-items: center;
+            background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
+        }
+        .splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--card-bg-color, rgba(31, 41, 55, 0.9));
+            color: #f3f4f6; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; z-index: 9999; transition: opacity 1s ease-in-out;
+        }
+        .splash-screen.hidden { opacity: 0; pointer-events: none; }
+        #loaderClipRect { transition: height 0.5s ease-in-out; }
+        .progress-text { text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .stat-fill {
+            height: 100%; background-color: #eab308; border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+        }
+        .stat-bar {
+            background-color: #4a5568; border-radius: 9999px; height: 8px;
+            margin-top: 0.25rem; position: relative;
+        }
+        .nav-button {
+            transition: all 0.3s ease-in-out;
+            color: #d1d5db; /* gray-300 */
+        }
+        .nav-button.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.5);
+        }
+        .nav-button:not(.active):hover {
+            background-color: #374151; /* gray-700 */
+        }
+
+        .fullscreen-tab-container {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: calc(100% - 20px);
+            z-index: 100;
+            transition: transform 0.4s ease-out;
+        }
+        .fullscreen-tab-container.collapsed {
+            transform: translate(-50%, calc(100% - 45px));
+            bottom: -45px;
+        }
+        .tab-list-toggler {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            background-color: #23426d;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-list-toggler svg {
+            transition: transform 0.3s ease;
+        }
+        .fullscreen-tab-container.collapsed .tab-list-toggler svg {
+            transform: rotate(180deg);
+        }
+        .fullscreen-tab-content {
+            padding: 10px;
+            background-color: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+        }
+        .fullscreen-tab-content::-webkit-scrollbar { height: 5px; }
+        .fullscreen-tab-content::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        .fullscreen-tab-content::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+        .tab-list-item {
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+            width: 80px;
+        }
+        .tab-list-item:hover { transform: scale(1.1); }
+        .tab-list-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            border: 3px solid #4f46e5;
+            object-fit: cover;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.7);
+        }
+        .tab-list-item p {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #d1d5db;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 80px;
+        }
+
+        .expanded-card-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 200;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.1s ease-in-out;
+            pointer-events: none;
+        }
+        .expanded-card {
+            transform: scale(0.8) !important;
+            transition: transform 0.1s ease-in-out;
+            cursor: default;
+            max-width: 90%;
+            width: 450px;
+            height: 650px; /* Altura fixa para consistência */
+        }
+        .expanded-card-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .expanded-card-container.visible .expanded-card {
+            transform: scale(1);
+        }
+
+        .card-wrapper {
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease-out;
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        .card-wrapper.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        
+        /* ESTILOS ATUALIZADOS: SLOTS E TELA DE VÍNCULO */
+        .slot {
+            width: 60px;
+            height: 60px;
+            border: 2px dashed #4b5563;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            background-color: rgba(17, 24, 39, 0.5);
+        }
+        .slot-available {
+            background-color: rgba(79, 70, 229, 0.1);
+            border-color: #4f46e5;
+        }
+        .slot-occupied {
+            background-color: rgba(34, 197, 94, 0.1);
+            border-style: solid;
+            border-color: #22c55e;
+            cursor: pointer;
+        }
+        .slot-occupied:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #ef4444;
+            border-color: #ef4444;
+        }
+        .slot-occupied img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.375rem;
+        }
+        .slot-blocked {
+            background-color: rgba(55, 65, 81, 0.5);
+            border-color: #4b5563;
+            border-style: solid;
+            cursor: not-allowed;
+            overflow: hidden;
+        }
+        .slot-blocked::before, .slot-blocked::after {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 3px;
+            background-color: #7f1d1d;
+            top: 50%;
+            left: -10%;
+        }
+        .slot-blocked::before { transform: rotate(45deg); }
+        .slot-blocked::after { transform: rotate(-45deg); }
+        .slot-item-name {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(17, 24, 39, 0.9);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+        .slot:hover .slot-item-name {
+            opacity: 1;
+            visibility: visible;
+        }
+        .spell-mini-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            background-color: rgba(13, 148, 136, 0.2);
+            border: 1px solid #0d9488;
+            border-radius: 8px;
+            width: 80px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .spell-mini-card:hover {
+            background-color: rgba(220, 38, 38, 0.4);
+            border-color: #dc2626;
+            transform: scale(1.05);
+        }
+        .spell-mini-card img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #14b8a6;
+        }
+        .spell-mini-card p {
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* Modal para selecionar item e status */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #1f2937; /* gray-800 */
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #4b5563; /* gray-600 */
+            width: 90%;
+            max-width: 500px;
+            border-radius: 1rem;
+        }
+        .modal-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .modal-item:hover {
+            background-color: #374151; /* gray-700 */
+        }
+        .modal-item[disabled] {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .modal-item[disabled]:hover {
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-2">
+
+    <div id="splashScreen" class="splash-screen">
+        <svg xmlns="http://www.w3.org/2000/svg" class="loading-icon text-indigo-400 w-20 h-20" viewBox="0 0 24 24" fill="currentColor">
+            <defs><clipPath id="loaderClipPath"><rect id="loaderClipRect" x="0" y="0" width="24" height="0" /></clipPath></defs>
+            <g clip-path="url(#loaderClipPath)">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 7.74l1.39 2.82 3.12.45-2.26 2.2.53 3.11-2.78-1.46-2.78 1.46.53-3.11-2.26-2.2 3.12.45L12 7.74z" fill="currentColor"/>
+            </g>
+        </svg>
+        <h1 class="text-3xl font-bold mt-4">Forjando Cartões...</h1>
+        <p id="progressText" class="text-sm mt-2 font-medium progress-text">Preparando...</p>
+        <div class="absolute inset-0"></div>
+    </div>
+
+    <div id="mainContent" class="w-full max-w-5xl hidden">
+
+        
+        <div id="creation-section" class="hidden">
+            <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="form-title" class="text-2xl font-bold text-indigo-300">Novo Cartão de Personagem</h2>
+                    <button class="back-btn text-gray-400 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <form id="cardForm" class="space-y-6">
+                    <div>
+                        <label for="cardTitle" class="block text-sm font-semibold mb-1">Nome</label>
+                        <input type="text" id="cardTitle" placeholder="Ex: Guerreiro Lendário" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                    </div>
+                    <div>
+                        <label for="cardSubTitle" class="block text-sm font-semibold mb-1">Raça e Classe</label>
+                        <input type="text" id="cardSubTitle" placeholder="Ex: Humano Mago" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="cardLevel" class="block text-sm font-semibold mb-1">Nível</label>
+                            <input type="number" id="cardLevel" placeholder="1" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                        </div>
+                        <div>
+                            <label for="dinheiro" class="block text-sm font-semibold mb-1">Dinheiro</label>
+                            <input type="number" id="dinheiro" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-300 mb-2">Imagem do Personagem</h3>
+                        <div class="mt-4 text-center">
+                            <label for="characterImageUpload" class="block text-sm font-semibold mb-1 cursor-pointer">Faça upload de uma imagem:</label>
+                            <input type="file" id="characterImageUpload" accept="image/*" class="file-upload-input">
+                            <img id="characterImagePreview" class="mt-4 mx-auto w-32 h-32 object-cover rounded-full border-4 border-gray-600 hidden" alt="Pré-visualização do Personagem">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-300 mb-2">Imagem de Fundo</h3>
+                        <div class="mt-4 text-center">
+                            <label for="backgroundImageUpload" class="block text-sm font-semibold mb-1 cursor-pointer">Faça upload de uma imagem:</label>
+                            <input type="file" id="backgroundImageUpload" accept="image/*" class="file-upload-input">
+                            <div id="backgroundImagePreview" class="mt-4 mx-auto w-full h-48 rounded-lg border-4 border-gray-600 hidden bg-cover bg-center"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <h3 class="col-span-2 text-xl font-bold text-indigo-300">Status de Combate</h3>
+                        <div><label for="vida" class="block text-sm font-semibold mb-1">Vida Máx. (PV)</label><input type="number" id="vida" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="mana" class="block text-sm font-semibold mb-1">Mana Máx. (PM)</label><input type="number" id="mana" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="vidaAtual" class="block text-sm font-semibold mb-1">Vida Atual</label><input type="number" id="vidaAtual" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="manaAtual" class="block text-sm font-semibold mb-1">Mana Atual</label><input type="number" id="manaAtual" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="armadura" class="block text-sm font-semibold mb-1">Armadura</label><input type="number" id="armadura" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="esquiva" class="block text-sm font-semibold mb-1">Esquiva</label><input type="number" id="esquiva" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="bloqueio" class="block text-sm font-semibold mb-1">Bloqueio</label><input type="number" id="bloqueio" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="deslocamento" class="block text-sm font-semibold mb-1">Deslocamento</label><input type="number" id="deslocamento" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <h3 class="col-span-2 text-xl font-bold text-indigo-300">Atributos Principais</h3>
+                        <div><label for="agilidade" class="block text-sm font-semibold mb-1">Agilidade (AGI)</label><input type="number" id="agilidade" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="carisma" class="block text-sm font-semibold mb-1">Carisma (CAR)</label><input type="number" id="carisma" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="forca" class="block text-sm font-semibold mb-1">Força (FOR)</label><input type="number" id="forca" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="inteligencia" class="block text-sm font-semibold mb-1">Inteligência (INT)</label><input type="number" id="inteligencia" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="sabedoria" class="block text-sm font-semibold mb-1">Sabedoria (SAB)</label><input type="number" id="sabedoria" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="vigor" class="block text-sm font-semibold mb-1">Vigor (VIG)</label><input type="number" id="vigor" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-300 mb-2">Perícias</h3>
+                        <div id="pericias-checkboxes-container" class="space-y-2"></div>
+                        <div id="pericia-description-display" class="mt-4 p-4 rounded-lg bg-gray-700 hidden">
+                            <h4 id="periciaDescriptionTitle" class="font-bold text-indigo-300"></h4>
+                            <p id="periciaDescriptionText" class="text-sm text-gray-300 mt-2"></p>
+                        </div>
+                    </div>
+                    <button type="submit" id="submitButton" class="w-full py-3 px-4 rounded-full text-lg font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-xl btn-gradient-pulse">
+                        Criar Cartão
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="display-section">
+            <div id="thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
+                <p class="text-gray-500">Nenhum cartão salvo ainda. Crie um para começar!</p>
+            </div>
+            <div id="card-display-area" class="w-full max-w-lg mx-auto mb-1 items-center justify-center" style="min-height: 720px;">
+                <p class="text-gray-400">Selecione um personagem na lista acima para ver os detalhes.</p>
+            </div>
+        </div>
+
+        <div id="spell-creation-section" class="hidden">
+            <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
+                 <div class="flex justify-between items-center mb-6">
+                    <h2 id="spell-form-title" class="text-2xl font-bold text-teal-300">Nova Magia (Pré-criada)</h2>
+                    <button class="back-btn text-gray-400 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <form id="spellForm" class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-300 mb-2">Ícone da Magia</h3>
+                        <div class="mt-4 text-center">
+                            <label for="spellImageUpload" class="block text-sm font-semibold mb-1 cursor-pointer">Faça upload de uma imagem:</label>
+                            <input type="file" id="spellImageUpload" accept="image/*" class="file-upload-input">
+                            <img id="spellImagePreview" class="mt-4 mx-auto w-32 h-32 object-cover rounded-full border-4 border-gray-600 hidden" alt="Pré-visualização da Magia">
+                        </div>
+                    </div>
+                    <div><label for="spellName" class="block text-sm font-semibold mb-1">Nome</label><input type="text" id="spellName" placeholder="Ex: Curar Ferimentos 1° Círculo" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    <div><label for="spellExecution" class="block text-sm font-semibold mb-1">Execução</label><input type="text" id="spellExecution" placeholder="Ex: padrão" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    <div><label for="spellRange" class="block text-sm font-semibold mb-1">Alcance</label><input type="text" id="spellRange" placeholder="Ex: toque" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    <div><label for="spellTarget" class="block text-sm font-semibold mb-1">Alvo</label><input type="text" id="spellTarget" placeholder="Ex: 1 ser" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    <div><label for="spellDuration" class="block text-sm font-semibold mb-1">Duração</label><input type="text" id="spellDuration" placeholder="Ex: instantânea" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    <div><label for="spellDescription" class="block text-sm font-semibold mb-1">Descrição</label><textarea id="spellDescription" rows="4" placeholder="Ex: Você canaliza energia positiva para curar..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
+                    <div><label for="spellEnhance" class="block text-sm font-semibold mb-1">Aprimorar</label><textarea id="spellEnhance" rows="3" placeholder="Ex: (+2 PM): A cura aumenta para 2d10+2..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
+                    <div><label for="spellTrue" class="block text-sm font-semibold mb-1">Verdadeiro</label><textarea id="spellTrue" rows="3" placeholder="Ex: (+9 PM): muda o alcance para 'curto'..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
+                    <button type="submit" id="spellSubmitButton" class="w-full py-3 px-4 rounded-full text-lg font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                        Salvar Magia
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="spell-display-section" class="hidden">
+                <div id="spell-thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
+                    <p class="text-gray-500">Nenhuma magia salva ainda. Crie uma para começar!</p>
+                </div>
+                <div id="spell-card-display-area" class="w-full max-w-lg mx-auto mb-1 items-center justify-center" style="min-height: 720px;">
+                    <p class="text-gray-400">Selecione uma magia na lista acima para ver os detalhes.</p>
+                </div>
+        </div>
+
+        <div id="item-creation-section" class="hidden">
+            <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
+                 <div class="flex justify-between items-center mb-6">
+                    <h2 id="item-form-title" class="text-2xl font-bold text-amber-300">Novo Item (Pré-criado)</h2>
+                    <button class="back-btn text-gray-400 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <form id="itemForm" class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-amber-300 mb-2">Ícone do Item</h3>
+                        <div class="mt-4 text-center">
+                            <label for="itemImageUpload" class="block text-sm font-semibold mb-1 cursor-pointer">Faça upload de uma imagem:</label>
+                            <input type="file" id="itemImageUpload" accept="image/*" class="file-upload-input">
+                            <img id="itemImagePreview" class="mt-4 mx-auto w-32 h-32 object-cover rounded-full border-4 border-gray-600 hidden" alt="Pré-visualização do Item">
+                        </div>
+                    </div>
+                    <div><label for="itemName" class="block text-sm font-semibold mb-1">Nome</label><input type="text" id="itemName" placeholder="Ex: Poção de Cura" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label for="itemType" class="block text-sm font-semibold mb-1">Tipo</label><input type="text" id="itemType" placeholder="Ex: Leve" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="itemDamage" class="block text-sm font-semibold mb-1">Dano</label><input type="text" id="itemDamage" placeholder="Ex: 2d6" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="itemPrerequisite" class="block text-sm font-semibold mb-1">Pré-requisito</label><input type="text" id="itemPrerequisite" placeholder="Ex: Saber magia" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    </div>
+                    <div><label for="itemEffect" class="block text-sm font-semibold mb-1">Efeito</label><textarea id="itemEffect" rows="4" placeholder="Ex: Explosão imediata gerando fogo..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
+                    <button type="submit" id="itemSubmitButton" class="w-full py-3 px-4 rounded-full text-lg font-bold text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
+                        Salvar Item
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="item-display-section" class="hidden">
+                <div id="item-thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
+                    <p class="text-gray-500">Nenhum item salvo ainda. Crie um para começar!</p>
+                </div>
+                <div id="item-card-display-area" class="w-full max-w-lg mx-auto mb-1 items-center justify-center" style="min-height: 720px;">
+                    <p class="text-gray-400">Selecione um item na lista acima para ver os detalhes.</p>
+                </div>
+        </div>
+
+        <!-- SEÇÃO DE VINCULAR ITENS E MAGIAS (ATUALIZADA) -->
+        <div id="link-section" class="hidden">
+            <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl space-y-6">
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-yellow-300">Gerenciar Personagem</h2>
+                    <p class="text-sm text-gray-400">Vincule itens e magias ao seu personagem.</p>
+                </div>
+                
+                <div>
+                    <label for="character-select" class="block text-sm font-semibold mb-2">Selecione um Personagem:</label>
+                    <select id="character-select" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-yellow-400 focus:ring focus:ring-yellow-300 focus:ring-opacity-50">
+                        <option value="">-- Nenhum Personagem Selecionado --</option>
+                    </select>
+                </div>
+
+                <div id="character-management-area" class="hidden grid md:grid-cols-2 gap-6">
+                    <!-- Coluna do Inventário -->
+                    <div id="inventory-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-amber-300">Inventário</h3>
+                                <p id="slots-info" class="text-sm text-gray-400">Slots disponíveis: 0</p>
+                            </div>
+                            <button id="add-item-btn" class="py-2 px-4 rounded-full text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                Item
+                            </button>
+                        </div>
+                        <div id="item-slots-container" class="grid grid-cols-5 gap-4">
+                            <!-- Slots serão gerados aqui via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Coluna das Magias -->
+                    <div id="spell-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-teal-300">Grimório</h3>
+                                <p class="text-sm text-gray-400">Magias e habilidades conhecidas.</p>
+                            </div>
+                            <button id="add-spell-btn" class="py-2 px-4 rounded-full text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                Magia
+                            </button>
+                        </div>
+                        <div id="linked-spells-container" class="min-h-[80px] flex flex-wrap gap-3 content-start">
+                            <!-- Magias vinculadas como mini-cards aqui -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- MODAL PARA SELECIONAR ITENS/MAGIAS -->
+    <div id="selection-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modal-title" class="text-xl font-bold">Selecione um Item</h3>
+            <button id="modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+        </div>
+        <div id="modal-list" class="space-y-2 max-h-80 overflow-y-auto">
+          <!-- Lista de itens/magias disponíveis -->
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVO MODAL PARA ALTERAR STATUS -->
+    <div id="status-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-indigo-300">Alterar Status</h3>
+                <button id="status-modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            </div>
+            <form id="status-form" class="space-y-4">
+                <div>
+                    <label for="modal-vida-atual" class="block text-sm font-semibold mb-1">Vida Atual</label>
+                    <input type="number" id="modal-vida-atual" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                </div>
+                <div>
+                    <label for="modal-mana-atual" class="block text-sm font-semibold mb-1">Mana Atual</label>
+                    <input type="number" id="modal-mana-atual" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                </div>
+                <div>
+                    <label for="modal-dinheiro" class="block text-sm font-semibold mb-1">Dinheiro</label>
+                    <input type="number" id="modal-dinheiro" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-full font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                    Salvar Alterações
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- MENU DE NAVEGAÇÃO MODIFICADO -->
+    <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/80 backdrop-blur-sm rounded-full p-2 flex items-center gap-2 z-50 shadow-lg" id="nav">
+        <button id="showDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Personagens">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>
+            <span class="hidden md:inline">Personagens</span>
+        </button>
+        <button id="showLinkBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Vincular Itens">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0l-1.5-1.5a2 2 0 112.828-2.828l1.5 1.5 3-3a2 2 0 010 2.828l-3 3a2 2 0 11-2.828-2.828l1.5-1.5-3-3z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M4.586 12.586a2 2 0 112.828 2.828l3-3a2 2 0 012.828 0l1.5 1.5a2 2 0 11-2.828 2.828l-1.5-1.5-3 3a2 2 0 010-2.828l3-3a2 2 0 112.828 2.828l-1.5 1.5 3 3z" clip-rule="evenodd" /></svg>
+            <span class="hidden md:inline">Gerenciar</span>
+        </button>
+        <button id="showSpellDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Grimório (Pré-criados)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" /></svg>
+            <span class="hidden md:inline">Grimório</span>
+        </button>
+        <button id="showItemDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Inventário (Pré-criados)">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4a1 1 0 00-1 1v1a1 1 0 002 0V5a1 1 0 00-1-1zm12 0a1 1 0 00-1 1v1a1 1 0 002 0V5a1 1 0 00-1-1zM5.454 8.454a1 1 0 000 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 0zm9.092 0a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M3 10a7 7 0 1114 0v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3z" /></svg>
+            <span class="hidden md:inline">Inventário</span>
+        </button>
+        <button id="saveDbBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Exportar Ficha">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            <span class="hidden md:inline">Ficha</span>
+        </button>
+    </nav>
+
+
+    <script>
+        // NEW: Array to keep track of particle intervals
+        let particleIntervals = [];
+
+        // NEW: Function to stop all particle animations
+       async function stopParticles() {
+            // Clear all active particle generation intervals
+            particleIntervals.forEach(clearInterval);
+            particleIntervals = []; // Reset the array
+
+            // Remove any existing particle elements from the DOM
+            const existingParticles = document.querySelectorAll('.sparkle');
+            existingParticles.forEach(p => p.remove());
+        }
+
+        // UPDATED: Particle function now resets before starting
+        async function part() {
+            // First, stop any previously running particle animations
+            await stopParticles();
+
+            const divsParticulas = document.querySelectorAll('.divPartculas');
+            divsParticulas.forEach(divParticulas => {
+                const estilos = window.getComputedStyle(divParticulas);
+                const maxParticles = 80; 
+                let currentParticles = 0;
+                function createSparkle() {
+                    if (currentParticles >= maxParticles) return;
+                    const sparkle = document.createElement('div');
+                    sparkle.classList.add('sparkle');
+                    divParticulas.appendChild(sparkle); 
+                    currentParticles++;
+                    const rect = divParticulas.getBoundingClientRect();
+                    const spawnX = Math.random() * rect.width; 
+                    const spawnY = Math.random() * rect.height;
+                    sparkle.style.opacity = (0.1 + Math.random() * 0.4).toFixed(2);
+                    sparkle.style.left = `${spawnX}px`; 
+                    sparkle.style.top = `${spawnY}px`;
+                    sparkle.style.backgroundColor = `${estilos.borderColor}`;
+                    sparkle.style.boxShadow = `0 0 5px 2px ${estilos.borderColor}, 0 0 10px 4px ${estilos.borderColor}`;
+                    const size = Math.random() * 1.5 + 0.5;
+                    sparkle.style.width = `${size}px`; 
+                    sparkle.style.height = `${size}px`;
+                    const directionX = (spawnX - rect.width / 2) * 4;
+                    const directionY = (spawnY - rect.height / 2) * 4;
+                    sparkle.style.setProperty('--x', `${directionX}px`);
+                    sparkle.style.setProperty('--y', `${directionY}px`);
+                    sparkle.style.setProperty('--r', `${Math.random() * 720}deg`);
+                    sparkle.style.setProperty('--duration', `${Math.random() * 15 + 10}s`);
+                    sparkle.addEventListener('animationend', () => { 
+                        sparkle.remove(); 
+                        currentParticles--; 
+                    });
+                }
+            });
+        }
+
+        const periciasData = {
+            "🏃‍♂️ AGILIDADE": { "Acrobacia": "Capacidade de realizar movimentos ágeis e controlados...", "Iniciativa": "Velocidade de reação quando o combate começa...", "Montaria": "Controle de veículos e montarias complexas...", "Furtividade": "A arte de mover-se sem ser notado...", "Pontaria": "Precisão com armas de longo alcance...", "Ladinagem": "Manipulação veloz e precisa com as mãos...", "Reflexos": "Rapidez em reagir a estímulos..." },
+            "✨ CARISMA": { "Adestramento": "Treinamento e comando de animais...", "Enganação": "A arte de manipular a verdade...", "Intimidação": "Uso da força de personalidade para impor medo...", "Persuasão": "A habilidade de influenciar e inspirar..." },
+            "🧠 INTELIGÊNCIA": { "Arcanismo": "Conhecimento das artes místicas...", "História": "Memória de tempos antigos...", "Investigação": "Capacidade de analisar cenários e reunir pistas...", "Ofício": "Criação, manutenção e reparo de objetos...", "Religião": "Conhecimento sobre divindades e rituais...", "Tecnologia": "Compreensão de mecanismos e engenhocas..." },
+            "🏋️ FORÇA": { "Atletismo": "Medida da força bruta aplicada com técnica...", "Luta": "Combate corpo a corpo com armas simples ou improvisadas..." },
+            "🦉 SABEDORIA": { "Intuição": "Habilidade de ler emoções e detectar mentiras...", "Percepção": "Capacidade de notar detalhes ao redor...", "Medicina": "Conhecimento de curas e tratamento de feridas...", "Natureza": "Sabedoria sobre o mundo natural...", "Sobrevivência": "A perícia de se adaptar ao mundo selvagem...", "Vontade": "Força interior e estabilidade emocional..." },
+            "❤️ VIGOR": { "Fortitude": "Resistência física e imunológica do personagem..." }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.documentElement;
+
+            // --- Funções de atualização visual ---
+            function updateHeartVisuals(currentLife, maxLife) {
+                let current = parseInt(currentLife) || 0;
+                let max = parseInt(maxLife) || 1;
+                if (current > max) current = max;
+
+                const lifePercentage = max > 0 ? (current / max) * 100 : 0;
+                const beatDuration = 2.5 - (lifePercentage / 100) * 2;
+
+                root.style.setProperty('--life-percent', lifePercentage.toFixed(2));
+                root.style.setProperty('--beat-duration', `${beatDuration.toFixed(2)}s`);
+            }
+
+            function updatePotionVisuals(currentMana, maxMana) {
+                let current = parseInt(currentMana) || 0;
+                let max = parseInt(maxMana) || 1;
+                if (current > max) current = max;
+
+                const manaPercentage = max > 0 ? (current / max) * 100 : 0;
+                root.style.setProperty('--mana-percent', manaPercentage.toFixed(2));
+
+                const displayedCard = cardDisplayArea.querySelector('.rpg-card');
+                if (displayedCard) {
+                    const bubbles = displayedCard.querySelectorAll('.bubble');
+                    bubbles.forEach(bubble => {
+                        const baseRadius = parseFloat(bubble.dataset.baseRadius) || 2;
+                        const newRadius = baseRadius * (manaPercentage / 100);
+                        bubble.setAttribute('r', newRadius);
+                    });
+                }
+            }
+
+            // Referências aos elementos do DOM
+            const cardForm = document.getElementById('cardForm');
+            const spellForm = document.getElementById('spellForm');
+            const itemForm = document.getElementById('itemForm');
+            
+            const cardDisplayArea = document.getElementById('card-display-area');
+            const spellCardDisplayArea = document.getElementById('spell-card-display-area');
+            const itemCardDisplayArea = document.getElementById('item-card-display-area');
+
+            const submitButton = document.getElementById('submitButton');
+            const spellSubmitButton = document.getElementById('spellSubmitButton');
+            const itemSubmitButton = document.getElementById('itemSubmitButton');
+            const thumbnailList = document.getElementById('thumbnail-list');
+            const spellThumbnailList = document.getElementById('spell-thumbnail-list');
+            const itemThumbnailList = document.getElementById('item-thumbnail-list');
+            
+            const formTitle = document.getElementById('form-title');
+            const spellFormTitle = document.getElementById('spell-form-title');
+            const itemFormTitle = document.getElementById('item-form-title');
+
+            const cardTitleInput = document.getElementById('cardTitle');
+            const cardSubTitleInput = document.getElementById('cardSubTitle');
+            const cardLevelInput = document.getElementById('cardLevel');
+            const dinheiroInput = document.getElementById('dinheiro');
+
+            const characterImageUpload = document.getElementById('characterImageUpload');
+            const backgroundImageUpload = document.getElementById('backgroundImageUpload');
+            const characterImagePreview = document.getElementById('characterImagePreview');
+            const backgroundImagePreview = document.getElementById('backgroundImagePreview');
+            
+            // Inputs de Status de Combate
+            const vidaInput = document.getElementById('vida');
+            const manaInput = document.getElementById('mana');
+            const vidaAtualInput = document.getElementById('vidaAtual');
+            const manaAtualInput = document.getElementById('manaAtual');
+            const armaduraInput = document.getElementById('armadura');
+            const esquivaInput = document.getElementById('esquiva');
+            const bloqueioInput = document.getElementById('bloqueio');
+            const deslocamentoInput = document.getElementById('deslocamento');
+
+            // Inputs de Atributos Principais
+            const agilidadeInput = document.getElementById('agilidade');
+            const carismaInput = document.getElementById('carisma');
+            const forcaInput = document.getElementById('forca');
+            const inteligenciaInput = document.getElementById('inteligencia');
+            const sabedoriaInput = document.getElementById('sabedoria');
+            const vigorInput = document.getElementById('vigor');
+            
+            const periciasCheckboxesContainer = document.getElementById('pericias-checkboxes-container');
+            const periciaDescriptionDisplay = document.getElementById('pericia-description-display');
+            const periciaDescriptionTitle = document.getElementById('periciaDescriptionTitle');
+            const periciaDescriptionText = document.getElementById('periciaDescriptionText');
+
+            const spellImageUpload = document.getElementById('spellImageUpload');
+            const spellImagePreview = document.getElementById('spellImagePreview');
+            const itemImageUpload = document.getElementById('itemImageUpload');
+            const itemImagePreview = document.getElementById('itemImagePreview');
+
+
+            const splashScreen = document.getElementById('splashScreen');
+            const loaderClipRect = document.getElementById('loaderClipRect');
+            const progressText = document.getElementById('progressText');
+            const mainContent = document.getElementById('mainContent');
+            const nav = document.getElementById('nav');
+
+            // Elementos do menu e seções
+            const showDisplayBtn = document.getElementById('showDisplayBtn');
+            const showLinkBtn = document.getElementById('showLinkBtn');
+            const showSpellDisplayBtn = document.getElementById('showSpellDisplayBtn');
+            const showItemDisplayBtn = document.getElementById('showItemDisplayBtn');
+            const saveDbBtn = document.getElementById('saveDbBtn');
+            
+            const creationSection = document.getElementById('creation-section');
+            const displaySection = document.getElementById('display-section');
+            const spellDisplaySection = document.getElementById('spell-display-section');
+            const itemDisplaySection = document.getElementById('item-display-section');
+            const spellCreationSection = document.getElementById('spell-creation-section');
+            const itemCreationSection = document.getElementById('item-creation-section');
+            const linkSection = document.getElementById('link-section');
+
+            // Elementos da seção de Vínculo
+            const characterSelect = document.getElementById('character-select');
+            const characterManagementArea = document.getElementById('character-management-area');
+            const inventoryManagementArea = document.getElementById('inventory-management-area');
+            const spellManagementArea = document.getElementById('spell-management-area');
+            const slotsInfo = document.getElementById('slots-info');
+            const itemSlotsContainer = document.getElementById('item-slots-container');
+            const linkedSpellsContainer = document.getElementById('linked-spells-container');
+            const addSpellBtn = document.getElementById('add-spell-btn');
+            const addItemBtn = document.getElementById('add-item-btn');
+
+
+            // Modal de Seleção
+            const selectionModal = document.getElementById('selection-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalList = document.getElementById('modal-list');
+
+            // Modal de Status
+            const statusModal = document.getElementById('status-modal');
+            const statusModalCloseBtn = document.getElementById('status-modal-close-btn');
+            const statusForm = document.getElementById('status-form');
+            const modalVidaAtualInput = document.getElementById('modal-vida-atual');
+            const modalManaAtualInput = document.getElementById('modal-mana-atual');
+            const modalDinheiroInput = document.getElementById('modal-dinheiro');
+
+
+            const loadingMessages = ['Invocando o Grimório...', 'Forjando Cartões...', 'Organizando o Inventário...', 'Sincronizando com os Reinos...'];
+
+            function updateActiveNav(activeButton) {
+                [showDisplayBtn, showLinkBtn, showSpellDisplayBtn, showItemDisplayBtn].forEach(button => {
+                    button.classList.remove('active');
+                });
+                activeButton.classList.add('active');
+            }
+
+            // Funções para controlar a visibilidade das seções
+            function hideAllSections() {
+                creationSection.classList.add('hidden');
+                displaySection.classList.add('hidden');
+                spellCreationSection.classList.add('hidden');
+                spellDisplaySection.classList.add('hidden');
+                itemCreationSection.classList.add('hidden');
+                itemDisplaySection.classList.add('hidden');
+                linkSection.classList.add('hidden');
+            }
+
+            function showDisplayView() {
+                hideAllSections();
+                displaySection.classList.remove('hidden');
+                updateActiveNav(showDisplayBtn);
+                stopParticles();
+                part();
+            }
+
+            function showCreationView(isEditing = false) {
+                hideAllSections();
+                creationSection.classList.remove('hidden');
+                stopParticles(); 
+                
+                if (!isEditing) {
+                    formTitle.textContent = "Criar Novo Cartão de Personagem";
+                    submitButton.textContent = 'Criar Cartão';
+                    submitButton.classList.add('btn-gradient-pulse');
+                    cardForm.reset();
+                    showImagePreview(characterImagePreview, null, true);
+                    showImagePreview(backgroundImagePreview, null, false);
+                    currentEditingCardId = null;
+                }
+            }
+            
+            function showSpellCreationView(isEditing = false) {
+                hideAllSections();
+                spellCreationSection.classList.remove('hidden');
+                stopParticles();
+
+                if (!isEditing) {
+                    spellFormTitle.textContent = "Nova Magia (Pré-criada)";
+                    spellSubmitButton.textContent = 'Salvar Magia';
+                    spellForm.reset();
+                    showImagePreview(spellImagePreview, null, true);
+                    currentEditingSpellId = null;
+                }
+            }
+
+            function showSpellDisplayView() {
+                hideAllSections();
+                spellDisplaySection.classList.remove('hidden');
+                updateActiveNav(showSpellDisplayBtn);
+                stopParticles();
+                part();
+            }
+
+            function showItemCreationView(isEditing = false) {
+                hideAllSections();
+                itemCreationSection.classList.remove('hidden');
+                stopParticles();
+
+                if (!isEditing) {
+                    itemFormTitle.textContent = "Novo Item (Pré-criado)";
+                    itemSubmitButton.textContent = 'Salvar Item';
+                    itemForm.reset();
+                    showImagePreview(itemImagePreview, null, true);
+                    currentEditingItemId = null;
+                }
+            }
+
+            function showItemDisplayView() {
+                hideAllSections();
+                itemDisplaySection.classList.remove('hidden');
+                updateActiveNav(showItemDisplayBtn);
+                stopParticles();
+                part();
+            }
+            
+            async function showLinkView() {
+                hideAllSections();
+                linkSection.classList.remove('hidden');
+                updateActiveNav(showLinkBtn);
+                await populateCharacterSelect();
+                characterManagementArea.classList.add('hidden');
+                stopParticles();
+            }
+
+            showDisplayBtn.addEventListener('click', showDisplayView);
+            showLinkBtn.addEventListener('click', showLinkView);
+            showSpellDisplayBtn.addEventListener('click', showSpellDisplayView);
+            showItemDisplayBtn.addEventListener('click', showItemDisplayView);
+
+            document.querySelectorAll('.back-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!creationSection.classList.contains('hidden')) showDisplayView();
+                    if (!spellCreationSection.classList.contains('hidden')) showSpellDisplayView();
+                    if (!itemCreationSection.classList.contains('hidden')) showItemDisplayView();
+                });
+            });
+
+            // Funções da tela de splash
+            function showSplash() {
+                splashScreen.classList.remove('hidden');
+                mainContent.classList.add('hidden');
+                nav.classList.add('hidden');
+                if (loaderClipRect) loaderClipRect.setAttribute('height', '0');
+                progressText.textContent = 'Iniciando aventura...';
+            }
+
+            function updateProgress(percentage, message) {
+                if (loaderClipRect) {
+                    const newHeight = 24 * (percentage / 100);
+                    loaderClipRect.setAttribute('height', newHeight);
+                }
+                if (message) {
+                    progressText.textContent = `${message} (${percentage}%)`;
+                }
+            }
+
+            function hideSplash() {
+                splashScreen.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                nav.classList.remove('hidden');
+                part();
+            }
+
+            function populatePericiasCheckboxes() {
+                periciasCheckboxesContainer.innerHTML = '';
+                for (const attribute in periciasData) {
+                    const details = document.createElement('details');
+                    details.className = 'bg-gray-700 rounded-lg p-2 transition-all duration-300';
+                    details.innerHTML = `<summary class="flex items-center justify-between cursor-pointer font-semibold text-indigo-200"><span>${attribute}</span><svg class="w-4 h-4 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></summary><div class="mt-2 space-y-2 pl-4 border-l border-gray-600 pericias-list"></div>`;
+                    const periciasList = details.querySelector('.pericias-list');
+                    details.querySelector('summary').addEventListener('click', () => { setTimeout(() => { details.querySelector('svg').style.transform = details.open ? 'rotate(90deg)' : 'rotate(0deg)'; }, 300); });
+                    for (const periciaName in periciasData[attribute]) {
+                        const periciaItem = document.createElement('div');
+                        periciaItem.className = 'flex items-center pericia-item rounded-md p-1 cursor-pointer';
+                        periciaItem.innerHTML = `<input type="checkbox" id="pericia-${periciaName.replace(/\s+/g, '-')}" name="pericia" value="${periciaName}" class="form-checkbox h-4 w-4 text-indigo-500 rounded border-gray-600 focus:ring-indigo-500"><label for="pericia-${periciaName.replace(/\s+/g, '-')}" class="ml-2 text-sm text-gray-200 cursor-pointer">${periciaName}</label>`;
+                        periciasList.appendChild(periciaItem);
+                        periciaItem.addEventListener('click', (e) => {
+                            if (e.target.tagName !== 'INPUT') { const checkbox = periciaItem.querySelector('input'); checkbox.checked = !checkbox.checked; }
+                            periciaDescriptionTitle.textContent = periciaName;
+                            periciaDescriptionText.textContent = periciasData[attribute][periciaName];
+                            periciaDescriptionDisplay.classList.remove('hidden');
+                        });
+                    }
+                    periciasCheckboxesContainer.appendChild(details);
+                }
+            }
+
+            // Variáveis de estado e IndexedDB
+            let currentEditingCardId = null;
+            let currentEditingSpellId = null;
+            let currentEditingItemId = null;
+            let currentLinkingCharacterId = null;
+            let currentStatusEditingCardId = null; // Para o modal de status
+
+            let db;
+            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 5; // Versão incrementada para novos campos
+            const CARD_STORE_NAME = 'rpgCards';
+            const SPELL_STORE_NAME = 'rpgSpells';
+            const ITEM_STORE_NAME = 'rpgItems';
+            let characterImageFile = null, backgroundImageFile = null, spellImageFile = null, itemImageFile = null;
+
+            function bufferToBlob(buffer, mimeType) { return new Blob([buffer], { type: mimeType }); }
+            function rgbToHsl(r, g, b) { r /= 255; g /= 255; b /= 255; let max = Math.max(r, g, b), min = Math.min(r, g, b); let h, s, l = (max + min) / 2; if (max === min) { h = s = 0; } else { let d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min); switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; } h /= 6; } return [h, s, l]; }
+            function hslToRgb(h, s, l) { let r, g, b; if (s === 0) { r = g = b = l; } else { const hue2rgb = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; }; const q = l < 0.5 ? l * (1 + s) : l + s - l * s; const p = 2 * l - q; r = hue2rgb(p, q, h + 1 / 3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1 / 3); } return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`; }
+            function getPredominantColorAndPalette(imageUrl) { return new Promise((resolve, reject) => { const img = new Image(); img.crossOrigin = "Anonymous"; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0, img.width, img.height); try { const imageData = ctx.getImageData(0, 0, img.width, img.height).data; let r = 0, g = 0, b = 0, count = 0; const step = 4 * 10; for (let i = 0; i < imageData.length; i += step) { r += imageData[i]; g += imageData[i + 1]; b += imageData[i + 2]; count++; } const avgR = Math.floor(r / count), avgG = Math.floor(g / count), avgB = Math.floor(b / count); let [h, s, l] = rgbToHsl(avgR, avgG, avgB); const isLight = l > 0.5; resolve({ cardBg: isLight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(31, 41, 55, 0.9)', highlightColor: hslToRgb(h, Math.min(s*1.5,1), isLight ? Math.max(l*0.7,0.3) : Math.min(l*1.5,0.7)), textColor: isLight ? 'rgb(31, 41, 55)' : 'rgb(243, 244, 246)', borderColor: hslToRgb(h, s, isLight ? Math.max(l*0.7,0.3) : Math.min(l*1.5,0.7)) }); } catch (e) { reject(e); } }; img.onerror = (e) => reject(e); img.src = imageUrl; }); }
+            
+            function openDatabase() { 
+                return new Promise((resolve, reject) => { 
+                    const req = indexedDB.open(DB_NAME, DB_VERSION); 
+                    req.onsuccess = (e) => { db = e.target.result; resolve(db); }; 
+                    req.onerror = (e) => reject(e.target.error); 
+                    req.onupgradeneeded = (e) => { 
+                        db = e.target.result; 
+                        if (!db.objectStoreNames.contains(CARD_STORE_NAME)) { 
+                            db.createObjectStore(CARD_STORE_NAME, { keyPath: 'id' }); 
+                        }
+                        
+                        let spellStore;
+                        if (!db.objectStoreNames.contains(SPELL_STORE_NAME)) {
+                            spellStore = db.createObjectStore(SPELL_STORE_NAME, { keyPath: 'id' });
+                        } else {
+                            spellStore = e.target.transaction.objectStore(SPELL_STORE_NAME);
+                        }
+                        if (!spellStore.indexNames.contains('characterId')) {
+                            spellStore.createIndex('characterId', 'characterId', { unique: false });
+                        }
+
+                        let itemStore;
+                        if (!db.objectStoreNames.contains(ITEM_STORE_NAME)) {
+                            itemStore = db.createObjectStore(ITEM_STORE_NAME, { keyPath: 'id' });
+                        } else {
+                            itemStore = e.target.transaction.objectStore(ITEM_STORE_NAME);
+                        }
+                        if (!itemStore.indexNames.contains('characterId')) {
+                            itemStore.createIndex('characterId', 'characterId', { unique: false });
+                        }
+                    }; 
+                }); 
+            }
+            
+            async function saveData(storeName, data) { 
+                const tx = db.transaction([storeName], 'readwrite'); 
+                const store = tx.objectStore(storeName); 
+                return new Promise((resolve, reject) => { 
+                    const req = store.put(data); 
+                    req.onsuccess = () => resolve(); 
+                    req.onerror = (e) => reject(e.target.error); 
+                }); 
+            }
+            async function getData(storeName, indexName, key) {
+                const tx = db.transaction([storeName], 'readonly');
+                const store = tx.objectStore(storeName);
+                let request;
+                if (indexName && key !== undefined) {
+                    const index = store.index(indexName);
+                    request = index.getAll(key);
+                } else {
+                    request = store.getAll();
+                }
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = (e) => resolve(e.target.result);
+                    request.onerror = (e) => reject(e.target.error);
+                });
+            }
+
+            async function removeData(storeName, id) { 
+                const tx = db.transaction([storeName], 'readwrite'); 
+                const store = tx.objectStore(storeName); 
+                return new Promise((resolve, reject) => { 
+                    const req = store.delete(id); 
+                    req.onsuccess = () => resolve(); 
+                    req.onerror = (e) => reject(e.target.error); 
+                }); 
+            }
+
+            // --- Funções CRUD para Cartões de Personagem ---
+            async function editCard(cardId) {
+                const allCards = await getData(CARD_STORE_NAME);
+                const cardData = allCards.find(card => card.id === cardId);
+                if (!cardData) return;
+                
+                showCreationView(true);
+                formTitle.textContent = `Editando: ${cardData.title}`;
+                
+                currentEditingCardId = cardId;
+                cardTitleInput.value = cardData.title;
+                cardSubTitleInput.value = cardData.subTitle;
+                cardLevelInput.value = cardData.level;
+                dinheiroInput.value = cardData.dinheiro;
+                
+                vidaInput.value = cardData.attributes.vida;
+                manaInput.value = cardData.attributes.mana;
+                vidaAtualInput.value = cardData.attributes.vidaAtual;
+                manaAtualInput.value = cardData.attributes.manaAtual;
+                armaduraInput.value = cardData.attributes.armadura;
+                esquivaInput.value = cardData.attributes.esquiva;
+                bloqueioInput.value = cardData.attributes.bloqueio;
+                deslocamentoInput.value = cardData.attributes.deslocamento;
+
+                agilidadeInput.value = cardData.attributes.agilidade;
+                carismaInput.value = cardData.attributes.carisma;
+                forcaInput.value = cardData.attributes.forca;
+                inteligenciaInput.value = cardData.attributes.inteligencia;
+                sabedoriaInput.value = cardData.attributes.sabedoria;
+                vigorInput.value = cardData.attributes.vigor;
+
+                document.querySelectorAll('#pericias-checkboxes-container input[type="checkbox"]').forEach(cb => cb.checked = false);
+                if (Array.isArray(cardData.attributes.pericias)) {
+                    cardData.attributes.pericias.forEach(periciaName => {
+                        const checkbox = document.getElementById(`pericia-${periciaName.replace(/\s+/g, '-')}`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+
+                if (cardData.image) {
+                    const imageBlob = bufferToBlob(cardData.image, cardData.imageMimeType);
+                    showImagePreview(characterImagePreview, URL.createObjectURL(imageBlob), true);
+                    characterImageFile = null;
+                } else { showImagePreview(characterImagePreview, null, true); }
+
+                if (cardData.backgroundImage) {
+                    const backgroundBlob = bufferToBlob(cardData.backgroundImage, cardData.backgroundMimeType);
+                    showImagePreview(backgroundImagePreview, URL.createObjectURL(backgroundBlob), false);
+                } else { showImagePreview(backgroundImagePreview, null, false); }
+
+                characterImageUpload.value = null;
+                backgroundImageUpload.value = null;
+                submitButton.textContent = 'Salvar Edição';
+                submitButton.classList.remove('btn-gradient-pulse');
+            }
+            
+            function createAddThumbnail(type) {
+                const thumb = document.createElement('div');
+                let colorClass = 'border-indigo-500 hover:bg-indigo-500';
+                if(type === 'spell') colorClass = 'border-teal-500 hover:bg-teal-500';
+                if(type === 'item') colorClass = 'border-amber-500 hover:bg-amber-500';
+
+                thumb.className = `relative w-20 h-24 rounded-lg flex items-center justify-center border-2 border-dashed ${colorClass} cursor-pointer transition-colors duration-200`;
+                thumb.style.minWidth = '5rem';
+                thumb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
+                
+                let clickHandler;
+                if(type === 'character') clickHandler = () => showCreationView(false);
+                if(type === 'spell') clickHandler = () => showSpellCreationView(false);
+                if(type === 'item') clickHandler = () => showItemCreationView(false);
+
+                thumb.addEventListener('click', clickHandler);
+                return thumb;
+            }
+
+            async function renderCardsAndThumbnails() {
+                thumbnailList.innerHTML = '';
+                const allCards = await getData(CARD_STORE_NAME);
+                cardDisplayArea.innerHTML = '<p class="text-gray-400">Selecione um personagem na lista acima para ver os detalhes.</p>';
+                
+                let cardsLoaded = 0;
+                for (const cardData of allCards) {
+                    let imageURL = 'https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';
+                    let backgroundURL = 'https://placehold.co/400x600/1e293b/d1d5db?text=Fundo';
+                    if (cardData.image) imageURL = URL.createObjectURL(bufferToBlob(cardData.image, cardData.imageMimeType));
+                    if (cardData.backgroundImage) backgroundURL = URL.createObjectURL(bufferToBlob(cardData.backgroundImage, cardData.backgroundMimeType));
+                    
+                    const thumbnail = createThumbnailElement({...cardData, imageURL, backgroundURL});
+                    thumbnailList.appendChild(thumbnail);
+                    
+                    cardsLoaded++;
+                    const percentage = Math.round((cardsLoaded / allCards.length) * 33);
+                    updateProgress(percentage, loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+                }
+
+                thumbnailList.appendChild(createAddThumbnail('character'));
+
+                if (allCards.length > 0) {
+                     await displayCard(allCards[0].id);
+                } else {
+                     cardDisplayArea.innerHTML = '<p class="text-gray-400 text-center">Nenhum personagem encontrado. Clique no botão + para criar um.</p>';
+                }
+            }
+            
+            async function displayCard(cardId) {
+                cardDisplayArea.innerHTML = ''; // Limpa a área
+                const allCards = await getData(CARD_STORE_NAME);
+                const fullCardData = allCards.find(c => c.id === cardId);
+                if (!fullCardData) return;
+
+                let imageURL = 'https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';
+                let backgroundURL = 'https://placehold.co/400x600/1e293b/d1d5db?text=Fundo';
+                if (fullCardData.image) imageURL = URL.createObjectURL(bufferToBlob(fullCardData.image, fullCardData.imageMimeType));
+                if (fullCardData.backgroundImage) backgroundURL = URL.createObjectURL(bufferToBlob(fullCardData.backgroundImage, fullCardData.backgroundMimeType));
+
+                const cardElement = await createCardElement({ ...fullCardData, imageURL, backgroundURL });
+                
+                cardDisplayArea.appendChild(cardElement);
+                setTimeout(() => cardElement.classList.add('visible'), 10);
+
+                // Atualiza os visuais com os dados do cartão exibido
+                updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
+                updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
+
+                await stopParticles();
+                part();
+            }
+
+            async function createCardElement(cardData) {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
+                cardDiv.dataset.cardId = cardData.id;
+                cardDiv.style.backgroundImage = `url(${cardData.backgroundURL})`;
+                let palette = { cardBg: 'rgba(31,41,55,0.9)', highlightColor: '#6366f1', textColor: '#e5e7eb', borderColor: '#4b5563' };
+                if (cardData.backgroundURL && !cardData.backgroundURL.includes('placehold.co')) {
+                    try { palette = await getPredominantColorAndPalette(cardData.backgroundURL); } catch (e) { console.error('Falha ao gerar paleta.', e); }
+                }
+                const periciasString = Array.isArray(cardData.attributes.pericias) && cardData.attributes.pericias.length > 0 ? cardData.attributes.pericias.join(', ') : 'Nenhuma';
+                cardDiv.innerHTML = `
+                    <div class="card-3d-container">
+                        <div class="card-3d divPartculas">
+                            <div class="card-front" style="border-color: ${palette.borderColor}">
+                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:url(${cardData.backgroundURL}) !important; height: 650px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between;">
+                                    
+                                    <div class="absolute top-4 left-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Mana">
+                                        <div class="icon-container potion-container">
+                                            <svg class="potion-svg" viewBox="0 0 50 50">
+                                                <defs>
+                                                    <clipPath id="potion-mask-${cardData.id}">
+                                                        <path d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" />
+                                                    </clipPath>
+                                                </defs>
+                                                <g clip-path="url(#potion-mask-${cardData.id})">
+                                                    <rect class="potion-liquid" x="8" y="5" width="34" height="45" />
+                                                    <circle class="bubble" cx="20" cy="45" r="2.5" data-base-radius="2.5"/>
+                                                    <circle class="bubble" cx="28" cy="42" r="2" data-base-radius="2"/>
+                                                    <circle class="bubble" cx="33" cy="46" r="1.5" data-base-radius="1.5"/>
+                                                </g>
+                                                <path class="potion-glass" d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" />
+                                                <rect class="potion-cork" x="18" y="0" width="14" height="5" rx="2" />
+                                            </svg>
+                                             <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
+                                                <span>${cardData.attributes.manaAtual || '?'}</span>
+                                                <span class="fraction-line" style="width: 50%;"></span>
+                                                <span>${cardData.attributes.mana || '?'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="absolute top-2 right-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Vida">
+                                        <div class="icon-container heart-container">
+                                            <svg class="heart-svg" viewBox="0 0 24 24">
+                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                            </svg>
+                                            <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
+                                                <span>${cardData.attributes.vidaAtual || '?'}</span>
+                                                <span class="fraction-line" style="width: 50%;"></span>
+                                                <span>${cardData.attributes.vida || '?'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="absolute top-20 left-2 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal" title="Alterar Dinheiro">
+                                        💰 ${cardData.dinheiro || 0}
+                                    </div>
+                                    <div class="text-center" style="width: 60%; margin-top: 1rem;"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p></div>
+                                    <div class="wave-container flex justify-center img-max" style="position: relative; width: 180px !important; height: 180px;"><img style="border-color: ${palette.borderColor}; z-index: 1; height: 180px" src="${cardData.imageURL}" onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';" alt="Imagem do personagem" class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
+                                    <div class="p-3 rounded-3xl text-center w-full rpg-card-frame" style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
+                                        <h4 class="text-base font-bold" style="color: ${palette.textColor};">Nível: <span style="color: ${palette.highlightColor};">${cardData.level}</span></h4>
+                                        <div class="rpg-card-title-divider mb-4 mt-4" style="width: 100%;background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent);"></div>
+                                        <div class="grid grid-cols-4 gap-x-4 gap-y-1 text-xs my-2">
+                                            <div class="text-center">🛡️<br>${cardData.attributes.armadura || 0}</div>
+                                            <div class="text-center">🤸<br>${cardData.attributes.esquiva || 0}</div>
+                                            <div class="text-center">✋<br>${cardData.attributes.bloqueio || 0}</div>
+                                            <div class="text-center">👟<br>${cardData.attributes.deslocamento || 0}m</div>
+                                        </div>
+                                        <div class="rpg-card-title-divider mb-4 mt-4" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent);width: 100%;"></div>
+                                        ${Object.entries(cardData.attributes).filter(([key]) => ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'].includes(key)).map(([key, value]) => `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${(value * 100) / 3}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / 3</span></div>`).join('')}
+                                        <div class="flex flex-col gap-2 mt-4"><div class="flex items-center justify-center w-full"><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent);"></div></div><p class="text-xs text-gray-400 italic">Perícias</p><p class="text-xs text-gray-400 italic" style="font-size: 11px;">${periciasString}</p></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-back divPartculas" style="background-image:url(${cardData.backgroundURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
+                                <div class="back-content" style="border: 5px solid ${palette.borderColor};">
+                                    <h2></h2>
+                                    <p></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'flex justify-center space-x-2 w-full';
+                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-btn" data-card-id="${cardData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-btn" data-card-id="${cardData.id}" style="border-radius: 0; background-color: ${palette.highlightColor};">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 fullscreen-btn" data-card-id="${cardData.id}" style="border-radius: 0 50px 50px 0; background-color: #23426d;">Expandir</button>`;
+                cardWrapper.appendChild(cardDiv);
+
+                const card3d = cardDiv.querySelector('.card-3d');
+                if(card3d)
+                {
+                    card3d.addEventListener('click', (e) => {
+                        if (e.target.closest('[data-action="open-status-modal"]')) return;
+                        card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    });
+                }
+                cardWrapper.appendChild(buttonsDiv);
+                return cardWrapper;
+            }
+
+            function createThumbnailElement(cardData) {
+                const thumb = document.createElement('div');
+                thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-indigo-500 transition-colors duration-200';
+                thumb.dataset.cardId = cardData.id;
+                thumb.style.backgroundImage = `url(${cardData.backgroundURL})`;
+                thumb.style.backgroundSize = 'cover';
+                thumb.style.backgroundPosition = 'center';
+                thumb.style.minWidth = '5rem';
+                thumb.innerHTML = `<div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center"><img src="${cardData.imageURL}" onerror="this.src='https://placehold.co/40x40/E5E7EB/4B5563?text=P';" alt="Miniatura" class="w-10 h-10 object-cover rounded-full border-2 border-white"></div><div class="absolute bottom-1 left-1 bg-gray-800 text-white text-xs px-2 py-1 rounded-full font-bold">Lv.${cardData.level}</div>`;
+                
+                thumb.addEventListener('click', () => displayCard(cardData.id));
+                return thumb;
+            }
+
+            async function removeCard(cardId) { 
+                await removeData(CARD_STORE_NAME, cardId); 
+                await renderCardsAndThumbnails(); 
+            }
+            
+            // --- Funções CRUD para Magias/Habilidades ---
+
+            async function renderSpellCards() {
+                spellThumbnailList.innerHTML = '';
+                // Carrega apenas magias sem characterId (pré-criadas)
+                const allSpells = (await getData(SPELL_STORE_NAME, null)).filter(s => !s.characterId);
+                spellCardDisplayArea.innerHTML = '<p class="text-gray-400">Selecione uma magia na lista acima para ver os detalhes.</p>';
+
+                let spellsLoaded = 0;
+                for (const spellData of allSpells) {
+                    let imageURL = 'https://placehold.co/160x160/14b8a6/1f2937?text=Magia';
+                    if (spellData.image) imageURL = URL.createObjectURL(bufferToBlob(spellData.image, spellData.imageMimeType));
+                    
+                    const spellThumbnail = createSpellThumbnailElement({...spellData, imageURL});
+                    spellThumbnailList.appendChild(spellThumbnail);
+
+                    spellsLoaded++;
+                    const percentage = 33 + Math.round((spellsLoaded / allSpells.length) * 33);
+                    updateProgress(percentage, loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+                }
+
+                spellThumbnailList.appendChild(createAddThumbnail('spell'));
+
+                if (allSpells.length > 0) {
+                    await displaySpell(allSpells[0].id);
+                } else {
+                    spellCardDisplayArea.innerHTML = '<p class="text-gray-400 text-center">Nenhuma magia pré-criada encontrada. Clique no botão + para criar uma.</p>';
+                }
+            }
+            
+            async function displaySpell(spellId) {
+                spellCardDisplayArea.innerHTML = ''; // Limpa a área
+                const allSpells = await getData(SPELL_STORE_NAME);
+                const fullSpellData = allSpells.find(s => s.id === spellId);
+                if (!fullSpellData) return;
+
+                let imageURL = 'https://placehold.co/160x160/14b8a6/1f2937?text=Magia';
+                if (fullSpellData.image) imageURL = URL.createObjectURL(bufferToBlob(fullSpellData.image, fullSpellData.imageMimeType));
+
+                const spellCardElement = await createSpellCardElement({ ...fullSpellData, imageURL });
+                
+                spellCardDisplayArea.appendChild(spellCardElement);
+                setTimeout(() => spellCardElement.classList.add('visible'), 10);
+
+                await stopParticles();
+                part();
+            }
+
+            async function createSpellCardElement(spellData) {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
+                cardDiv.dataset.spellId = spellData.id;
+                
+                let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#2dd4bf', textColor: '#e5e7eb', borderColor: '#0d9488' };
+                if (spellData.imageURL && !spellData.imageURL.includes('placehold.co')) {
+                    try { 
+                        palette = await getPredominantColorAndPalette(spellData.imageURL); 
+                    } catch (e) { 
+                        console.error('Falha ao gerar paleta para magia.', e); 
+                    }
+                }
+
+                cardDiv.style.backgroundImage = `url(${spellData.imageURL})`;
+                cardDiv.style.backgroundColor="rgb(0 0 0 / 50%)";
+                cardDiv.style.backgroundBlendMode="multiply";
+
+                cardDiv.innerHTML = `
+                    <div class="card-3d-container">
+                        <div class="card-3d divPartculas">
+                            <div class="card-front" style="border-color: ${palette.borderColor};background-image:url(${spellData.imageURL}) !important; background-position: center; background-size: cover">
+                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
+                                    <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
+                                     <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                                            <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
+                                            <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
+                                            <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
+                                            <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
+                                    </div>
+                                    <div class="w-full">                                       
+                                        <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Descrição</h4>
+                                                <p class="text-gray-300 text-xs">${spellData.description || 'Nenhuma descrição.'}</p>
+                                            </div>                                            
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Aprimorar</h4>
+                                                <p class="text-gray-300 text-xs">${spellData.enhance}</p>
+                                            </div>
+                                            <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
+                                                <p class="text-gray-300 text-xs">${spellData.true}</p>
+                                            </div>                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-back divPartculas" style="background-image:url(${spellData.imageURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
+                                <div class="back-content" style="border: 5px solid ${palette.borderColor};">
+                                    <h2></h2>
+                                    <p></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'flex justify-center space-x-2 w-full';
+                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 0; background-color: #dc2626;">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 fullscreen-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 0 50px 50px 0; background-color: #23426d;">Expandir</button>`;
+                
+                cardWrapper.appendChild(cardDiv);
+                 const card3d = cardDiv.querySelector('.card-3d');
+                if(card3d){card3d.addEventListener('click',()=>card3d.style.transform=card3d.style.transform==='rotateY(180deg)'?'rotateY(0deg)':'rotateY(180deg)');}
+                cardWrapper.appendChild(buttonsDiv);
+                return cardWrapper;
+            }
+
+            function createSpellThumbnailElement(spellData) {
+                const thumb = document.createElement('div');
+                thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-teal-500 transition-colors duration-200';
+                thumb.dataset.spellId = spellData.id;
+                thumb.style.background = 'linear-gradient(45deg, #0f172a, #1e293b)';
+                thumb.style.minWidth = '5rem';
+                thumb.innerHTML = `<div class="absolute inset-0 bg-opacity-40 flex items-center justify-center" style="background: url(${spellData.imageURL}); background-size: cover;"><img src="${spellData.imageURL}" onerror="this.src='https://placehold.co/40x40/14b8a6/1f2937?text=M';" alt="Miniatura da Magia" class="w-10 h-10 object-cover rounded-full border-2 border-teal-400"></div>`;
+                
+                thumb.addEventListener('click', () => displaySpell(spellData.id));
+                return thumb;
+            }
+
+            async function editSpell(spellId) {
+                const allSpells = await getData(SPELL_STORE_NAME);
+                const spellData = allSpells.find(s => s.id === spellId);
+                if (!spellData) return;
+
+                showSpellCreationView(true);
+                spellFormTitle.textContent = `Editando: ${spellData.name}`;
+                currentEditingSpellId = spellId;
+
+                document.getElementById('spellName').value = spellData.name;
+                document.getElementById('spellExecution').value = spellData.execution;
+                document.getElementById('spellRange').value = spellData.range;
+                document.getElementById('spellTarget').value = spellData.target;
+                document.getElementById('spellDuration').value = spellData.duration;
+                document.getElementById('spellDescription').value = spellData.description;
+                document.getElementById('spellEnhance').value = spellData.enhance;
+                document.getElementById('spellTrue').value = spellData.true;
+                
+                if (spellData.image) {
+                    const imageBlob = bufferToBlob(spellData.image, spellData.imageMimeType);
+                    showImagePreview(spellImagePreview, URL.createObjectURL(imageBlob), true);
+                    spellImageFile = null;
+                } else {
+                    showImagePreview(spellImagePreview, null, true);
+                }
+                spellImageUpload.value = null;
+                spellSubmitButton.textContent = 'Salvar Edição';
+            }
+
+            async function removeSpell(spellId) {
+                await removeData(SPELL_STORE_NAME, spellId);
+                await renderSpellCards();
+            }
+
+            spellCardDisplayArea.addEventListener('click', e => {
+                const spellId = e.target.dataset.spellId;
+                if (!spellId) return;
+
+                if (e.target.classList.contains('edit-spell-btn')) {
+                    editSpell(spellId);
+                } else if (e.target.classList.contains('remove-spell-btn')) {
+                    removeSpell(spellId);
+                } else if (e.target.classList.contains('fullscreen-spell-btn')) {
+                    const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
+                    if (document.fullscreenElement) document.exitFullscreen();
+                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
+                }
+            });
+
+            // --- Funções CRUD para Itens ---
+            async function renderItemsAndThumbnails() {
+                itemThumbnailList.innerHTML = '';
+                // Carrega apenas itens sem characterId (pré-criados)
+                const allItems = (await getData(ITEM_STORE_NAME, null)).filter(i => !i.characterId);
+                itemCardDisplayArea.innerHTML = '<p class="text-gray-400">Selecione um item na lista acima para ver os detalhes.</p>';
+
+                let itemsLoaded = 0;
+                for (const itemData of allItems) {
+                    let imageURL = 'https://placehold.co/160x160/f59e0b/422006?text=Item';
+                    if (itemData.image) imageURL = URL.createObjectURL(bufferToBlob(itemData.image, itemData.imageMimeType));
+
+                    const itemThumbnail = createItemThumbnailElement({ ...itemData, imageURL });
+                    itemThumbnailList.appendChild(itemThumbnail);
+
+                    itemsLoaded++;
+                    const percentage = 66 + Math.round((itemsLoaded / allItems.length) * 34);
+                    updateProgress(percentage, loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+                }
+                
+                itemThumbnailList.appendChild(createAddThumbnail('item'));
+
+                if (allItems.length > 0) {
+                    await displayItem(allItems[0].id);
+                } else {
+                    itemCardDisplayArea.innerHTML = '<p class="text-gray-400 text-center">Nenhum item pré-criado encontrado. Clique no botão + para criar um.</p>';
+                }
+            }
+
+            async function displayItem(itemId) {
+                itemCardDisplayArea.innerHTML = ''; // Limpa a área
+                const allItems = await getData(ITEM_STORE_NAME);
+                const fullItemData = allItems.find(i => i.id === itemId);
+                if (!fullItemData) return;
+
+                let imageURL = 'https://placehold.co/160x160/f59e0b/422006?text=Item';
+                if (fullItemData.image) imageURL = URL.createObjectURL(bufferToBlob(fullItemData.image, fullItemData.imageMimeType));
+
+                const itemCardElement = await createItemCardElement({ ...fullItemData, imageURL });
+
+                itemCardDisplayArea.appendChild(itemCardElement);
+                setTimeout(() => itemCardElement.classList.add('visible'), 10);
+
+                await stopParticles();
+                part();
+            }
+
+            async function createItemCardElement(itemData) {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
+                cardDiv.dataset.itemId = itemData.id;
+                
+                let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
+                if (itemData.imageURL && !itemData.imageURL.includes('placehold.co')) {
+                    try { palette = await getPredominantColorAndPalette(itemData.imageURL); } catch(e) { console.error('Falha ao gerar paleta para item.', e); }
+                }
+
+                cardDiv.style.backgroundImage = `url(${itemData.imageURL})`;
+                cardDiv.style.backgroundColor="rgb(0 0 0 / 50%)";
+                cardDiv.style.backgroundBlendMode="multiply";
+
+                 cardDiv.innerHTML = `
+                    <div class="card-3d-container">
+                        <div class="card-3d divPartculas">
+                            <div class="card-front" style="border-color: ${palette.borderColor};background-image:url(${itemData.imageURL}) !important; background-position: center; background-size: cover">
+                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
+                                    <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
+                                     <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                                            <p class="text-left"><strong>Tipo:</strong> ${itemData.type || '-'}</p>
+                                            <p class="text-left"><strong>Dano:</strong> ${itemData.damage || '-'}</p>
+                                            <p class="text-left"><strong>Carga:</strong> ${itemData.charge || '-'}</p>
+                                            <p class="text-left"><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
+                                    </div>
+                                    <div class="w-full">                                       
+                                        <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Efeito</h4>
+                                                <p class="text-gray-300 text-xs">${itemData.effect || 'Nenhum efeito.'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-back divPartculas" style="background-image:url(${itemData.imageURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
+                                <div class="back-content" style="border: 5px solid ${palette.borderColor};">
+                                    <h2></h2>
+                                    <p></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'flex justify-center space-x-2 w-full';
+                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-item-btn" data-item-id="${itemData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-item-btn" data-item-id="${itemData.id}" style="border-radius: 0; background-color: #dc2626;">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 fullscreen-item-btn" data-item-id="${itemData.id}" style="border-radius: 0 50px 50px 0; background-color: #23426d;">Expandir</button>`;
+                
+                cardWrapper.appendChild(cardDiv);
+                const card3d = cardDiv.querySelector('.card-3d');
+                if(card3d){card3d.addEventListener('click',()=>card3d.style.transform=card3d.style.transform==='rotateY(180deg)'?'rotateY(0deg)':'rotateY(180deg)');}
+                cardWrapper.appendChild(buttonsDiv);
+                return cardWrapper;
+            }
+            
+            function createItemThumbnailElement(itemData) {
+                const thumb = document.createElement('div');
+                thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-amber-500 transition-colors duration-200';
+                thumb.dataset.itemId = itemData.id;
+                thumb.style.background = 'linear-gradient(45deg, #272011, #422006)';
+                thumb.style.minWidth = '5rem';
+                thumb.innerHTML = `<div class="absolute inset-0 bg-opacity-40 flex items-center justify-center" style="background: url(${itemData.imageURL}); background-size: cover;"><img src="${itemData.imageURL}" onerror="this.src='https://placehold.co/40x40/f59e0b/422006?text=I';" alt="Miniatura do Item" class="w-10 h-10 object-cover rounded-full border-2 border-amber-400"></div>`;
+                
+                thumb.addEventListener('click', () => displayItem(itemData.id));
+                return thumb;
+            }
+
+            async function editItem(itemId) {
+                const allItems = await getData(ITEM_STORE_NAME);
+                const itemData = allItems.find(i => i.id === itemId);
+                if (!itemData) return;
+
+                showItemCreationView(true);
+                itemFormTitle.textContent = `Editando: ${itemData.name}`;
+                currentEditingItemId = itemId;
+
+                document.getElementById('itemName').value = itemData.name;
+                document.getElementById('itemType').value = itemData.type;
+                document.getElementById('itemDamage').value = itemData.damage;
+                document.getElementById('itemCharge').value = itemData.charge;
+                document.getElementById('itemPrerequisite').value = itemData.prerequisite;
+                document.getElementById('itemEffect').value = itemData.effect;
+                
+                if (itemData.image) {
+                    const imageBlob = bufferToBlob(itemData.image, itemData.imageMimeType);
+                    showImagePreview(itemImagePreview, URL.createObjectURL(imageBlob), true);
+                    itemImageFile = null;
+                } else {
+                    showImagePreview(itemImagePreview, null, true);
+                }
+                itemImageUpload.value = null;
+                itemSubmitButton.textContent = 'Salvar Edição';
+            }
+
+            async function removeItem(itemId) {
+                await removeData(ITEM_STORE_NAME, itemId);
+                await renderItemsAndThumbnails();
+            }
+
+            itemCardDisplayArea.addEventListener('click', e => {
+                const itemId = e.target.dataset.itemId;
+                if (!itemId) return;
+
+                if (e.target.classList.contains('edit-item-btn')) {
+                    editItem(itemId);
+                } else if (e.target.classList.contains('remove-item-btn')) {
+                    removeItem(itemId);
+                } else if (e.target.classList.contains('fullscreen-item-btn')) {
+                    const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
+                    if (document.fullscreenElement) document.exitFullscreen();
+                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
+                }
+            });
+
+
+            // --- Gerenciamento de Imagens e Formulários ---
+            characterImageUpload.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { characterImageFile = file; showImagePreview(characterImagePreview, URL.createObjectURL(file), true); } });
+            backgroundImageUpload.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { backgroundImageFile = file; showImagePreview(backgroundImagePreview, URL.createObjectURL(file), false); } });
+            spellImageUpload.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { spellImageFile = file; showImagePreview(spellImagePreview, URL.createObjectURL(file), true); } });
+            itemImageUpload.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { itemImageFile = file; showImagePreview(itemImagePreview, URL.createObjectURL(file), true); } });
+
+
+            function showImagePreview(element, url, isImageElement) { if (url) { if (isImageElement) element.src = url; else element.style.backgroundImage = `url(${url})`; element.classList.remove('hidden'); } else { element.classList.add('hidden'); } }
+            function readFileAsArrayBuffer(file) { return new Promise((resolve, reject) => { if (!file) { resolve(null); return; } const reader = new FileReader(); reader.onload = (e) => resolve(e.target.result); reader.onerror = (e) => reject(e.target.error); reader.readAsArrayBuffer(file); }); }
+
+            cardForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const selectedPericias = Array.from(document.querySelectorAll('#pericias-checkboxes-container input:checked')).map(cb => cb.value);
+                const attributes = { 
+                    vida: vidaInput.value, mana: manaInput.value, 
+                    vidaAtual: vidaAtualInput.value, manaAtual: manaAtualInput.value,
+                    armadura: armaduraInput.value, esquiva: esquivaInput.value,
+                    bloqueio: bloqueioInput.value, deslocamento: deslocamentoInput.value,
+                    agilidade: agilidadeInput.value, carisma: carismaInput.value, 
+                    forca: forcaInput.value, inteligencia: inteligenciaInput.value, 
+                    sabedoria: sabedoriaInput.value, vigor: vigorInput.value, 
+                    pericias: selectedPericias 
+                };
+                let cardData;
+                if (currentEditingCardId) {
+                    const allCards = await getData(CARD_STORE_NAME);
+                    cardData = allCards.find(card => card.id === currentEditingCardId);
+                    if (!cardData) return;
+                    Object.assign(cardData, { 
+                        title: cardTitleInput.value, 
+                        subTitle: cardSubTitleInput.value, 
+                        level: cardLevelInput.value, 
+                        dinheiro: dinheiroInput.value,
+                        attributes 
+                    });
+                } else {
+                    cardData = { 
+                        id: Date.now().toString(), 
+                        title: cardTitleInput.value, 
+                        subTitle: cardSubTitleInput.value, 
+                        level: cardLevelInput.value, 
+                        dinheiro: dinheiroInput.value,
+                        attributes 
+                    };
+                }
+                if (characterImageFile) { cardData.image = await readFileAsArrayBuffer(characterImageFile); cardData.imageMimeType = characterImageFile.type; }
+                if (backgroundImageFile) { cardData.backgroundImage = await readFileAsArrayBuffer(backgroundImageFile); cardData.backgroundMimeType = backgroundImageFile.type; }
+                await saveData(CARD_STORE_NAME, cardData);
+                
+                cardForm.reset();
+                characterImageFile = null; backgroundImageFile = null;
+                showImagePreview(characterImagePreview, null, true);
+                showImagePreview(backgroundImagePreview, null, false);
+                currentEditingCardId = null;
+                
+                await renderCardsAndThumbnails();
+                showDisplayView();
+            });
+
+            spellForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                let spellData;
+
+                const spellDetails = {
+                    name: document.getElementById('spellName').value,
+                    execution: document.getElementById('spellExecution').value,
+                    range: document.getElementById('spellRange').value,
+                    target: document.getElementById('spellTarget').value,
+                    duration: document.getElementById('spellDuration').value,
+                    description: document.getElementById('spellDescription').value,
+                    enhance: document.getElementById('spellEnhance').value,
+                    true: document.getElementById('spellTrue').value,
+                    characterId: null // Magias criadas aqui são pré-criadas
+                };
+
+                if (currentEditingSpellId) {
+                    const allSpells = await getData(SPELL_STORE_NAME);
+                    spellData = allSpells.find(s => s.id === currentEditingSpellId);
+                    if (!spellData) return;
+                    Object.assign(spellData, spellDetails);
+                } else {
+                    spellData = { id: Date.now().toString(), ...spellDetails };
+                }
+
+                if (spellImageFile) {
+                    spellData.image = await readFileAsArrayBuffer(spellImageFile);
+                    spellData.imageMimeType = spellImageFile.type;
+                }
+
+                await saveData(SPELL_STORE_NAME, spellData);
+                
+                spellForm.reset();
+                spellImageFile = null;
+                currentEditingSpellId = null;
+                showImagePreview(spellImagePreview, null, true);
+                await renderSpellCards();
+                showSpellDisplayView();
+            });
+
+            itemForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                let itemData;
+                const itemValues = {
+                    name: document.getElementById('itemName').value,
+                    type: document.getElementById('itemType').value,
+                    damage: document.getElementById('itemDamage').value,
+                    charge: parseInt(document.getElementById('itemCharge').value) || 1,
+                    prerequisite: document.getElementById('itemPrerequisite').value,
+                    effect: document.getElementById('itemEffect').value,
+                    characterId: null, // Itens criados aqui são pré-criados
+                    slot: -1 // -1 indica que não está em um slot
+                };
+
+                if (currentEditingItemId) {
+                    const allItems = await getData(ITEM_STORE_NAME);
+                    itemData = allItems.find(i => i.id === currentEditingItemId);
+                    if (!itemData) return;
+                    Object.assign(itemData, itemValues);
+                } else {
+                    itemData = { id: Date.now().toString(), ...itemValues };
+                }
+
+                if (itemImageFile) {
+                    itemData.image = await readFileAsArrayBuffer(itemImageFile);
+                    itemData.imageMimeType = itemImageFile.type;
+                }
+
+                await saveData(ITEM_STORE_NAME, itemData);
+                
+                itemForm.reset();
+                itemImageFile = null;
+                currentEditingItemId = null;
+                showImagePreview(itemImagePreview, null, true);
+                await renderItemsAndThumbnails();
+                showItemDisplayView();
+            });
+
+
+            // --- Lógica de Exibição de Magias em Tela Cheia ---
+
+            async function createExpandedCardView(data, type) {
+                let imageURL, palette;
+                if (type === 'spell') {
+                    imageURL = 'https://placehold.co/400x650/14b8a6/1f2937?text=Magia';
+                    if (data.image) imageURL = URL.createObjectURL(bufferToBlob(data.image, data.imageMimeType));
+                    palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#2dd4bf', textColor: '#e5e7eb', borderColor: '#0d9488' };
+                } else { // item
+                    imageURL = 'https://placehold.co/400x650/f59e0b/422006?text=Item';
+                    if (data.image) imageURL = URL.createObjectURL(bufferToBlob(data.image, data.imageMimeType));
+                    palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
+                }
+
+                if (imageURL && !imageURL.includes('placehold.co')) {
+                    try {
+                        const newPalette = await getPredominantColorAndPalette(imageURL);
+                        palette.borderColor = newPalette.borderColor;
+                        palette.highlightColor = newPalette.highlightColor;
+                    } catch (e) { console.error(`Falha ao gerar paleta para ${type}.`, e); }
+                }
+
+                const cardElement = document.createElement('div');
+                cardElement.className = 'rounded-3xl border-2 w-full h-full';
+                cardElement.style.borderColor = palette.borderColor;
+                cardElement.style.background = `url(${imageURL})`;
+                cardElement.style.backgroundSize = 'cover';
+                cardElement.style.backgroundPosition = 'center';
+
+                let detailsHtml, mainContentHtml;
+
+                if (type === 'spell') {
+                    detailsHtml = `
+                        <p class="text-left"><strong>Execução:</strong> ${data.execution || '-'}</p>
+                        <p class="text-left"><strong>Alcance:</strong> ${data.range || '-'}</p>
+                        <p class="text-left"><strong>Alvo:</strong> ${data.target || '-'}</p>
+                        <p class="text-left"><strong>Duração:</strong> ${data.duration || '-'}</p>
+                    `;
+                    mainContentHtml = `
+                        <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;">
+                            <h4 class="font-semibold text-gray-300">Descrição</h4>
+                            <p class="text-gray-300 text-xs">${data.description || 'Nenhuma descrição.'}</p>
+                        </div>
+                        <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;">
+                            <h4 class="font-semibold text-gray-300">Aprimorar</h4>
+                            <p class="text-gray-300 text-xs">${data.enhance || 'Nenhum aprimoramento.'}</p>
+                        </div>
+                        <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;">
+                            <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
+                            <p class="text-gray-300 text-xs">${data.true || 'Nenhum efeito verdadeiro.'}</p>
+                        </div>
+                    `;
+                } else { // item
+                    detailsHtml = `
+                        <p class="text-left"><strong>Tipo:</strong> ${data.type || '-'}</p>
+                        <p class="text-left"><strong>Dano:</strong> ${data.damage || '-'}</p>
+                        <p class="text-left"><strong>Carga:</strong> ${data.charge || '-'}</p>
+                        <p class="text-left"><strong>Pré-requisito:</strong> ${data.prerequisite || '-'}</p>
+                    `;
+                    mainContentHtml = `
+                        <div class="p-3 rounded-3xl w-full">
+                            <h4 class="font-semibold text-gray-300">Efeito</h4>
+                            <p class="text-gray-300 text-xs">${data.effect || 'Nenhum efeito.'}</p>
+                        </div>
+                    `;
+                }
+                
+                cardElement.innerHTML = `
+                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background-blend-mode: multiply;">        
+                        <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${data.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
+                        <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                            ${detailsHtml}
+                        </div>
+                       <div class="w-full">                                       
+                            <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px; scroll-snap-type: x mandatory;">                                             
+                               ${mainContentHtml}                                           
+                            </div>
+                        </div>
+                    </div>`;
+                
+                
+                return cardElement;
+            }
+
+            async function displayTabsInFullscreen(fullscreenElement, characterId) {
+                // Carrega apenas itens e magias do personagem específico
+                const allSpells = await getData(SPELL_STORE_NAME, 'characterId', characterId);
+                const allItems = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+
+                const tabContainer = document.createElement('div');
+                tabContainer.className = 'fullscreen-tab-container collapsed';
+
+                const createTabContent = (items, type) => {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'fullscreen-tab-content hidden';
+                    contentDiv.dataset.tab = type;
+                    items.forEach(item => {
+                        let imageURL = type === 'spell' ? 'https://placehold.co/60x60/14b8a6/1f2937?text=M' : 'https://placehold.co/60x60/f59e0b/422006?text=I';
+                        if (item.image) {
+                            imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                        }
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'tab-list-item';
+                        itemEl.dataset.id = item.id;
+                        itemEl.dataset.type = type;
+                        itemEl.innerHTML = `<img src="${imageURL}" alt="${item.name}"><p>${item.name}</p>`;
+                        contentDiv.appendChild(itemEl);
+                    });
+                    return contentDiv;
+                };
+
+                const spellContent = createTabContent(allSpells, 'spell');
+                const itemContent = createTabContent(allItems, 'item');
+                
+                const toggler = document.createElement('div');
+                toggler.className = 'tab-list-toggler';
+                toggler.innerHTML = `
+                    <div class="flex gap-2">
+                        <button data-tab="spell" class="px-3 py-1 rounded-lg bg-indigo-600 text-white" style="display: block; border-radius: 0.5rem .5rem 0 0;">Grimório</button>
+                        <button data-tab="item" class="px-3 py-1 rounded-lg bg-gray-600 text-white" style="display: block; border-radius: 0.5rem .5rem 0 0;">Inventário</button>
+                    </div>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                `;
+                
+                toggler.querySelector('svg').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    tabContainer.classList.toggle('collapsed');
+                });
+
+                tabContainer.appendChild(toggler);
+                tabContainer.appendChild(spellContent);
+                tabContainer.appendChild(itemContent);
+                fullscreenElement.appendChild(tabContainer);
+
+                toggler.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const tab = e.target.dataset.tab;
+                        tabContainer.querySelectorAll('.fullscreen-tab-content').forEach(content => content.classList.add('hidden'));
+                        tabContainer.querySelector(`.fullscreen-tab-content[data-tab="${tab}"]`).classList.remove('hidden');
+                        
+                        toggler.querySelectorAll('button').forEach(btn => btn.classList.replace('bg-indigo-600', 'bg-gray-600'));
+                        e.target.classList.replace('bg-gray-600', 'bg-indigo-600');
+                        
+                        if (tabContainer.classList.contains('collapsed')) {
+                            tabContainer.classList.remove('collapsed');
+                        }
+                    });
+                });
+                
+                toggler.querySelector('button[data-tab="spell"]').click();
+
+
+                [spellContent, itemContent].forEach(content => {
+                    content.addEventListener('click', async (e) => {
+                        const itemEl = e.target.closest('.tab-list-item');
+                        if (!itemEl) return;
+
+                        const id = itemEl.dataset.id;
+                        const type = itemEl.dataset.type;
+                        
+                        const data = await getData(type === 'spell' ? SPELL_STORE_NAME : ITEM_STORE_NAME);
+                        const itemData = data.find(d => d.id === id);
+                        if (!itemData) return;
+                        
+                        const existingCard = fullscreenElement.querySelector('.expanded-card-container');
+                        if (existingCard) existingCard.remove();
+
+                        const expandedContainer = document.createElement('div');
+                        expandedContainer.className = 'expanded-card-container';
+                        
+                        const cardHolder = document.createElement('div');
+                        cardHolder.className = 'expanded-card';
+                        
+                        const cardContent = await createExpandedCardView(itemData, type);
+                        cardHolder.appendChild(cardContent);
+                        expandedContainer.appendChild(cardHolder);
+                        fullscreenElement.appendChild(expandedContainer);
+
+                        setTimeout(() => expandedContainer.classList.add('visible'), 2);
+
+                        expandedContainer.addEventListener('click', function(event) {
+                            if (event.target === expandedContainer) {
+                                expandedContainer.classList.remove('visible');
+                                expandedContainer.addEventListener('transitionend', () => expandedContainer.remove(), { once: true });
+                            }
+                        });
+                    });
+                });
+            }
+
+            cardDisplayArea.addEventListener('click', async (e) => {
+                const actionElement = e.target.closest('[data-action]');
+                const cardElement = e.target.closest('.rpg-card');
+                
+                if (!cardElement) { // Handle clicks on edit/remove/fullscreen buttons
+                    const cardId = e.target.dataset.cardId;
+                    if (!cardId) return;
+
+                    if (e.target.classList.contains('edit-btn')) {
+                        await editCard(cardId);
+                    } else if (e.target.classList.contains('remove-btn')) {
+                        await removeCard(cardId);
+                    } else if (e.target.classList.contains('fullscreen-btn')) {
+                        const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        } else {
+                            cardDiv.requestFullscreen().catch(err => console.error(`Erro ao entrar em tela cheia: ${err.message}`));
+                            
+                            displayTabsInFullscreen(cardDiv, cardId);
+                            
+                            const onFullscreenChange = () => {
+                                if (!document.fullscreenElement) {
+                                    const tabContainer = cardDiv.querySelector('.fullscreen-tab-container');
+                                    if (tabContainer) tabContainer.remove();
+                                    const expandedCard = cardDiv.querySelector('.expanded-card-container');
+                                    if (expandedCard) expandedCard.remove();
+                                    document.removeEventListener('fullscreenchange', onFullscreenChange);
+                                }
+                            };
+                            document.addEventListener('fullscreenchange', onFullscreenChange);
+                        }
+                    }
+                    return;
+                }
+
+                const cardId = cardElement.dataset.cardId;
+
+                if (actionElement && actionElement.dataset.action === 'open-status-modal') {
+                    openStatusModal(cardId);
+                }
+            });
+
+
+            // --- LÓGICA DO MODAL DE STATUS ---
+            async function openStatusModal(cardId) {
+                const allCards = await getData(CARD_STORE_NAME);
+                const cardData = allCards.find(card => card.id === cardId);
+                if (!cardData) return;
+
+                currentStatusEditingCardId = cardId;
+                modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
+                modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
+                modalDinheiroInput.value = cardData.dinheiro || 0;
+
+                statusModal.classList.remove('hidden');
+            }
+
+            statusForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentStatusEditingCardId) return;
+
+                const allCards = await getData(CARD_STORE_NAME);
+                const cardData = allCards.find(card => card.id === currentStatusEditingCardId);
+                if (!cardData) return;
+
+                cardData.attributes.vidaAtual = modalVidaAtualInput.value;
+                cardData.attributes.manaAtual = modalManaAtualInput.value;
+                cardData.dinheiro = modalDinheiroInput.value;
+
+                await saveData(CARD_STORE_NAME, cardData);
+
+                statusModal.classList.add('hidden');
+                await displayCard(currentStatusEditingCardId); // Refresh the card view
+                currentStatusEditingCardId = null;
+            });
+
+            statusModalCloseBtn.addEventListener('click', () => {
+                statusModal.classList.add('hidden');
+                currentStatusEditingCardId = null;
+            });
+
+
+            // --- LÓGICA DA TELA DE VINCULAR (ATUALIZADA) ---
+
+            async function populateCharacterSelect() {
+                const characters = await getData(CARD_STORE_NAME);
+                characterSelect.innerHTML = '<option value="">-- Nenhum Personagem Selecionado --</option>';
+                characters.forEach(char => {
+                    const option = document.createElement('option');
+                    option.value = char.id;
+                    option.textContent = char.title;
+                    characterSelect.appendChild(option);
+                });
+            }
+
+            characterSelect.addEventListener('change', async (e) => {
+                const charId = e.target.value;
+                currentLinkingCharacterId = charId;
+                if (charId) {
+                    await renderInventoryManagement(charId);
+                    await renderLinkedSpells(charId);
+                    characterManagementArea.classList.remove('hidden');
+                } else {
+                    characterManagementArea.classList.add('hidden');
+                }
+            });
+
+            // LÓGICA DE INVENTÁRIO REFEITA
+            async function renderInventoryManagement(characterId) {
+                const characters = await getData(CARD_STORE_NAME);
+                const character = characters.find(c => c.id === characterId);
+                if (!character) return;
+
+                const strength = parseInt(character.attributes.forca) || 0;
+                const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+                
+                let totalSlots = strength * 5;
+                if (items.some(item => item.name.toLowerCase().includes('mochila'))) {
+                    totalSlots += 2;
+                }
+                
+                const totalCharge = items.reduce((acc, item) => acc + (item.charge || 1), 0);
+                
+                slotsInfo.textContent = `Força: ${strength} | Carga: ${totalCharge}/${totalSlots}`;
+                itemSlotsContainer.innerHTML = '';
+
+                // 1. Inicializa todos os slots como disponíveis
+                const slotStates = new Array(totalSlots).fill('available');
+
+                // 2. Coloca os itens nos seus slots designados
+                items.sort((a,b) => a.slot - b.slot).forEach(item => {
+                    if (item.slot >= 0 && item.slot < totalSlots) {
+                        slotStates[item.slot] = item; // Armazena o objeto do item
+                    }
+                });
+
+                // 3. Bloqueia os slots do final para trás com base na carga extra
+                let slotsToBlock = totalCharge - items.length;
+                for (let i = totalSlots - 1; i >= 0 && slotsToBlock > 0; i--) {
+                    if (slotStates[i] === 'available') {
+                        slotStates[i] = 'blocked';
+                        slotsToBlock--;
+                    }
+                }
+
+                // 4. Renderiza os slots com base nos estados
+                for (let i = 0; i < totalSlots; i++) {
+                    const slot = document.createElement('div');
+                    const state = slotStates[i];
+
+                    if (typeof state === 'object') { // Slot ocupado por um item
+                        slot.className = 'slot slot-occupied';
+                        slot.title = `Clique para remover "${state.name}"`;
+                        let imageURL = 'https://placehold.co/60x60/f59e0b/422006?text=I';
+                        if (state.image) {
+                            imageURL = URL.createObjectURL(bufferToBlob(state.image, state.imageMimeType));
+                        }
+                        slot.innerHTML = `<img src="${imageURL}" alt="${state.name}"><span class="slot-item-name">${state.name}</span>`;
+                        slot.addEventListener('click', () => unlinkItem(state.id));
+                    } else if (state === 'blocked') {
+                        slot.className = 'slot slot-blocked';
+                    } else { // Slot disponível
+                        slot.className = 'slot slot-available';
+                    }
+                    itemSlotsContainer.appendChild(slot);
+                }
+            }
+            
+            async function findFirstAvailableSlot(characterId) {
+                const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+                const occupiedSlots = new Set(items.map(item => item.slot));
+                
+                const characters = await getData(CARD_STORE_NAME);
+                const character = characters.find(c => c.id === characterId);
+                if (!character) return -1;
+                const strength = parseInt(character.attributes.forca) || 0;
+                let totalSlots = strength * 5;
+                if (items.some(item => item.name.toLowerCase().includes('mochila'))) {
+                    totalSlots += 2;
+                }
+
+                for (let i = 0; i < totalSlots; i++) {
+                    if (!occupiedSlots.has(i)) {
+                        return i;
+                    }
+                }
+                return -1; // No slot available
+            }
+
+            async function linkItem(itemId) {
+                const allItems = await getData(ITEM_STORE_NAME);
+                const templateItem = allItems.find(i => i.id === itemId && !i.characterId);
+                if (!templateItem) return;
+
+                const characters = await getData(CARD_STORE_NAME);
+                const character = characters.find(c => c.id === currentLinkingCharacterId);
+                if (!character) return;
+                
+                const strength = parseInt(character.attributes.forca) || 0;
+                const charItems = await getData(ITEM_STORE_NAME, 'characterId', currentLinkingCharacterId);
+                
+                let totalSlots = strength * 5;
+                 if (charItems.some(item => item.name.toLowerCase().includes('mochila')) || templateItem.name.toLowerCase().includes('mochila')) {
+                    totalSlots += 2;
+                }
+
+                const totalCharge = charItems.reduce((acc, item) => acc + (item.charge || 1), 0);
+                const newTotalCharge = totalCharge + (templateItem.charge || 1);
+
+                if(newTotalCharge > totalSlots) {
+                    alert("Não há espaço suficiente para este item (carga excede o total).");
+                    selectionModal.classList.add('hidden');
+                    return;
+                }
+                
+                const firstAvailableSlot = await findFirstAvailableSlot(currentLinkingCharacterId);
+                if (firstAvailableSlot === -1 || charItems.length >= totalSlots) {
+                     console.error("Não há espaço suficiente para este item (nenhum slot livre).");
+                     selectionModal.classList.add('hidden');
+                     return;
+                }
+                
+                const newItemInstance = { ...templateItem };
+                newItemInstance.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                newItemInstance.characterId = currentLinkingCharacterId;
+                newItemInstance.slot = firstAvailableSlot;
+                
+                await saveData(ITEM_STORE_NAME, newItemInstance);
+                
+                await renderInventoryManagement(currentLinkingCharacterId);
+                selectionModal.classList.add('hidden');
+            }
+
+            async function unlinkItem(itemId) {
+                const itemToUnlink = (await getData(ITEM_STORE_NAME)).find(i => i.id === itemId);
+                if (itemToUnlink) {
+                    await removeData(ITEM_STORE_NAME, itemId);
+                    await reorganizeInventory(currentLinkingCharacterId);
+                }
+            }
+
+            async function reorganizeInventory(characterId) {
+                const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+                const sortedItems = items.sort((a, b) => a.slot - b.slot);
+
+                let nextAvailableSlot = 0;
+                for (const item of sortedItems) {
+                    if (item.slot !== nextAvailableSlot) {
+                        item.slot = nextAvailableSlot;
+                        await saveData(ITEM_STORE_NAME, item);
+                    }
+                    nextAvailableSlot++;
+                }
+
+                await renderInventoryManagement(characterId);
+            }
+            
+            async function openItemSelectionModal() {
+                modalTitle.textContent = "Selecione um Item para Adicionar";
+                const unlinkedItems = (await getData(ITEM_STORE_NAME, null)).filter(i => !i.characterId);
+                modalList.innerHTML = '';
+
+                if (unlinkedItems.length === 0) {
+                    modalList.innerHTML = '<p class="text-gray-400">Nenhum item pré-criado disponível.</p>';
+                } else {
+                    unlinkedItems.forEach(item => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'modal-item p-2 rounded-md flex items-center gap-4';
+                        itemDiv.dataset.itemId = item.id;
+                        
+                        let imageURL = 'https://placehold.co/40x40/f59e0b/422006?text=I';
+                        if (item.image) {
+                            imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                        }
+
+                        itemDiv.innerHTML = `
+                            <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
+                            <div>
+                                <p class="font-bold">${item.name}</p>
+                                <p class="text-xs text-gray-400">Carga: ${item.charge || 1}</p>
+                            </div>
+                        `;
+                        itemDiv.addEventListener('click', () => linkItem(item.id));
+                        modalList.appendChild(itemDiv);
+                    });
+                }
+                selectionModal.classList.remove('hidden');
+            }
+
+            addItemBtn.addEventListener('click', openItemSelectionModal);
+            modalCloseBtn.addEventListener('click', () => selectionModal.classList.add('hidden'));
+
+            // --- LÓGICA PARA VINCULAR MAGIAS (ATUALIZADA) ---
+            async function renderLinkedSpells(characterId) {
+                linkedSpellsContainer.innerHTML = '';
+                const spells = await getData(SPELL_STORE_NAME, 'characterId', characterId);
+                if (spells.length === 0) {
+                    linkedSpellsContainer.innerHTML = '<p class="text-gray-500 text-sm w-full text-center">Nenhuma magia vinculada.</p>';
+                } else {
+                    spells.forEach(spell => {
+                        const spellCard = document.createElement('div');
+                        spellCard.className = 'spell-mini-card';
+                        spellCard.title = `Clique para desvincular "${spell.name}"`;
+                        
+                        let imageURL = 'https://placehold.co/48x48/14b8a6/1f2937?text=M';
+                        if (spell.image) {
+                            imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
+                        }
+                        
+                        spellCard.innerHTML = `<img src="${imageURL}" alt="${spell.name}"><p>${spell.name}</p>`;
+                        spellCard.addEventListener('click', () => unlinkSpell(spell.id));
+                        linkedSpellsContainer.appendChild(spellCard);
+                    });
+                }
+            }
+
+            async function openSpellSelectionModal() {
+                modalTitle.textContent = "Selecione uma Magia para Adicionar";
+                const unlinkedSpells = (await getData(SPELL_STORE_NAME)).filter(s => !s.characterId);
+                modalList.innerHTML = '';
+
+                if (unlinkedSpells.length === 0) {
+                    modalList.innerHTML = '<p class="text-gray-400">Nenhuma magia pré-criada disponível.</p>';
+                } else {
+                    unlinkedSpells.forEach(spell => {
+                        const spellDiv = document.createElement('div');
+                        spellDiv.className = 'modal-item p-2 rounded-md flex items-center gap-4';
+                        spellDiv.dataset.spellId = spell.id;
+                        
+                        let imageURL = 'https://placehold.co/40x40/14b8a6/1f2937?text=M';
+                        if (spell.image) {
+                            imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
+                        }
+
+                        spellDiv.innerHTML = `
+                            <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
+                            <p class="font-bold">${spell.name}</p>
+                        `;
+                        spellDiv.addEventListener('click', () => linkSpell(spell.id));
+                        modalList.appendChild(spellDiv);
+                    });
+                }
+                selectionModal.classList.remove('hidden');
+            }
+
+            addSpellBtn.addEventListener('click', openSpellSelectionModal);
+
+            async function linkSpell(spellId) {
+                const allSpells = await getData(SPELL_STORE_NAME);
+                const templateSpell = allSpells.find(s => s.id === spellId && !s.characterId);
+                if (templateSpell) {
+                    const newSpellInstance = { ...templateSpell };
+                    newSpellInstance.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                    newSpellInstance.characterId = currentLinkingCharacterId;
+                    
+                    await saveData(SPELL_STORE_NAME, newSpellInstance);
+                    await renderLinkedSpells(currentLinkingCharacterId);
+                    selectionModal.classList.add('hidden');
+                }
+            }
+
+            async function unlinkSpell(spellId) {
+                await removeData(SPELL_STORE_NAME, spellId);
+                await renderLinkedSpells(currentLinkingCharacterId);
+            }
+
+
+            // --- FIM DA LÓGICA DE VINCULAR ---
+
+            async function generateCharacterSheetText() {
+                const allCards = await getData(CARD_STORE_NAME);
+                const allSpells = await getData(SPELL_STORE_NAME);
+                const allItems = await getData(ITEM_STORE_NAME);
+
+                let text = "FICHA DE PERSONAGENS, MAGIAS E ITENS\n";
+                text += "========================================\n\n";
+
+                if (allCards.length > 0) {
+                    text += "PERSONAGENS\n";
+                    text += "----------------------------------------\n";
+                    for (const card of allCards) {
+                        text += `Nome: ${card.title || ''}\n`;
+                        text += `Raça e Classe: ${card.subTitle || ''}\n`;
+                        text += `Nível: ${card.level || ''}\n`;
+                        text += `Dinheiro: ${card.dinheiro || 0}\n\n`;
+                        text += "Atributos:\n";
+                        if (card.attributes) {
+                            for (const [key, value] of Object.entries(card.attributes)) {
+                                if (key !== 'pericias') {
+                                    text += `  - ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value || ''}\n`;
+                                }
+                            }
+                            text += "\nPerícias:\n";
+                            text += `  - ${(card.attributes.pericias || []).join(', ')}\n`;
+                        }
+                        
+                        // Itens e Magias do personagem
+                        const charItems = allItems.filter(i => i.characterId === card.id);
+                        const charSpells = allSpells.filter(s => s.characterId === card.id);
+
+                        if (charItems.length > 0) {
+                            text += "\nInventário do Personagem:\n";
+                            charItems.forEach(item => text += `  - ${item.name} (Carga: ${item.charge})\n`);
+                        }
+                        if (charSpells.length > 0) {
+                            text += "\nMagias do Personagem:\n";
+                            charSpells.forEach(spell => text += `  - ${spell.name}\n`);
+                        }
+
+                        text += "----------------------------------------\n";
+                    };
+                }
+                
+                const unlinkedSpells = allSpells.filter(s => !s.characterId);
+                if (unlinkedSpells.length > 0) {
+                    text += "\n\nMAGIAS PRÉ-CRIADAS (NÃO VINCULADAS)\n";
+                    text += "----------------------------------------\n";
+                    unlinkedSpells.forEach(spell => {
+                        text += `Magia: ${spell.name || ''}\n`;
+                    });
+                     text += "----------------------------------------\n";
+                }
+                
+                const unlinkedItems = allItems.filter(i => !i.characterId);
+                if (unlinkedItems.length > 0) {
+                    text += "\n\nITENS PRÉ-CRIADOS (NÃO VINCULADOS)\n";
+                    text += "----------------------------------------\n";
+                    unlinkedItems.forEach(item => {
+                        text += `Item: ${item.name || ''}\n`;
+                    });
+                     text += "----------------------------------------\n";
+                }
+
+                return text;
+            }
+
+            saveDbBtn.addEventListener('click', async () => {
+                const textContent = await generateCharacterSheetText();
+                const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ficha_rpg.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // Adiciona listeners aos inputs do formulário para atualização em tempo real
+            [vidaAtualInput, vidaInput, manaAtualInput, manaInput].forEach(input => {
+                input.addEventListener('input', () => {
+                    updateHeartVisuals(vidaAtualInput.value, vidaInput.value);
+                    updatePotionVisuals(manaAtualInput.value, manaInput.value);
+                });
+            });
+
+            // Inicialização
+            async function initializeApp() {
+                showSplash();
+                try {
+                    await openDatabase();
+                    populatePericiasCheckboxes();
+                    await renderCardsAndThumbnails();
+                    await renderSpellCards();
+                    await renderItemsAndThumbnails();
+                    showDisplayView();
+                    setTimeout(hideSplash, 1000);
+                } catch (e) {
+                    console.error("Falha ao inicializar o app:", e);
+                    hideSplash();
+                }
+            }
+
+            initializeApp();
+        });
     </script>
 </body>
 </html>
