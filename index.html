@@ -141,6 +141,49 @@
             60% { transform: scale(0.9); }
         }
         
+        /* INÍCIO: Animações de restauração de Vida/Mana */
+        @keyframes life-glow-animation {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { box-shadow: 0 0 15px 25px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        .life-restore-glow {
+            animation: life-glow-animation 1.5s ease-out;
+        }
+
+        @keyframes mana-glow-animation {
+            0% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.7); }
+            70% { box-shadow: 0 0 15px 25px rgba(129, 140, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0); }
+        }
+
+        .mana-restore-glow {
+            animation: mana-glow-animation 1.5s ease-out;
+        }
+        /* FIM: Animações de restauração */
+
+        /* INÍCIO: NOVAS ANIMAÇÕES DE RESTAURAÇÃO (CARD INTEIRO) */
+        @keyframes card-life-glow-animation {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.8), 0px 0px 6px 0px #0f1908; }
+            70% { box-shadow: 0 0 25px 35px rgba(74, 222, 128, 0), 0px 0px 6px 0px #0f1908; }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0), 0px 0px 6px 0px #0f1908; }
+        }
+
+        .life-restore-card-glow {
+            animation: card-life-glow-animation 1.5s ease-out;
+        }
+
+        @keyframes card-mana-glow-animation {
+            0% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.8), 0px 0px 6px 0px #0f1908; }
+            70% { box-shadow: 0 0 25px 35px rgba(129, 140, 248, 0), 0px 0px 6px 0px #0f1908; }
+            100% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0), 0px 0px 6px 0px #0f1908; }
+        }
+
+        .mana-restore-card-glow {
+            animation: card-mana-glow-animation 1.5s ease-out;
+        }
+        /* FIM: NOVAS ANIMAÇÕES */
 
         /* Estilos gerais e de animação (sem alterações) */
         .divPartculas h2 {
@@ -315,9 +358,12 @@
             background-color: #4f46e5; /* indigo-600 */
             color: white;
             box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.5);
+            transform: translateY(-2px); /* Add lift effect */
         }
         .nav-button:not(.active):hover {
             background-color: #374151; /* gray-700 */
+            transform: translateY(-2px); /* Add lift effect */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4); /* Add shadow on hover */
         }
 
         /* --- ESTILOS PARA ABAS (DENTRO E FORA DO FULLSCREEN) --- */
@@ -392,6 +438,7 @@
             transition: transform 0.2s ease;
             flex-shrink: 0;
             width: 70px;
+            position: relative; /* Para o contador de quantidade */
         }
         .tab-item:hover { transform: scale(1.1); }
         .tab-item img {
@@ -436,14 +483,18 @@
             cursor: default;
             max-width: 90vw;
             width: 450px;
-            height: 700px;
+            height: 700px; /* ATUALIZADO */
+            position: relative; /* Para o botão de fechar */
         }
         .expanded-card-container.visible {
             opacity: 1;
             pointer-events: auto;
         }
-        .expanded-card-container.visible .expanded-card {
-            transform: scale(1);
+        /* NOVO: Animação para o item desaparecer */
+        .expanded-card-container.fading-out .expanded-card {
+            transition: transform 0.3s ease-in, opacity 0.3s ease-in;
+            transform: scale(0.7);
+            opacity: 0;
         }
 
         .card-wrapper {
@@ -617,6 +668,13 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
+        
+        .btn-usar
+        {
+            left: 36px;
+            border-radius: 0 15px 15px 0;
+        }
+
         .modal-item:hover {
             background-color: #374151; /* gray-700 */
         }
@@ -626,6 +684,41 @@
         }
         .modal-item[disabled]:hover {
             background-color: transparent;
+        }
+
+        /* NOVO: Estilos para o card de Lore */
+        .lore-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            border-radius: 20px;
+            padding: 20px;
+            color: #d1d5db;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+        .lore-card.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .lore-card h4 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid;
+            padding-bottom: 0.25rem;
+        }
+        .lore-card p {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            white-space: pre-wrap; /* Mantém a formatação do textarea */
         }
     </style>
 </head>
@@ -710,6 +803,25 @@
                         <div><label for="sabedoria" class="block text-sm font-semibold mb-1">Sabedoria (SAB)</label><input type="number" id="sabedoria" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="vigor" class="block text-sm font-semibold mb-1">Vigor (VIG)</label><input type="number" id="vigor" placeholder="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                     </div>
+                    <!-- INÍCIO: NOVOS CAMPOS DE LORE -->
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-300 mb-2">Detalhes do Personagem</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="historia" class="block text-sm font-semibold mb-1">História</label>
+                                <textarea id="historia" rows="4" placeholder="A jornada do personagem até agora..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea>
+                            </div>
+                            <div>
+                                <label for="personalidade" class="block text-sm font-semibold mb-1">Personalidade</label>
+                                <textarea id="personalidade" rows="3" placeholder="Traços, manias, e como o personagem se comporta..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea>
+                            </div>
+                            <div>
+                                <label for="motivacao" class="block text-sm font-semibold mb-1">Motivação</label>
+                                <textarea id="motivacao" rows="3" placeholder="O que impulsiona o personagem em sua aventura?" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- FIM: NOVOS CAMPOS DE LORE -->
                     <div>
                         <h3 class="text-xl font-bold text-indigo-300 mb-2">Perícias</h3>
                         <div id="pericias-checkboxes-container" class="space-y-2"></div>
@@ -804,9 +916,19 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div><label for="itemType" class="block text-sm font-semibold mb-1">Tipo</label><input type="text" id="itemType" placeholder="Ex: Leve" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemDamage" class="block text-sm font-semibold mb-1">Dano</label><input type="text" id="itemDamage" placeholder="Ex: 2d6" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
-                        <!-- ALTERADO: Carga agora pode ser 0 -->
-                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" min="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemPrerequisite" class="block text-sm font-semibold mb-1">Pré-requisito</label><input type="text" id="itemPrerequisite" placeholder="Ex: Saber magia" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                    </div>
+                    <!-- NOVOS CAMPOS DE RESTAURAÇÃO -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="itemRestoreLife" class="block text-sm font-semibold mb-1">Restaurar Vida</label>
+                            <input type="number" id="itemRestoreLife" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                        </div>
+                        <div>
+                            <label for="itemRestoreMana" class="block text-sm font-semibold mb-1">Restaurar Mana</label>
+                            <input type="number" id="itemRestoreMana" placeholder="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                        </div>
                     </div>
                     <div><label for="itemEffect" class="block text-sm font-semibold mb-1">Efeito</label><textarea id="itemEffect" rows="4" placeholder="Ex: Explosão imediata gerando fogo..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
                     <button type="submit" id="itemSubmitButton" class="w-full py-3 px-4 rounded-full text-lg font-bold text-white bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
@@ -827,19 +949,20 @@
 
         <div id="link-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl space-y-6">
-                <div class="text-center">
-                    <h2 class="text-2xl font-bold text-yellow-300">Gerenciar Personagem</h2>
-                    <p class="text-sm text-gray-400">Vincule itens, magias e habilidades ao seu personagem.</p>
+                <div class="flex justify-between items-center">
+                    <div class="text-center flex-grow">
+                        <h2 id="link-section-title" class="text-2xl font-bold text-yellow-300">Gerenciar Personagem</h2>
+                        <p class="text-sm text-gray-400">Vincule itens, magias e habilidades ao seu personagem.</p>
+                    </div>
+                     <button class="back-btn text-gray-400 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
                 
-                <div>
-                    <label for="character-select" class="block text-sm font-semibold mb-2">Selecione um Personagem:</label>
-                    <select id="character-select" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-yellow-400 focus:ring focus:ring-yellow-300 focus:ring-opacity-50">
-                        <option value="">-- Nenhum Personagem Selecionado --</option>
-                    </select>
-                </div>
+                <!-- O select ainda existe para manter a lógica, mas fica escondido -->
+                <select id="character-select" class="hidden"></select>
 
-                <div id="character-management-area" class="hidden grid md:grid-cols-2 gap-6">
+                <div id="character-management-area" class="grid md:grid-cols-2 gap-6">
                     <div id="inventory-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700 space-y-4">
                         <div class="flex justify-between items-center">
                             <div>
@@ -851,11 +974,10 @@
                                 Item
                             </button>
                         </div>
-                        <!-- NOVO: Slot da Mochila -->
                         <div>
                             <h4 class="text-sm font-semibold text-gray-400 mb-2">Equipamento Especial</h4>
-                            <div id="backpack-slot-container" class="flex">
-                                <!-- O slot da mochila será inserido aqui pelo JS -->
+                            <div id="special-equipment-container" class="grid grid-cols-5 gap-2">
+                                <!-- Slots de equipamento especial (carga negativa) -->
                             </div>
                         </div>
                         <!-- Container de slots principal -->
@@ -939,10 +1061,6 @@
         <button id="showDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Personagens">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>
             <span class="hidden md:inline">Personagens</span>
-        </button>
-        <button id="showLinkBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Vincular Itens">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0l-1.5-1.5a2 2 0 112.828-2.828l1.5 1.5 3-3a2 2 0 010 2.828l-3 3a2 2 0 11-2.828-2.828l1.5-1.5-3-3z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M4.586 12.586a2 2 0 112.828 2.828l3-3a2 2 0 012.828 0l1.5 1.5a2 2 0 11-2.828 2.828l-1.5-1.5-3 3a2 2 0 010-2.828l3-3a2 2 0 112.828 2.828l-1.5 1.5 3 3z" clip-rule="evenodd" /></svg>
-            <span class="hidden md:inline">Gerenciar</span>
         </button>
         <button id="showSpellDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Grimório (Pré-criados)">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" /></svg>
@@ -1049,6 +1167,11 @@
             const inteligenciaInput = document.getElementById('inteligencia');
             const sabedoriaInput = document.getElementById('sabedoria');
             const vigorInput = document.getElementById('vigor');
+
+            // NOVOS INPUTS DE LORE
+            const historiaInput = document.getElementById('historia');
+            const personalidadeInput = document.getElementById('personalidade');
+            const motivacaoInput = document.getElementById('motivacao');
             
             const periciasCheckboxesContainer = document.getElementById('pericias-checkboxes-container');
             const periciaDescriptionDisplay = document.getElementById('pericia-description-display');
@@ -1068,7 +1191,6 @@
             const nav = document.getElementById('nav');
 
             const showDisplayBtn = document.getElementById('showDisplayBtn');
-            const showLinkBtn = document.getElementById('showLinkBtn');
             const showSpellDisplayBtn = document.getElementById('showSpellDisplayBtn');
             const showItemDisplayBtn = document.getElementById('showItemDisplayBtn');
             const saveDbBtn = document.getElementById('saveDbBtn');
@@ -1080,6 +1202,7 @@
             const spellCreationSection = document.getElementById('spell-creation-section');
             const itemCreationSection = document.getElementById('item-creation-section');
             const linkSection = document.getElementById('link-section');
+            const linkSectionTitle = document.getElementById('link-section-title');
 
             const characterSelect = document.getElementById('character-select');
             const characterManagementArea = document.getElementById('character-management-area');
@@ -1087,11 +1210,11 @@
             const spellManagementArea = document.getElementById('spell-management-area');
             const slotsInfo = document.getElementById('slots-info');
             const itemSlotsContainer = document.getElementById('item-slots-container');
-            const backpackSlotContainer = document.getElementById('backpack-slot-container'); // NOVO
-            const zeroChargeItemsContainer = document.getElementById('zero-charge-items-container'); // NOVO
+            const specialEquipmentContainer = document.getElementById('special-equipment-container');
+            const zeroChargeItemsContainer = document.getElementById('zero-charge-items-container'); 
             const linkedSpellsContainer = document.getElementById('linked-spells-container');
             const addSpellBtn = document.getElementById('add-spell-btn');
-            const addSpellTypeSelect = document.getElementById('add-spell-type-select'); // NOVO
+            const addSpellTypeSelect = document.getElementById('add-spell-type-select'); 
             const addItemBtn = document.getElementById('add-item-btn');
 
             const selectionModal = document.getElementById('selection-modal');
@@ -1110,10 +1233,12 @@
             const loadingMessages = ['Invocando o Grimório...', 'Forjando Cartões...', 'Organizando o Inventário...', 'Sincronizando com os Reinos...'];
 
             function updateActiveNav(activeButton) {
-                [showDisplayBtn, showLinkBtn, showSpellDisplayBtn, showItemDisplayBtn].forEach(button => {
+                [showDisplayBtn, showSpellDisplayBtn, showItemDisplayBtn].forEach(button => {
                     button.classList.remove('active');
                 });
-                activeButton.classList.add('active');
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
             }
 
             function hideAllSections() {
@@ -1187,16 +1312,38 @@
                 updateActiveNav(showItemDisplayBtn);
             }
             
-            async function showLinkView() {
+            async function showLinkViewForCharacter(characterId) {
+                const characters = await getData(CARD_STORE_NAME);
+                const character = characters.find(c => c.id === characterId);
+                if (!character) return;
+
                 hideAllSections();
                 linkSection.classList.remove('hidden');
-                updateActiveNav(showLinkBtn);
-                await populateCharacterSelect();
-                characterManagementArea.classList.add('hidden');
+                updateActiveNav(null); // Nenhuma aba ativa, pois é uma sub-tela
+                
+                linkSectionTitle.textContent = `Gerenciando: ${character.title}`;
+                currentLinkingCharacterId = characterId;
+
+                await renderInventoryManagement(characterId);
+                await renderLinkedSpells(characterId);
+                characterManagementArea.classList.remove('hidden');
             }
 
-            showDisplayBtn.addEventListener('click', showDisplayView);
-            showLinkBtn.addEventListener('click', showLinkView);
+            showDisplayBtn.addEventListener('click', async () => {
+                const displayedCardWrapper = cardDisplayArea.querySelector('.card-wrapper');
+                const currentCardId = displayedCardWrapper ? displayedCardWrapper.querySelector('.rpg-card')?.dataset.cardId : null;
+
+                hideAllSections();
+                displaySection.classList.remove('hidden');
+                updateActiveNav(showDisplayBtn);
+
+                await renderCardsAndThumbnails(); // Sempre recarrega os thumbnails
+
+                if (currentCardId && (await getData(CARD_STORE_NAME)).find(c => c.id === currentCardId)) {
+                    await displayCard(currentCardId); // Tenta reexibir o card atual se ele ainda existir
+                }
+            });
+
             showSpellDisplayBtn.addEventListener('click', showSpellDisplayView);
             showItemDisplayBtn.addEventListener('click', showItemDisplayView);
 
@@ -1205,6 +1352,7 @@
                     if (!creationSection.classList.contains('hidden')) showDisplayView();
                     if (!spellCreationSection.classList.contains('hidden')) showSpellDisplayView();
                     if (!itemCreationSection.classList.contains('hidden')) showItemDisplayView();
+                    if (!linkSection.classList.contains('hidden')) showDisplayView(); // Volta para a tela de personagens
                 });
             });
 
@@ -1271,7 +1419,7 @@
             let currentStatusEditingCardId = null;
 
             let db;
-            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 6; // Versão incrementada
+            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 8; // Versão incrementada para novos campos de item
             const CARD_STORE_NAME = 'rpgCards';
             const SPELL_STORE_NAME = 'rpgSpells';
             const ITEM_STORE_NAME = 'rpgItems';
@@ -1356,6 +1504,13 @@
                 cardLevelInput.value = cardData.level;
                 dinheiroInput.value = cardData.dinheiro;
                 
+                // Preenche os campos de lore
+                if (cardData.lore) {
+                    historiaInput.value = cardData.lore.historia || '';
+                    personalidadeInput.value = cardData.lore.personalidade || '';
+                    motivacaoInput.value = cardData.lore.motivacao || '';
+                }
+
                 vidaInput.value = cardData.attributes.vida;
                 manaInput.value = cardData.attributes.mana;
                 vidaAtualInput.value = cardData.attributes.vidaAtual;
@@ -1465,8 +1620,8 @@
                 cardDisplayArea.appendChild(cardElement);
                 setTimeout(() => cardElement.classList.add('visible'), 10);
 
-                // NOVO: Inicializa as abas do card
-                initializeCardTabs(cardElement.querySelector('.rpg-card'), cardId);
+                // ATUALIZADO: Atualiza o conteúdo das abas
+                await updateCardTabsContent(cardElement.querySelector('.rpg-card'), cardId);
 
                 updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
                 updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
@@ -1516,7 +1671,7 @@
                                                 <path class="potion-glass" d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" /><rect class="potion-cork" x="18" y="0" width="14" height="5" rx="2" />
                                             </svg>
                                             <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
-                                                <span>${cardData.attributes.manaAtual || '?'}</span><span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.mana || '?'}</span>
+                                                <span data-status="mana">${cardData.attributes.manaAtual || '?'}</span><span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.mana || '?'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1524,14 +1679,19 @@
                                         <div class="icon-container heart-container">
                                             <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                             <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
-                                                <span>${cardData.attributes.vidaAtual || '?'}</span><span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.vida || '?'}</span>
+                                                <span data-status="life">${cardData.attributes.vidaAtual || '?'}</span><span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.vida || '?'}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="absolute top-20 left-2 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal" title="Alterar Dinheiro">
+                                   
+                                    <div class="absolute top-20 left-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-yellow-200 cursor-pointer" data-action="toggle-lore" title="Ver História">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <div class="absolute top-36 left-4 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal" title="Alterar Dinheiro" style=" writing-mode: vertical-rl; text-orientation: upright;">
                                         💰 ${cardData.dinheiro || 0}
                                     </div>
-                                    <div class="text-center" style="width: 60%; margin-top: 1rem;"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p>${cardData.level}</div>
+
+                                    <div class="text-center" style="width: 60%; margin-top: 1rem;"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p></div>
                                     <div class="wave-container flex justify-center img-max" style="position: relative; width: 180px !important; height: 180px;"><img style="border-color: ${palette.borderColor}; z-index: 1; height: 180px" src="${cardData.imageURL}" onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';" alt="Imagem do personagem" class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
                                     <div class="p-3 rounded-3xl text-center w-full rpg-card-frame" style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
                                         <div class="grid grid-cols-4 gap-x-4 gap-y-1 text-xs my-2 mb-4">
@@ -1540,12 +1700,11 @@
                                             <div class="text-center">BL<br>${cardData.attributes.bloqueio || 0}</div>
                                             <div class="text-center">DL<br>${cardData.attributes.deslocamento || 0}m</div>
                                         </div>
-                                        ${Object.entries(cardData.attributes).filter(([key]) => ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'].includes(key)).map(([key, value]) => `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${(value * 100) / 3}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / 3</span></div>`).join('')}
+                                        ${Object.entries(cardData.attributes).filter(([key]) => ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'].includes(key)).map(([key, value]) => `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${((parseInt(value) || 0) * 100) / 3}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / 3</span></div>`).join('')}
                                         <p class="text-xs text-gray-400 italic  mt-4">Perícias</p>
                                         <div class="flex flex-col gap-2 mt-4" style="max-height: 100px; overflow-y: auto;"><div class="flex items-center justify-center w-full"></div>${periciasHtml}</div>
                                     </div>
                                     
-                                    <!-- INÍCIO DA ESTRUTURA DAS ABAS -->
                                     <div class="tab-container collapsed">
                                         <div class="tab-toggler">
                                             <div class="tab-buttons flex gap-2">
@@ -1559,31 +1718,89 @@
                                             <div class="tab-content hidden" data-tab-content="item"></div>
                                         </div>
                                     </div>
-                                    <!-- FIM DA ESTRUTURA DAS ABAS -->
 
+                                    <div class="lore-card" data-action="toggle-lore">
+                                        <h4 style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">História</h4>
+                                        <p>${cardData.lore?.historia || 'Nenhuma história definida.'}</p>
+                                        <h4 class="mt-4" style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">Personalidade</h4>
+                                        <p>${cardData.lore?.personalidade || 'Nenhuma personalidade definida.'}</p>
+                                        <h4 class="mt-4" style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">Motivação</h4>
+                                        <p>${cardData.lore?.motivacao || 'Nenhuma motivação definida.'}</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-back divPartculas" style="background-image:url(${cardData.backgroundURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
                                 <div class="back-content" style="border: 5px solid ${palette.borderColor};">
-                                    <h2>Detalhes</h2>
-                                    <div class="p-4 text-left">${periciasHtml}</div>
+                                    <h2></h2>
+                                    <div class="p-4 text-left"></div>
                                 </div>
                             </div>
                         </div>
                     </div>`;
                 const buttonsDiv = document.createElement('div');
-                buttonsDiv.className = 'flex justify-center space-x-2 w-full';
-                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-btn" data-card-id="${cardData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-btn" data-card-id="${cardData.id}" style="border-radius: 0; background-color: ${palette.highlightColor};">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 download-btn" data-card-id="${cardData.id}" style="border-radius: 0 50px 50px 0; background-color: #166534;">Baixar Ficha</button>`;
+                buttonsDiv.className = 'flex justify-center w-full';
+                buttonsDiv.innerHTML = `
+                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-btn" data-card-id="${cardData.id}" style="margin: 0px 5px 0px 0px;border-radius: 50px 0 0 50px; background-color: #23426d;"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 manage-btn" data-card-id="${cardData.id}" style="margin: 0px 5px 0px 5px;background-color: #7e22ce;"><i class="fas fa-cogs"></i></button>
+                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-btn" data-card-id="${cardData.id}" style="margin: 0px 5px 0px 5px;background-color: #b91c1c;"><i class="fas fa-trash-alt"></i></button>
+                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 download-btn" data-card-id="${cardData.id}" style="margin: 0px 0px 0px 5px;border-radius: 0 50px 50px 0; background-color: #166534;"><i class="fas fa-file-download"></i></button>`;
+                
                 cardWrapper.appendChild(cardDiv);
-
+                
+                // ATUALIZADO: Adiciona todos os listeners permanentes aqui
                 const card3d = cardDiv.querySelector('.card-3d');
-                if(card3d)
-                {
+                if(card3d) {
                     card3d.addEventListener('click', (e) => {
-                        if (e.target.closest('[data-action="open-status-modal"]') || e.target.closest('.tab-container')) return;
+                        if (e.target.closest('[data-action]') || e.target.closest('.tab-container')) return;
                         card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
                     });
                 }
+
+                const tabContainer = cardDiv.querySelector('.tab-container');
+                if (tabContainer) {
+                    const toggler = tabContainer.querySelector('.tab-toggler');
+                    toggler.querySelector('.toggler-arrow').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        tabContainer.classList.toggle('collapsed');
+                    });
+
+                    tabContainer.querySelectorAll('.tab-buttons button').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const tab = e.target.dataset.tab;
+                            tabContainer.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                            tabContainer.querySelector(`.tab-content[data-tab-content="${tab}"]`).classList.remove('hidden');
+                            
+                            tabContainer.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+                            e.target.classList.add('active');
+                        });
+                    });
+
+                    tabContainer.querySelectorAll('.tab-content').forEach(content => {
+                        content.addEventListener('click', async (e) => {
+                            const itemEl = e.target.closest('.tab-item');
+                            if (!itemEl) return;
+                            
+                            const type = itemEl.dataset.type;
+                            let itemData;
+
+                            if (type === 'item') {
+                                const itemName = itemEl.dataset.name;
+                                const allData = await getData(ITEM_STORE_NAME, 'characterId', cardData.id);
+                                itemData = allData.find(d => d.name === itemName);
+                            } else {
+                                const id = itemEl.dataset.id;
+                                const allData = await getData(SPELL_STORE_NAME);
+                                itemData = allData.find(d => d.id === id);
+                            }
+
+                            if (itemData) {
+                                await showExpandedCardInModal(itemData, type, cardData.id);
+                            }
+                        });
+                    });
+                }
+
                 cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
             }
@@ -1651,11 +1868,12 @@
                 setTimeout(() => spellCardElement.classList.add('visible'), 10);
             }
 
+            // ATUALIZADO: createSpellCardElement sem flip
             async function createSpellCardElement(spellData) {
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
                 const cardDiv = document.createElement('div');
-                cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
+                cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative'; // Removido card-3d-container etc.
                 cardDiv.dataset.spellId = spellData.id;
                 
                 const isMagia = spellData.type === 'magia';
@@ -1678,53 +1896,43 @@
                 cardDiv.style.backgroundImage = `url(${spellData.imageURL})`;
                 cardDiv.style.backgroundColor="rgb(0 0 0 / 50%)";
                 cardDiv.style.backgroundBlendMode="multiply";
+                cardDiv.style.border = `2px solid ${palette.borderColor}`;
 
                 cardDiv.innerHTML = `
-                    <div class="card-3d-container">
-                        <div class="card-3d divPartculas">
-                            <div class="card-front" style="border-color: ${palette.borderColor};background-image:url(${spellData.imageURL}) !important; background-position: center; background-size: cover">
-                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
-                                    <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
-                                     <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
-                                            <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
-                                            <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
-                                            <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
-                                            <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
-                                    </div>
-                                    <div class="w-full">                                       
-                                        <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
-                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                <h4 class="font-semibold text-gray-300">Descrição</h4>
-                                                <p class="text-gray-300 text-xs">${spellData.description || 'Nenhuma descrição.'}</p>
-                                            </div>                                            
-                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                <h4 class="font-semibold text-gray-300">Aprimorar</h4>
-                                                <p class="text-gray-300 text-xs">${spellData.enhance}</p>
-                                            </div>
-                                            <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
-                                                <p class="text-gray-300 text-xs">${spellData.true}</p>
-                                            </div>                                            
-                                        </div>
-                                    </div>
+                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                        <div class="text-center w-full">
+                            <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3>
+                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                        </div>
+                        <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                                <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
+                                <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
+                                <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
+                                <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
+                        </div>
+                        <div class="w-full">                                       
+                            <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
+                                <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                    <h4 class="font-semibold text-gray-300">Descrição</h4>
+                                    <p class="text-gray-300 text-xs">${spellData.description || 'Nenhuma descrição.'}</p>
+                                </div>                                            
+                                <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                    <h4 class="font-semibold text-gray-300">Aprimorar</h4>
+                                    <p class="text-gray-300 text-xs">${spellData.enhance}</p>
                                 </div>
-                            </div>
-                            <div class="card-back divPartculas" style="background-image:url(${spellData.imageURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
-                                <div class="back-content" style="border: 5px solid ${palette.borderColor};">
-                                    <h2></h2>
-                                    <p></p>
-                                </div>
+                                <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                    <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
+                                    <p class="text-gray-300 text-xs">${spellData.true}</p>
+                                </div>                                            
                             </div>
                         </div>
                     </div>`;
 
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.className = 'flex justify-center space-x-2 w-full';
-                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 0; background-color: #dc2626;">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 fullscreen-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 0 50px 50px 0; background-color: #23426d;">Expandir</button>`;
+                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;"><i class="fas fa-pencil-alt"></i></button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 0 50px 50px 0; background-color: #dc2626;"><i class="fas fa-trash-alt"></i></button>`;
                 
                 cardWrapper.appendChild(cardDiv);
-                 const card3d = cardDiv.querySelector('.card-3d');
-                if(card3d){card3d.addEventListener('click',()=>card3d.style.transform=card3d.style.transform==='rotateY(180deg)'?'rotateY(0deg)':'rotateY(180deg)');}
                 cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
             }
@@ -1852,7 +2060,7 @@
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
                 const cardDiv = document.createElement('div');
-                cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
+                cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative';
                 cardDiv.dataset.itemId = itemData.id;
                 
                 let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
@@ -1863,45 +2071,38 @@
                 cardDiv.style.backgroundImage = `url(${itemData.imageURL})`;
                 cardDiv.style.backgroundColor="rgb(0 0 0 / 50%)";
                 cardDiv.style.backgroundBlendMode="multiply";
+                cardDiv.style.border = `2px solid ${palette.borderColor}`;
 
                  cardDiv.innerHTML = `
-                    <div class="card-3d-container">
-                        <div class="card-3d divPartculas">
-                            <div class="card-front" style="border-color: ${palette.borderColor};background-image:url(${itemData.imageURL}) !important; background-position: center; background-size: cover">
-                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
-                                    <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
-                                     <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
-                                            <p class="text-left"><strong>Tipo:</strong> ${itemData.type || '-'}</p>
-                                            <p class="text-left"><strong>Dano:</strong> ${itemData.damage || '-'}</p>
-                                            <p class="text-left"><strong>Carga:</strong> ${itemData.charge}</p>
-                                            <p class="text-left"><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
-                                    </div>
-                                    <div class="w-full">                                       
-                                        <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
-                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                                <h4 class="font-semibold text-gray-300">Efeito</h4>
-                                                <p class="text-gray-300 text-xs">${itemData.effect || 'Nenhum efeito.'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-back divPartculas" style="background-image:url(${itemData.imageURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
-                                <div class="back-content" style="border: 5px solid ${palette.borderColor};">
-                                    <h2></h2>
-                                    <p></p>
+                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                        <div class="text-center w-full">
+                            <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3>
+                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                        </div>
+                        <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                            <p><strong>Tipo:</strong> ${itemData.type || '-'}</p>
+                            <p><strong>Dano:</strong> ${itemData.damage || '-'}</p>
+                            <p><strong>Carga:</strong> ${itemData.charge}</p>
+                            <p><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
+                             <p><strong>Restaurar Vida:</strong> ${itemData.restoreLife || 0} PV</p>
+                            <p><strong>Restaurar Mana:</strong> ${itemData.restoreMana || 0} PM</p>
+                        </div>
+                        <div class="w-full">                                       
+                            <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
+                                <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                    <h4 class="font-semibold text-gray-300">Efeito</h4>
+                                    <p class="text-gray-300 text-xs">${itemData.effect || 'Nenhum efeito.'}</p>
                                 </div>
                             </div>
                         </div>
+                       
                     </div>`;
 
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.className = 'flex justify-center space-x-2 w-full';
-                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-item-btn" data-item-id="${itemData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-item-btn" data-item-id="${itemData.id}" style="border-radius: 0; background-color: #dc2626;">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 fullscreen-item-btn" data-item-id="${itemData.id}" style="border-radius: 0 50px 50px 0; background-color: #23426d;">Expandir</button>`;
+                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-item-btn" data-item-id="${itemData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;"><i class="fas fa-pencil-alt"></i></button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-item-btn" data-item-id="${itemData.id}" style="border-radius: 0 50px 50px 0;background-color: #dc2626;"><i class="fas fa-trash-alt"></i></button>`;
                 
                 cardWrapper.appendChild(cardDiv);
-                const card3d = cardDiv.querySelector('.card-3d');
-                if(card3d){card3d.addEventListener('click',()=>card3d.style.transform=card3d.style.transform==='rotateY(180deg)'?'rotateY(0deg)':'rotateY(180deg)');}
                 cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
             }
@@ -1941,6 +2142,8 @@
                 document.getElementById('itemCharge').value = itemData.charge;
                 document.getElementById('itemPrerequisite').value = itemData.prerequisite;
                 document.getElementById('itemEffect').value = itemData.effect;
+                document.getElementById('itemRestoreLife').value = itemData.restoreLife || 0;
+                document.getElementById('itemRestoreMana').value = itemData.restoreMana || 0;
                 
                 if (itemData.image) {
                     const imageBlob = bufferToBlob(itemData.image, itemData.imageMimeType);
@@ -2001,17 +2204,25 @@
                         class: periciaClass
                     });
                 });
-
+                
+                // CORREÇÃO: Garante que todos os valores numéricos sejam salvos como números
                 const attributes = { 
-                    vida: vidaInput.value, mana: manaInput.value, 
-                    vidaAtual: vidaAtualInput.value, manaAtual: manaAtualInput.value,
-                    armadura: armaduraInput.value, esquiva: esquivaInput.value,
-                    bloqueio: bloqueioInput.value, deslocamento: deslocamentoInput.value,
-                    agilidade: agilidadeInput.value, carisma: carismaInput.value, 
-                    forca: forcaInput.value, inteligencia: inteligenciaInput.value, 
-                    sabedoria: sabedoriaInput.value, vigor: vigorInput.value, 
+                    vida: parseInt(vidaInput.value) || 0, mana: parseInt(manaInput.value) || 0, 
+                    vidaAtual: parseInt(vidaAtualInput.value) || 0, manaAtual: parseInt(manaAtualInput.value) || 0,
+                    armadura: parseInt(armaduraInput.value) || 0, esquiva: parseInt(esquivaInput.value) || 0,
+                    bloqueio: parseInt(bloqueioInput.value) || 0, deslocamento: parseInt(deslocamentoInput.value) || 0,
+                    agilidade: parseInt(agilidadeInput.value) || 0, carisma: parseInt(carismaInput.value) || 0, 
+                    forca: parseInt(forcaInput.value) || 0, inteligencia: parseInt(inteligenciaInput.value) || 0, 
+                    sabedoria: parseInt(sabedoriaInput.value) || 0, vigor: parseInt(vigorInput.value) || 0, 
                     pericias: selectedPericias 
                 };
+
+                const lore = {
+                    historia: historiaInput.value,
+                    personalidade: personalidadeInput.value,
+                    motivacao: motivacaoInput.value
+                };
+
                 let cardData;
                 if (currentEditingCardId) {
                     const allCards = await getData(CARD_STORE_NAME);
@@ -2020,18 +2231,20 @@
                     Object.assign(cardData, { 
                         title: cardTitleInput.value, 
                         subTitle: cardSubTitleInput.value, 
-                        level: cardLevelInput.value, 
-                        dinheiro: dinheiroInput.value,
-                        attributes 
+                        level: parseInt(cardLevelInput.value) || 1, 
+                        dinheiro: parseInt(dinheiroInput.value) || 0,
+                        attributes,
+                        lore
                     });
                 } else {
                     cardData = { 
                         id: Date.now().toString(), 
                         title: cardTitleInput.value, 
                         subTitle: cardSubTitleInput.value, 
-                        level: cardLevelInput.value, 
-                        dinheiro: dinheiroInput.value,
-                        attributes 
+                        level: parseInt(cardLevelInput.value) || 1, 
+                        dinheiro: parseInt(dinheiroInput.value) || 0,
+                        attributes,
+                        lore
                     };
                 }
                 if (characterImageFile) { cardData.image = await readFileAsArrayBuffer(characterImageFile); cardData.imageMimeType = characterImageFile.type; }
@@ -2099,6 +2312,8 @@
                     charge: parseInt(document.getElementById('itemCharge').value) || 0,
                     prerequisite: document.getElementById('itemPrerequisite').value,
                     effect: document.getElementById('itemEffect').value,
+                    restoreLife: parseInt(document.getElementById('itemRestoreLife').value) || 0,
+                    restoreMana: parseInt(document.getElementById('itemRestoreMana').value) || 0,
                     characterId: null,
                     slot: -1 
                 };
@@ -2127,59 +2342,58 @@
                 showItemDisplayView();
             });
 
-
             // --- Lógica de Exibição em Tela Cheia e Abas ---
-
-            async function showExpandedDetailView(data, type) {
+            async function showExpandedCardInModal(data, type, characterId = null) {
                 const existingContainer = document.querySelector('.expanded-card-container');
                 if (existingContainer) existingContainer.remove();
 
-                let imageURL, palette;
-                if (type === 'spell') {
-                    imageURL = 'https://placehold.co/400x650/14b8a6/1f2937?text=Magia';
-                    if (data.image) imageURL = URL.createObjectURL(bufferToBlob(data.image, data.imageMimeType));
-                    palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#2dd4bf', textColor: '#e5e7eb', borderColor: '#0d9488' };
-                } else { // item
-                    imageURL = 'https://placehold.co/400x650/f59e0b/422006?text=Item';
-                    if (data.image) imageURL = URL.createObjectURL(bufferToBlob(data.image, data.imageMimeType));
-                    palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
-                }
-
-                if (imageURL && !imageURL.includes('placehold.co')) {
-                    try {
-                        const newPalette = await getPredominantColorAndPalette(imageURL);
-                        palette.borderColor = newPalette.borderColor;
-                        palette.highlightColor = newPalette.highlightColor;
-                    } catch (e) { console.error(`Falha ao gerar paleta para ${type}.`, e); }
-                }
-
-                const cardElement = document.createElement('div');
-                cardElement.className = 'rounded-3xl border-2 w-full h-full';
-                cardElement.style.borderColor = palette.borderColor;
-                cardElement.style.background = `url(${imageURL})`;
-                cardElement.style.backgroundSize = 'cover';
-                cardElement.style.backgroundPosition = 'center';
-
-                let detailsHtml, mainContentHtml;
-                if (type === 'spell') {
-                    detailsHtml = `<p><strong>Execução:</strong> ${data.execution||'-'}</p><p><strong>Alcance:</strong> ${data.range||'-'}</p><p><strong>Alvo:</strong> ${data.target||'-'}</p><p><strong>Duração:</strong> ${data.duration||'-'}</p>`;
-                    mainContentHtml = `<div class="mb-4"><h4>Descrição</h4><p class="text-xs">${data.description||'N/A'}</p></div><div class="mb-4"><h4>Aprimorar</h4><p class="text-xs">${data.enhance||'N/A'}</p></div><div><h4>Verdadeiro</h4><p class="text-xs">${data.true||'N/A'}</p></div>`;
-                } else {
-                    detailsHtml = `<p><strong>Tipo:</strong> ${data.type||'-'}</p><p><strong>Dano:</strong> ${data.damage||'-'}</p><p><strong>Carga:</strong> ${data.charge}</p><p><strong>Pré-req:</strong> ${data.prerequisite||'-'}</p>`;
-                    mainContentHtml = `<div><h4>Efeito</h4><p class="text-xs">${data.effect||'N/A'}</p></div>`;
-                }
-                
-                cardElement.innerHTML = `<div class="rounded-3xl relative w-full h-full p-4 flex flex-col justify-between" style="background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent, rgba(0,0,0,0.9));">
-                    <div class="text-center"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${data.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent);"></div></div>
-                    <div class="text-xs text-gray-300 text-left">${detailsHtml}</div>
-                    <div class="text-sm text-gray-200 text-left p-2 rounded-lg bg-black/50 overflow-y-auto" style="max-height: 50%;">${mainContentHtml}</div>
-                </div>`;
-                
                 const expandedContainer = document.createElement('div');
                 expandedContainer.className = 'expanded-card-container';
+                
                 const cardHolder = document.createElement('div');
                 cardHolder.className = 'expanded-card';
-                cardHolder.appendChild(cardElement);
+
+                let cardWrapper;
+                let imageURL;
+
+                if (type === 'spell') {
+                    imageURL = 'https://placehold.co/160x160/14b8a6/1f2937?text=Magia';
+                    if (data.image) imageURL = URL.createObjectURL(bufferToBlob(data.image, data.imageMimeType));
+                    cardWrapper = await createSpellCardElement({ ...data, imageURL });
+                } else { // item
+                    imageURL = 'https://placehold.co/160x160/f59e0b/422006?text=Item';
+                    if (data.image) imageURL = URL.createObjectURL(bufferToBlob(data.image, data.imageMimeType));
+                    cardWrapper = await createItemCardElement({ ...data, imageURL });
+                }
+                
+                const cardItself = cardWrapper.querySelector('.rpg-card');
+                const oldButtons = cardWrapper.querySelector('.flex.justify-center');
+                if(oldButtons) oldButtons.remove();
+                
+                const closeButton = document.createElement('button');
+                closeButton.innerHTML = '&times;';
+                closeButton.className = 'absolute top-2 right-4 text-white text-4xl z-50 font-bold hover:text-red-500 transition-colors';
+                closeButton.onclick = () => {
+                    expandedContainer.classList.remove('visible');
+                    expandedContainer.addEventListener('transitionend', () => expandedContainer.remove(), { once: true });
+                };
+
+                if (cardItself) {
+                    cardHolder.appendChild(cardItself);
+                    cardHolder.appendChild(closeButton);
+
+                    if (type === 'item' && characterId) {
+                        const useButton = document.createElement('button');
+                        useButton.textContent = 'Usar';
+                        useButton.className = 'absolute top-1/2 -translate-x-1/2 py-3 px-4 text-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors z-50 btn-usar';
+                        useButton.onclick = () => {
+                            // A função useItem agora cuidará de fechar o modal
+                            useItem(data.name, characterId);
+                        };
+                        cardHolder.appendChild(useButton);
+                    }
+                }
+                
                 expandedContainer.appendChild(cardHolder);
                 document.body.appendChild(expandedContainer);
 
@@ -2193,81 +2407,87 @@
                 });
             }
 
-            async function initializeCardTabs(cardElement, characterId) {
+            // NOVA FUNÇÃO: Apenas atualiza o conteúdo das abas
+            async function updateCardTabsContent(cardElement, characterId) {
+                if (!cardElement) return;
                 const allSpells = await getData(SPELL_STORE_NAME, 'characterId', characterId);
                 const allItems = await getData(ITEM_STORE_NAME, 'characterId', characterId);
                 
-                const tabContainer = cardElement.querySelector('.tab-container');
-                if (!tabContainer) return;
-
                 const createTabContent = (items, type) => {
                     const contentDiv = cardElement.querySelector(`.tab-content[data-tab-content="${type}"]`);
+                    if (!contentDiv) return;
                     contentDiv.innerHTML = '';
-                    if (items.length === 0) {
-                        contentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Nenhum ${type === 'spell' ? 'feitiço' : 'item'}.</p>`;
-                        return;
+
+                    if (type === 'item') {
+                        const groupedItems = items.reduce((acc, item) => {
+                            if (!acc[item.name]) {
+                                acc[item.name] = { ...item, quantity: 0 };
+                            }
+                            acc[item.name].quantity++;
+                            return acc;
+                        }, {});
+
+                        const itemsToDisplay = Object.values(groupedItems);
+
+                        if (itemsToDisplay.length === 0) {
+                            contentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Nenhum item.</p>`;
+                            return;
+                        }
+
+                        itemsToDisplay.forEach(item => {
+                            let imageURL = 'https://placehold.co/60x60/f59e0b/422006?text=I';
+                            if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                            
+                            const itemEl = document.createElement('div');
+                            itemEl.className = 'tab-item';
+                            itemEl.dataset.name = item.name;
+                            itemEl.dataset.type = type;
+                            itemEl.innerHTML = `
+                                <img src="${imageURL}" alt="${item.name}">
+                                <p>${item.name}</p>
+                                ${item.quantity > 1 ? `<span class="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">${item.quantity}</span>` : ''}
+                            `;
+                            contentDiv.appendChild(itemEl);
+                        });
+                    } else { // Lógica para magias
+                        if (items.length === 0) {
+                            contentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Nenhum feitiço.</p>`;
+                            return;
+                        }
+                        items.forEach(item => {
+                            let imageURL = 'https://placehold.co/60x60/14b8a6/1f2937?text=M';
+                            if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                            
+                            const itemEl = document.createElement('div');
+                            itemEl.className = 'tab-item';
+                            itemEl.dataset.id = item.id;
+                            itemEl.dataset.type = type;
+                            itemEl.innerHTML = `<img src="${imageURL}" alt="${item.name}"><p>${item.name}</p>`;
+                            contentDiv.appendChild(itemEl);
+                        });
                     }
-                    items.forEach(item => {
-                        let imageURL = type === 'spell' ? 'https://placehold.co/60x60/14b8a6/1f2937?text=M' : 'https://placehold.co/60x60/f59e0b/422006?text=I';
-                        if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
-                        
-                        const itemEl = document.createElement('div');
-                        itemEl.className = 'tab-item';
-                        itemEl.dataset.id = item.id;
-                        itemEl.dataset.type = type;
-                        itemEl.innerHTML = `<img src="${imageURL}" alt="${item.name}"><p>${item.name}</p>`;
-                        contentDiv.appendChild(itemEl);
-                    });
                 };
 
                 createTabContent(allSpells, 'spell');
                 createTabContent(allItems, 'item');
-                
-                const toggler = tabContainer.querySelector('.tab-toggler');
-                toggler.querySelector('.toggler-arrow').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    tabContainer.classList.toggle('collapsed');
-                });
-
-                tabContainer.querySelectorAll('.tab-buttons button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const tab = e.target.dataset.tab;
-                        tabContainer.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-                        tabContainer.querySelector(`.tab-content[data-tab-content="${tab}"]`).classList.remove('hidden');
-                        
-                        tabContainer.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
-                        e.target.classList.add('active');
-                    });
-                });
-                
-                tabContainer.querySelectorAll('.tab-content').forEach(content => {
-                    content.addEventListener('click', async (e) => {
-                        const itemEl = e.target.closest('.tab-item');
-                        if (!itemEl) return;
-                        const id = itemEl.dataset.id;
-                        const type = itemEl.dataset.type;
-                        const dataStore = type === 'spell' ? SPELL_STORE_NAME : ITEM_STORE_NAME;
-                        const data = await getData(dataStore);
-                        const itemData = data.find(d => d.id === id);
-                        if (itemData) showExpandedDetailView(itemData, type);
-                    });
-                });
             }
+
 
             cardDisplayArea.addEventListener('click', async (e) => {
                 const actionElement = e.target.closest('[data-action]');
                 const cardElement = e.target.closest('.rpg-card');
                 
                 if (!cardElement) {
-                    const cardId = e.target.dataset.cardId;
+                    const cardId = e.target.dataset.cardId || e.target.closest('button')?.dataset.cardId;
                     if (!cardId) return;
 
-                    if (e.target.classList.contains('edit-btn')) {
+                    if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
                         await editCard(cardId);
-                    } else if (e.target.classList.contains('remove-btn')) {
+                    } else if (e.target.classList.contains('manage-btn') || e.target.closest('.manage-btn')) {
+                        await showLinkViewForCharacter(cardId);
+                    } else if (e.target.classList.contains('remove-btn') || e.target.closest('.remove-btn')) {
                         await removeCard(cardId);
-                    } else if (e.target.classList.contains('download-btn')) {
+                    } else if (e.target.classList.contains('download-btn') || e.target.closest('.download-btn')) {
                         const textContent = await generateSingleCharacterSheetText(cardId);
                         const cardData = (await getData(CARD_STORE_NAME)).find(c => c.id === cardId);
                         const filename = `ficha_${cardData.title.replace(/\s+/g, '_')}.txt`;
@@ -2285,8 +2505,15 @@
                 }
 
                 const cardId = cardElement.dataset.cardId;
-                if (actionElement && actionElement.dataset.action === 'open-status-modal') {
-                    openStatusModal(cardId);
+                if (actionElement) {
+                    if (actionElement.dataset.action === 'open-status-modal') {
+                        openStatusModal(cardId);
+                    } else if (actionElement.dataset.action === 'toggle-lore') {
+                        const loreCard = cardElement.querySelector('.lore-card');
+                        if (loreCard) {
+                            loreCard.classList.toggle('visible');
+                        }
+                    }
                 }
             });
 
@@ -2333,9 +2560,107 @@
                 currentStatusEditingCardId = null;
             });
 
+            // --- NOVA LÓGICA PARA USAR ITEM COM ANIMAÇÃO ---
+            function animateValue(obj, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    obj.innerHTML = Math.floor(progress * (end - start) + start);
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+            
+            async function useItem(itemName, characterId) {
+                if (!itemName || !characterId) return;
+
+                const allItems = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+                const itemToUse = allItems.find(item => item.name === itemName);
+                if (!itemToUse) { return; }
+
+                const allCards = await getData(CARD_STORE_NAME);
+                const character = allCards.find(card => card.id === characterId);
+                if (!character) { return; }
+
+                const expandedItemModal = document.querySelector('.expanded-card-container');
+                if (expandedItemModal) {
+                    expandedItemModal.classList.add('fading-out');
+                }
+
+                // Espera o item desaparecer
+                await new Promise(resolve => setTimeout(resolve, 300)); 
+                if (expandedItemModal) expandedItemModal.remove();
+
+
+                let characterWasUpdated = false;
+                const animationDuration = 1000; // Duração da animação do número
+                const glowDuration = 1500; // Duração do brilho
+
+                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
+                const cardFront = cardOnScreen ? cardOnScreen.querySelector('.card-front') : null;
+
+
+                if (itemToUse.restoreLife > 0) {
+                    let currentLife = parseInt(character.attributes.vidaAtual) || 0;
+                    const maxLife = parseInt(character.attributes.vida) || 0;
+                    let newLife = currentLife + parseInt(itemToUse.restoreLife);
+                    if (newLife > maxLife) newLife = maxLife;
+                    
+                    if (cardFront) {
+                        const lifeText = cardFront.querySelector('span[data-status="life"]');
+                        cardFront.classList.add('life-restore-card-glow');
+                        if (lifeText) animateValue(lifeText, currentLife, newLife, animationDuration);
+                        setTimeout(() => cardFront.classList.remove('life-restore-card-glow'), glowDuration);
+                    }
+                    character.attributes.vidaAtual = newLife;
+                    characterWasUpdated = true;
+                }
+
+                if (itemToUse.restoreMana > 0) {
+                    let currentMana = parseInt(character.attributes.manaAtual) || 0;
+                    const maxMana = parseInt(character.attributes.mana) || 0;
+                    let newMana = currentMana + parseInt(itemToUse.restoreMana);
+                    if (newMana > maxMana) newMana = maxMana;
+
+                    if (cardFront) {
+                        const manaText = cardFront.querySelector('span[data-status="mana"]');
+                        // Um pequeno atraso para que ambos os brilhos sejam visíveis se acontecerem juntos
+                        setTimeout(() => {
+                           cardFront.classList.add('mana-restore-card-glow');
+                           setTimeout(() => cardFront.classList.remove('mana-restore-card-glow'), glowDuration);
+                        }, 100); 
+                        
+                        if (manaText) animateValue(manaText, currentMana, newMana, animationDuration);
+                    }
+                    character.attributes.manaAtual = newMana;
+                    characterWasUpdated = true;
+                }
+
+                if (characterWasUpdated) {
+                    await saveData(CARD_STORE_NAME, character);
+                }
+
+                // Remove o item do banco de dados
+                await removeData(ITEM_STORE_NAME, itemToUse.id);
+
+                // Espera as animações terminarem
+                await new Promise(resolve => setTimeout(resolve, glowDuration));
+                
+                // Atualiza os visuais SVG sem recarregar o card
+                updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
+                updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
+
+                if (cardOnScreen) {
+                    // Apenas atualiza as abas (inventário), não o card inteiro
+                    await updateCardTabsContent(cardOnScreen, characterId);
+                }
+            }
+
 
             // --- LÓGICA DA TELA DE VINCULAR (ATUALIZADA) ---
-
             async function populateCharacterSelect() {
                 const characters = await getData(CARD_STORE_NAME);
                 characterSelect.innerHTML = '<option value="">-- Nenhum Personagem Selecionado --</option>';
@@ -2367,31 +2692,33 @@
                 const strength = parseInt(character.attributes.forca) || 0;
                 const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
                 
-                const backpack = items.find(item => item.name.toLowerCase().includes('mochila'));
-                const zeroChargeItems = items.filter(item => item.charge === 0 && !item.name.toLowerCase().includes('mochila'));
-                const regularItems = items.filter(item => item.charge > 0 && !item.name.toLowerCase().includes('mochila'));
+                const slotAddingItems = items.filter(item => item.charge < 0);
+                const zeroChargeItems = items.filter(item => item.charge === 0);
+                const regularItems = items.filter(item => item.charge > 0);
 
-                let totalSlots = strength * 5;
-                if (backpack) totalSlots += 2;
+                const extraSlots = slotAddingItems.reduce((acc, item) => acc + Math.abs(item.charge), 0);
+                let totalSlots = (strength * 5) + extraSlots;
                 
                 const totalCharge = regularItems.reduce((acc, item) => acc + (item.charge || 0), 0);
                 
                 slotsInfo.textContent = `Força: ${strength} | Carga: ${totalCharge}/${totalSlots}`;
                 
-                backpackSlotContainer.innerHTML = '';
-                const backpackSlot = document.createElement('div');
-                if (backpack) {
-                    backpackSlot.className = 'slot slot-occupied';
-                    backpackSlot.title = `Clique para remover "${backpack.name}"`;
-                    let imageURL = 'https://placehold.co/60x60/d2a679/422006?text=B';
-                    if (backpack.image) imageURL = URL.createObjectURL(bufferToBlob(backpack.image, backpack.imageMimeType));
-                    backpackSlot.innerHTML = `<img src="${imageURL}" alt="${backpack.name}"><span class="slot-item-name">${backpack.name}</span>`;
-                    backpackSlot.addEventListener('click', () => unlinkItem(backpack.id));
+                specialEquipmentContainer.innerHTML = '';
+                 if (slotAddingItems.length > 0) {
+                    slotAddingItems.forEach(item => {
+                        const slot = document.createElement('div');
+                        slot.className = 'slot slot-occupied';
+                        slot.title = `Clique para remover "${item.name}"`;
+                        let imageURL = 'https://placehold.co/60x60/d2a679/422006?text=B';
+                        if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                        slot.innerHTML = `<img src="${imageURL}" alt="${item.name}"><span class="slot-item-name">${item.name} (${item.charge})</span>`;
+                        slot.addEventListener('click', () => unlinkItem(item.id));
+                        specialEquipmentContainer.appendChild(slot);
+                    });
                 } else {
-                    backpackSlot.className = 'slot slot-available';
-                    backpackSlot.title = 'Slot para Mochila';
+                    specialEquipmentContainer.innerHTML = '<p class="col-span-5 text-center text-xs text-gray-500">Nenhum equipamento especial.</p>';
                 }
-                backpackSlotContainer.appendChild(backpackSlot);
+
 
                 itemSlotsContainer.innerHTML = '';
                 const slotStates = new Array(totalSlots).fill('available');
@@ -2448,18 +2775,18 @@
             }
             
             async function findFirstAvailableSlot(characterId) {
-                const items = (await getData(ITEM_STORE_NAME, 'characterId', characterId))
-                    .filter(item => item.charge > 0 && !item.name.toLowerCase().includes('mochila'));
-                const occupiedSlots = new Set(items.map(item => item.slot));
+                const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+                const regularItems = items.filter(item => item.charge > 0);
+                const occupiedSlots = new Set(regularItems.map(item => item.slot));
                 
                 const characters = await getData(CARD_STORE_NAME);
                 const character = characters.find(c => c.id === characterId);
                 if (!character) return -1;
 
                 const strength = parseInt(character.attributes.forca) || 0;
-                const hasBackpack = (await getData(ITEM_STORE_NAME, 'characterId', characterId))
-                    .some(item => item.name.toLowerCase().includes('mochila'));
-                let totalSlots = strength * 5 + (hasBackpack ? 2 : 0);
+                const slotAddingItems = items.filter(item => item.charge < 0);
+                const extraSlots = slotAddingItems.reduce((acc, item) => acc + Math.abs(item.charge), 0);
+                let totalSlots = (strength * 5) + extraSlots;
 
                 for (let i = 0; i < totalSlots; i++) {
                     if (!occupiedSlots.has(i)) {
@@ -2475,22 +2802,9 @@
                 if (!templateItem) return;
 
                 const charItems = await getData(ITEM_STORE_NAME, 'characterId', currentLinkingCharacterId);
-                const isBackpack = templateItem.name.toLowerCase().includes('mochila');
-
-                if (isBackpack) {
-                    if (charItems.some(item => item.name.toLowerCase().includes('mochila'))) {
-                        alert("Personagem já possui uma mochila.");
-                        selectionModal.classList.add('hidden');
-                        return;
-                    }
-                    const newItemInstance = { ...templateItem, id: Date.now().toString(), characterId: currentLinkingCharacterId, slot: -2 };
-                    await saveData(ITEM_STORE_NAME, newItemInstance);
-                    await renderInventoryManagement(currentLinkingCharacterId);
-                    selectionModal.classList.add('hidden');
-                    return;
-                }
-
-                if (templateItem.charge === 0) {
+                
+                // Se a carga for negativa ou zero, não verifica slots de carga
+                if (templateItem.charge <= 0) {
                     const newItemInstance = { ...templateItem, id: Date.now().toString(), characterId: currentLinkingCharacterId, slot: -1 };
                     await saveData(ITEM_STORE_NAME, newItemInstance);
                     await renderInventoryManagement(currentLinkingCharacterId);
@@ -2498,15 +2812,17 @@
                     return;
                 }
 
+                // Lógica para itens com carga positiva
                 const characters = await getData(CARD_STORE_NAME);
                 const character = characters.find(c => c.id === currentLinkingCharacterId);
                 if (!character) return;
                 
                 const strength = parseInt(character.attributes.forca) || 0;
-                const hasBackpack = charItems.some(item => item.name.toLowerCase().includes('mochila'));
-                let totalSlots = strength * 5 + (hasBackpack ? 2 : 0);
-                
-                const regularItems = charItems.filter(item => item.charge > 0 && !item.name.toLowerCase().includes('mochila'));
+                const slotAddingItems = charItems.filter(item => item.charge < 0);
+                const extraSlots = slotAddingItems.reduce((acc, item) => acc + Math.abs(item.charge), 0);
+                let totalSlots = (strength * 5) + extraSlots;
+
+                const regularItems = charItems.filter(item => item.charge > 0);
                 const totalCharge = regularItems.reduce((acc, item) => acc + (item.charge || 0), 0);
                 const newTotalCharge = totalCharge + (templateItem.charge || 0);
 
@@ -2537,12 +2853,15 @@
             async function openItemSelectionModal() {
                 modalTitle.textContent = "Selecione um Item para Adicionar";
                 const unlinkedItems = (await getData(ITEM_STORE_NAME, null)).filter(i => !i.characterId);
+                const charItems = await getData(ITEM_STORE_NAME, 'characterId', currentLinkingCharacterId);
                 modalList.innerHTML = '';
 
                 if (unlinkedItems.length === 0) {
                     modalList.innerHTML = '<p class="text-gray-400">Nenhum item pré-criado disponível.</p>';
                 } else {
                     unlinkedItems.forEach(item => {
+                        const countInInventory = charItems.filter(charItem => charItem.name === item.name).length;
+
                         const itemDiv = document.createElement('div');
                         itemDiv.className = 'modal-item p-2 rounded-md flex items-center gap-4';
                         itemDiv.dataset.itemId = item.id;
@@ -2552,10 +2871,11 @@
 
                         itemDiv.innerHTML = `
                             <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
-                            <div>
+                            <div class="flex-grow">
                                 <p class="font-bold">${item.name}</p>
                                 <p class="text-xs text-gray-400">Carga: ${item.charge}</p>
                             </div>
+                            ${countInInventory > 0 ? `<span class="text-xs text-green-400 font-semibold">No inv.: ${countInInventory}</span>` : ''}
                         `;
                         itemDiv.addEventListener('click', () => linkItem(item.id));
                         modalList.appendChild(itemDiv);
@@ -2599,24 +2919,38 @@
             async function openSpellSelectionModal(type) {
                 modalTitle.textContent = `Selecione uma ${type === 'magia' ? 'Magia' : 'Habilidade'} para Adicionar`;
                 const unlinkedSpells = (await getData(SPELL_STORE_NAME)).filter(s => !s.characterId && s.type === type);
+                const linkedSpells = await getData(SPELL_STORE_NAME, 'characterId', currentLinkingCharacterId);
+                const linkedSpellNames = new Set(linkedSpells.map(s => s.name));
+
                 modalList.innerHTML = '';
 
                 if (unlinkedSpells.length === 0) {
                     modalList.innerHTML = `<p class="text-gray-400">Nenhuma ${type === 'magia' ? 'magia' : 'habilidade'} pré-criada disponível.</p>`;
                 } else {
                     unlinkedSpells.forEach(spell => {
+                        const isAlreadyLinked = linkedSpellNames.has(spell.name);
                         const spellDiv = document.createElement('div');
-                        spellDiv.className = 'modal-item p-2 rounded-md flex items-center gap-4';
+                        spellDiv.className = 'modal-item p-2 rounded-md flex items-center justify-between gap-4';
                         spellDiv.dataset.spellId = spell.id;
                         
                         let imageURL = 'https://placehold.co/40x40/14b8a6/1f2937?text=M';
                         if (spell.image) imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
 
                         spellDiv.innerHTML = `
-                            <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
-                            <p class="font-bold">${spell.name}</p>
+                            <div class="flex items-center gap-4">
+                                <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
+                                <p class="font-bold">${spell.name}</p>
+                            </div>
+                             ${isAlreadyLinked ? '<span class="text-xs text-gray-500">Já possui</span>' : ''}
                         `;
-                        spellDiv.addEventListener('click', () => linkSpell(spell.id));
+
+                        if(isAlreadyLinked) {
+                            spellDiv.setAttribute('disabled', true);
+                            spellDiv.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            spellDiv.addEventListener('click', () => linkSpell(spell.id));
+                        }
+                        
                         modalList.appendChild(spellDiv);
                     });
                 }
@@ -2631,12 +2965,18 @@
             async function linkSpell(spellId) {
                 const allSpells = await getData(SPELL_STORE_NAME);
                 const templateSpell = allSpells.find(s => s.id === spellId && !s.characterId);
-                if (templateSpell) {
-                    const newSpellInstance = { ...templateSpell, id: Date.now().toString(), characterId: currentLinkingCharacterId };
-                    await saveData(SPELL_STORE_NAME, newSpellInstance);
-                    await renderLinkedSpells(currentLinkingCharacterId);
+                if (!templateSpell) return;
+
+                const linkedSpells = await getData(SPELL_STORE_NAME, 'characterId', currentLinkingCharacterId);
+                if (linkedSpells.some(s => s.name === templateSpell.name)) {
                     selectionModal.classList.add('hidden');
+                    return;
                 }
+
+                const newSpellInstance = { ...templateSpell, id: Date.now().toString(), characterId: currentLinkingCharacterId };
+                await saveData(SPELL_STORE_NAME, newSpellInstance);
+                await renderLinkedSpells(currentLinkingCharacterId);
+                selectionModal.classList.add('hidden');
             }
 
             async function unlinkSpell(spellId) {
@@ -2646,7 +2986,7 @@
 
 
             // --- LÓGICA DE DOWNLOAD DE FICHA ---
-               async function generateCharacterSheetText() {
+            async function generateCharacterSheetText() {
                 const allCards = await getData(CARD_STORE_NAME);
                 const allSpells = await getData(SPELL_STORE_NAME);
                 const allItems = await getData(ITEM_STORE_NAME);
@@ -2658,35 +2998,8 @@
                     text += "PERSONAGENS\n";
                     text += "----------------------------------------\n";
                     for (const card of allCards) {
-                        text += `Nome: ${card.title || ''}\n`;
-                        text += `Raça e Classe: ${card.subTitle || ''}\n`;
-                        text += `Nível: ${card.level || ''}\n`;
-                        text += `Dinheiro: ${card.dinheiro || 0}\n\n`;
-                        text += "Atributos:\n";
-                        if (card.attributes) {
-                            for (const [key, value] of Object.entries(card.attributes)) {
-                                if (key !== 'pericias') {
-                                    text += `  - ${key.charAt(0).toUpperCase() + key.slice(1)}: ${value || ''}\n`;
-                                }
-                            }
-                            text += "\nPerícias:\n";
-                            text += `  - ${(card.attributes.pericias || []).join(', ')}\n`;
-                        }
-                        
-                        // Itens e Magias do personagem
-                        const charItems = allItems.filter(i => i.characterId === card.id);
-                        const charSpells = allSpells.filter(s => s.characterId === card.id);
-
-                        if (charItems.length > 0) {
-                            text += "\nInventário do Personagem:\n";
-                            charItems.forEach(item => text += `  - ${item.name} (Carga: ${item.charge})\n`);
-                        }
-                        if (charSpells.length > 0) {
-                            text += "\nMagias do Personagem:\n";
-                            charSpells.forEach(spell => text += `  - ${spell.name}\n`);
-                        }
-
-                        text += "----------------------------------------\n";
+                        text += await generateSingleCharacterSheetText(card.id);
+                        text += "\n----------------------------------------\n";
                     };
                 }
                 
@@ -2712,10 +3025,10 @@
 
                 return text;
             }
-    
+            
+            // CORREÇÃO: Função de download de ficha mais completa
             async function generateSingleCharacterSheetText(cardId) {
-                const allCards = await getData(CARD_STORE_NAME);
-                const card = allCards.find(c => c.id === cardId);
+                const card = (await getData(CARD_STORE_NAME)).find(c => c.id === cardId);
                 if (!card) return "Personagem não encontrado.";
 
                 const allSpells = await getData(SPELL_STORE_NAME);
@@ -2727,6 +3040,16 @@
                 text += `Raça e Classe: ${card.subTitle || ''}\n`;
                 text += `Nível: ${card.level || ''}\n`;
                 text += `Dinheiro: ${card.dinheiro || 0}\n\n`;
+
+                if(card.lore) {
+                    text += "--- HISTÓRIA ---\n";
+                    text += `${card.lore.historia || 'N/A'}\n\n`;
+                    text += "--- PERSONALIDADE ---\n";
+                    text += `${card.lore.personalidade || 'N/A'}\n\n`;
+                    text += "--- MOTIVAÇÃO ---\n";
+                    text += `${card.lore.motivacao || 'N/A'}\n\n`;
+                }
+
                 text += "--- STATUS ---\n";
                 if (card.attributes) {
                     text += `Vida: ${card.attributes.vidaAtual || ''} / ${card.attributes.vida || ''}\n`;
@@ -2756,19 +3079,27 @@
                 
                 const charItems = allItems.filter(i => i.characterId === card.id);
                 if (charItems.length > 0) {
-                    text += "\n--- INVENTÁRIO ---\n";
+                    text += "\n\n--- INVENTÁRIO ---\n";
                     charItems.forEach(item => {
-                        text += `- ${item.name} (Carga: ${item.charge})\n`;
-                        if(item.effect) text += `  Efeito: ${item.effect}\n`;
+                        text += `\n- ${item.name}\n`;
+                        text += `  Tipo: ${item.type || 'N/A'} | Dano: ${item.damage || 'N/A'} | Carga: ${item.charge}\n`;
+                        if (item.prerequisite) text += `  Pré-requisito: ${item.prerequisite}\n`;
+                        if (item.restoreLife > 0) text += `  Restaura Vida: ${item.restoreLife} PV\n`;
+                        if (item.restoreMana > 0) text += `  Restaura Mana: ${item.restoreMana} PM\n`;
+                        if (item.effect) text += `  Efeito: ${item.effect.replace(/\n/g, '\n          ')}\n`;
                     });
                 }
 
                 const charSpells = allSpells.filter(s => s.characterId === card.id);
                 if (charSpells.length > 0) {
-                    text += "\n--- MAGIAS E HABILIDADES ---\n";
+                    text += "\n\n--- MAGIAS E HABILIDADES ---\n";
                     charSpells.forEach(spell => {
-                        text += `- ${spell.name} (${spell.type})\n`;
-                        if(spell.description) text += `  Descrição: ${spell.description}\n`;
+                        text += `\n- ${spell.name} (${spell.type})\n`;
+                        text += `  Execução: ${spell.execution || 'N/A'} | Alcance: ${spell.range || 'N/A'}\n`;
+                        text += `  Alvo: ${spell.target || 'N/A'} | Duração: ${spell.duration || 'N/A'}\n`;
+                        if (spell.description) text += `  Descrição: ${spell.description.replace(/\n/g, '\n             ')}\n`;
+                        if (spell.enhance) text += `  Aprimorar: ${spell.enhance.replace(/\n/g, '\n             ')}\n`;
+                        if (spell.true) text += `  Verdadeiro: ${spell.true.replace(/\n/g, '\n              ')}\n`;
                     });
                 }
 
