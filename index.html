@@ -814,8 +814,8 @@
                                 Magia
                             </button>
                         </div>
-                        <div id="linked-spells-container" class="min-h-[80px] flex flex-wrap gap-3 content-start">
-                            </div>
+                        <div id="linked-spells-container" class="grid grid-cols-5 gap-4">
+                        </div>
                     </div>
                 </div>
 
@@ -2576,7 +2576,7 @@
                 } else {
                     spells.forEach(spell => {
                         const spellCard = document.createElement('div');
-                        spellCard.className = 'spell-mini-card';
+                        spellCard.className = 'slot slot-occupied';
                         spellCard.title = `Clique para desvincular "${spell.name}"`;
                         
                         let imageURL = 'https://placehold.co/48x48/14b8a6/1f2937?text=M';
@@ -2584,7 +2584,7 @@
                             imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
                         }
                         
-                        spellCard.innerHTML = `<img src="${imageURL}" alt="${spell.name}"><p>${spell.name}</p>`;
+                        spellCard.innerHTML = `<img src="${imageURL}" alt="${spell.name}"><p class="slot-item-name">${spell.name}</p>`;
                         spellCard.addEventListener('click', () => unlinkSpell(spell.id));
                         linkedSpellsContainer.appendChild(spellCard);
                     });
