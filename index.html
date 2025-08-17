@@ -6,6 +6,7 @@
     <title>Criador de Cartões Estilo RPG</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     
     <style>
           /* Variáveis de Cor e Animação para fácil customização */
@@ -165,7 +166,7 @@
             margin: 15px;
             border-radius: 7px;
         }
-        .card-3d-container { perspective: 1500px; width: 100%; height: 650px; }
+        .card-3d-container { perspective: 1500px; width: 100%; height: 700px; }
         .card-3d {
             width: 100%;
             height: 100%;
@@ -181,6 +182,7 @@
             backface-visibility: hidden; 
             border-radius: 20px;
             box-shadow: 0px 0px 6px 0px #0f1908;
+            overflow: hidden; /* Garante que as abas não saiam do card */
         }
         .card-back {
             transform: rotateY(180deg); 
@@ -318,26 +320,29 @@
             background-color: #374151; /* gray-700 */
         }
 
-        .fullscreen-tab-container {
+        /* --- ESTILOS PARA ABAS (DENTRO E FORA DO FULLSCREEN) --- */
+        .tab-container {
             position: absolute;
-            bottom: 10px;
+            bottom: 0px; /* Inicia colapsado */
             left: 50%;
             transform: translateX(-50%);
             width: calc(100% - 20px);
             max-width: calc(100% - 20px);
             z-index: 100;
-            transition: transform 0.4s ease-out;
+            transition: transform 0.4s ease-out, bottom 0.4s ease-out;
         }
-        .fullscreen-tab-container.collapsed {
-            transform: translate(-50%, calc(100% - 45px));
-            bottom: -45px;
+        .tab-container.collapsed {
+            bottom: -105px; /* Altura do conteúdo + padding */
         }
-        .tab-list-toggler {
+        .rpg-card:fullscreen .tab-container.collapsed {
+             bottom: -115px; /* Ajuste para fullscreen */
+        }
+        .tab-toggler {
             position: absolute;
             top: -35px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 8px 20px;
+            padding: 8px 10px;
             background-color: #23426d;
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -351,54 +356,66 @@
             align-items: center;
             gap: 8px;
         }
-        .tab-list-toggler svg {
+        .tab-toggler .tab-buttons button {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            background-color: #374151;
+            transition: background-color 0.2s;
+        }
+        .tab-toggler .tab-buttons button.active {
+            background-color: #4f46e5;
+        }
+        .tab-toggler .toggler-arrow {
             transition: transform 0.3s ease;
         }
-        .fullscreen-tab-container.collapsed .tab-list-toggler svg {
+        .tab-container.collapsed .toggler-arrow {
             transform: rotate(180deg);
         }
-        .fullscreen-tab-content {
+        .tab-content {
             padding: 10px;
             background-color: rgba(17, 24, 39, 0.85);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
-            gap: 15px;
+            gap: 10px;
             overflow-x: auto;
+            height: 100px; /* Altura fixa para o conteúdo */
         }
-        .fullscreen-tab-content::-webkit-scrollbar { height: 5px; }
-        .fullscreen-tab-content::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
-        .fullscreen-tab-content::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
-        .tab-list-item {
+        .tab-content::-webkit-scrollbar { height: 5px; }
+        .tab-content::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        .tab-content::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+        .tab-item {
             cursor: pointer;
             text-align: center;
             transition: transform 0.2s ease;
             flex-shrink: 0;
-            width: 80px;
+            width: 70px;
         }
-        .tab-list-item:hover { transform: scale(1.1); }
-        .tab-list-item img {
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
-            border: 3px solid #4f46e5;
+        .tab-item:hover { transform: scale(1.1); }
+        .tab-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            border: 2px solid #4f46e5;
             object-fit: cover;
             margin: 0 auto;
-            box-shadow: 0 0 10px rgba(79, 70, 229, 0.7);
+            box-shadow: 0 0 8px rgba(79, 70, 229, 0.6);
         }
-        .tab-list-item p {
-            margin-top: 5px;
-            font-size: 12px;
+        .tab-item p {
+            margin-top: 4px;
+            font-size: 11px;
             color: #d1d5db;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            width: 80px;
+            width: 70px;
         }
 
+        /* --- ESTILOS PARA O CARD DE DETALHE EXPANDIDO (POP-UP) --- */
         .expanded-card-container {
-            position: absolute;
+            position: fixed; /* Fixo na tela */
             top: 0;
             left: 0;
             width: 100%;
@@ -407,19 +424,19 @@
             justify-content: center;
             align-items: center;
             background-color: rgba(0, 0, 0, 0.7);
-            z-index: 200;
+            z-index: 1200; /* Acima de tudo */
             cursor: pointer;
             opacity: 0;
-            transition: opacity 0.1s ease-in-out;
+            transition: opacity 0.2s ease-in-out;
             pointer-events: none;
         }
         .expanded-card {
-            transform: scale(0.8) !important;
-            transition: transform 0.1s ease-in-out;
+            transform: scale(0.8);
+            transition: transform 0.2s ease-in-out;
             cursor: default;
-            max-width: 90%;
+            max-width: 90vw;
             width: 450px;
-            height: 650px; /* Altura fixa para consistência */
+            height: 700px;
         }
         .expanded-card-container.visible {
             opacity: 1;
@@ -519,12 +536,20 @@
             align-items: center;
             gap: 4px;
             padding: 8px;
-            background-color: rgba(13, 148, 136, 0.2);
-            border: 1px solid #0d9488;
             border-radius: 8px;
             width: 80px;
             cursor: pointer;
             transition: all 0.2s ease;
+            position: relative; /* Para o ícone */
+        }
+        /* NOVO: Estilos para diferenciar Magia de Habilidade */
+        .spell-mini-card.is-magia {
+            background-color: rgba(13, 148, 136, 0.2);
+            border: 1px solid #0d9488; /* Borda sólida para magia */
+        }
+        .spell-mini-card.is-habilidade {
+            background-color: rgba(192, 132, 252, 0.2);
+            border: 1px dashed #c084fc; /* Borda tracejada para habilidade */
         }
         .spell-mini-card:hover {
             background-color: rgba(220, 38, 38, 0.4);
@@ -536,8 +561,10 @@
             height: 48px;
             object-fit: cover;
             border-radius: 50%;
-            border: 2px solid #14b8a6;
         }
+        .spell-mini-card.is-magia img { border: 2px solid #14b8a6; }
+        .spell-mini-card.is-habilidade img { border: 2px solid #a855f7; }
+
         .spell-mini-card p {
             font-size: 12px;
             text-align: center;
@@ -545,6 +572,22 @@
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
+        }
+        /* NOVO: Ícone para diferenciar tipo */
+        .type-icon {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+            color: white;
+            background-color: rgba(0,0,0,0.6);
+            padding: 2px;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Modal para selecionar item e status */
@@ -694,14 +737,22 @@
         <div id="spell-creation-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
                  <div class="flex justify-between items-center mb-6">
-                    <h2 id="spell-form-title" class="text-2xl font-bold text-teal-300">Nova Magia (Pré-criada)</h2>
+                    <h2 id="spell-form-title" class="text-2xl font-bold text-teal-300">Nova Magia/Habilidade</h2>
                     <button class="back-btn text-gray-400 hover:text-white transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
                 <form id="spellForm" class="space-y-6">
+                    <!-- NOVO: Seletor de tipo -->
                     <div>
-                        <h3 class="text-xl font-bold text-teal-300 mb-2">Ícone da Magia</h3>
+                        <label for="spellType" class="block text-sm font-semibold mb-1">Tipo</label>
+                        <select id="spellType" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                            <option value="magia">Magia</option>
+                            <option value="habilidade">Habilidade</option>
+                        </select>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-300 mb-2">Ícone</h3>
                         <div class="mt-4 text-center">
                             <label for="spellImageUpload" class="block text-sm font-semibold mb-1 cursor-pointer">Faça upload de uma imagem:</label>
                             <input type="file" id="spellImageUpload" accept="image/*" class="file-upload-input">
@@ -717,7 +768,7 @@
                     <div><label for="spellEnhance" class="block text-sm font-semibold mb-1">Aprimorar</label><textarea id="spellEnhance" rows="3" placeholder="Ex: (+2 PM): A cura aumenta para 2d10+2..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
                     <div><label for="spellTrue" class="block text-sm font-semibold mb-1">Verdadeiro</label><textarea id="spellTrue" rows="3" placeholder="Ex: (+9 PM): muda o alcance para 'curto'..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
                     <button type="submit" id="spellSubmitButton" class="w-full py-3 px-4 rounded-full text-lg font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 shadow-xl">
-                        Salvar Magia
+                        Salvar
                     </button>
                 </form>
             </div>
@@ -725,10 +776,10 @@
 
         <div id="spell-display-section" class="hidden">
                 <div id="spell-thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
-                    <p class="text-gray-500">Nenhuma magia salva ainda. Crie uma para começar!</p>
+                    <p class="text-gray-500">Nenhuma magia/habilidade salva ainda. Crie uma para começar!</p>
                 </div>
                 <div id="spell-card-display-area" class="w-full max-w-lg mx-auto mb-1 items-center justify-center" style="min-height: 720px;">
-                    <p class="text-gray-400">Selecione uma magia na lista acima para ver os detalhes.</p>
+                    <p class="text-gray-400">Selecione uma magia ou habilidade na lista acima para ver os detalhes.</p>
                 </div>
         </div>
 
@@ -737,7 +788,7 @@
                  <div class="flex justify-between items-center mb-6">
                     <h2 id="item-form-title" class="text-2xl font-bold text-amber-300">Novo Item (Pré-criado)</h2>
                     <button class="back-btn text-gray-400 hover:text-white transition-colors">
-                        <svg xmlns="http="www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
                 <form id="itemForm" class="space-y-6">
@@ -753,7 +804,8 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div><label for="itemType" class="block text-sm font-semibold mb-1">Tipo</label><input type="text" id="itemType" placeholder="Ex: Leve" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemDamage" class="block text-sm font-semibold mb-1">Dano</label><input type="text" id="itemDamage" placeholder="Ex: 2d6" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
-                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <!-- ALTERADO: Carga agora pode ser 0 -->
+                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" min="0" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemPrerequisite" class="block text-sm font-semibold mb-1">Pré-requisito</label><input type="text" id="itemPrerequisite" placeholder="Ex: Saber magia" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                     </div>
                     <div><label for="itemEffect" class="block text-sm font-semibold mb-1">Efeito</label><textarea id="itemEffect" rows="4" placeholder="Ex: Explosão imediata gerando fogo..." class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></textarea></div>
@@ -777,7 +829,7 @@
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl space-y-6">
                 <div class="text-center">
                     <h2 class="text-2xl font-bold text-yellow-300">Gerenciar Personagem</h2>
-                    <p class="text-sm text-gray-400">Vincule itens e magias ao seu personagem.</p>
+                    <p class="text-sm text-gray-400">Vincule itens, magias e habilidades ao seu personagem.</p>
                 </div>
                 
                 <div>
@@ -788,8 +840,8 @@
                 </div>
 
                 <div id="character-management-area" class="hidden grid md:grid-cols-2 gap-6">
-                    <div id="inventory-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
-                        <div class="flex justify-between items-center mb-4">
+                    <div id="inventory-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700 space-y-4">
+                        <div class="flex justify-between items-center">
                             <div>
                                 <h3 class="text-xl font-bold text-amber-300">Inventário</h3>
                                 <p id="slots-info" class="text-sm text-gray-400">Slots disponíveis: 0</p>
@@ -799,8 +851,23 @@
                                 Item
                             </button>
                         </div>
-                        <div id="item-slots-container" class="grid grid-cols-5 gap-4">
+                        <!-- NOVO: Slot da Mochila -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-400 mb-2">Equipamento Especial</h4>
+                            <div id="backpack-slot-container" class="flex">
+                                <!-- O slot da mochila será inserido aqui pelo JS -->
                             </div>
+                        </div>
+                        <!-- Container de slots principal -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-400 mb-2">Itens com Carga</h4>
+                            <div id="item-slots-container" class="grid grid-cols-5 gap-2"></div>
+                        </div>
+                        <!-- NOVO: Seção para itens de carga zero -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-400 mb-2">Itens de Carga Zero</h4>
+                            <div id="zero-charge-items-container" class="grid grid-cols-5 gap-2"></div>
+                        </div>
                     </div>
 
                     <div id="spell-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
@@ -809,12 +876,18 @@
                                 <h3 class="text-xl font-bold text-teal-300">Grimório</h3>
                                 <p class="text-sm text-gray-400">Magias e habilidades conhecidas.</p>
                             </div>
-                            <button id="add-spell-btn" class="py-2 px-4 rounded-full text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 transition-colors flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                Magia
-                            </button>
+                            <!-- NOVO: Seletor para adicionar magia ou habilidade -->
+                            <div class="flex items-center gap-2">
+                                <select id="add-spell-type-select" class="px-2 py-2 bg-gray-700 text-white text-sm rounded-lg border border-gray-600">
+                                    <option value="magia">Magia</option>
+                                    <option value="habilidade">Habilidade</option>
+                                </select>
+                                <button id="add-spell-btn" class="p-2 rounded-full text-white bg-teal-600 hover:bg-teal-700 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </div>
                         </div>
-                        <div id="linked-spells-container" class="grid grid-cols-5 gap-4">
+                        <div id="linked-spells-container" class="grid grid-cols-5 gap-2">
                         </div>
                     </div>
                 </div>
@@ -873,7 +946,7 @@
         </button>
         <button id="showSpellDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Grimório (Pré-criados)">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" /></svg>
-            <span class="hidden md:inline">Grimório</span>
+            <span class="hidden md:inline">Biblioteca</span>
         </button>
         <button id="showItemDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Inventário (Pré-criados)">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 002 0V3a1 1 0 00-1-1zM4 4a1 1 0 00-1 1v1a1 1 0 002 0V5a1 1 0 00-1-1zm12 0a1 1 0 00-1 1v1a1 1 0 002 0V5a1 1 0 00-1-1zM5.454 8.454a1 1 0 000 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 0zm9.092 0a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M3 10a7 7 0 1114 0v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3z" /></svg>
@@ -887,70 +960,6 @@
 
 
     <script>
-        // NEW: Array to keep track of particle intervals
-        let particleIntervals = [];
-
-        // NEW: Function to stop all particle animations
-       async function stopParticles() {
-            // Clear all active particle generation intervals
-            particleIntervals.forEach(clearInterval);
-            particleIntervals = []; // Reset the array
-
-            // Remove any existing particle elements from the DOM
-            const existingParticles = document.querySelectorAll('.sparkle');
-            existingParticles.forEach(p => p.remove());
-        }
-
-        // UPDATED: Particle function now resets before starting
-        async function part() {
-            // First, stop any previously running particle animations
-            await stopParticles();
-
-            const divsParticulas = document.querySelectorAll('.divPartculas');
-            divsParticulas.forEach(divParticulas => {
-                const estilos = window.getComputedStyle(divParticulas);
-                const maxParticles = 80; 
-                let currentParticles = 0;
-                function createSparkle() {
-                    if (currentParticles >= maxParticles) return;
-                    const sparkle = document.createElement('div');
-                    sparkle.classList.add('sparkle');
-                    divParticulas.appendChild(sparkle); 
-                    currentParticles++;
-                    const rect = divParticulas.getBoundingClientRect();
-                    const spawnX = Math.random() * rect.width; 
-                    const spawnY = Math.random() * rect.height;
-                    sparkle.style.opacity = (0.1 + Math.random() * 0.4).toFixed(2);
-                    sparkle.style.left = `${spawnX}px`; 
-                    sparkle.style.top = `${spawnY}px`;
-                    sparkle.style.backgroundColor = `${estilos.borderColor}`;
-                    sparkle.style.boxShadow = `0 0 5px 2px ${estilos.borderColor}, 0 0 10px 4px ${estilos.borderColor}`;
-                    const size = Math.random() * 1.5 + 0.5;
-                    sparkle.style.width = `${size}px`; 
-                    sparkle.style.height = `${size}px`;
-                    const directionX = (spawnX - rect.width / 2) * 4;
-                    const directionY = (spawnY - rect.height / 2) * 4;
-                    sparkle.style.setProperty('--x', `${directionX}px`);
-                    sparkle.style.setProperty('--y', `${directionY}px`);
-                    sparkle.style.setProperty('--r', `${Math.random() * 720}deg`);
-                    sparkle.style.setProperty('--duration', `${Math.random() * 15 + 10}s`);
-                    sparkle.addEventListener('animationend', () => { 
-                        sparkle.remove(); 
-                        currentParticles--; 
-                    });
-                }
-            });
-        }
-
-        const periciasData = {
-            "🏃‍♂️ AGILIDADE": { "Acrobacia": "Capacidade de realizar movimentos ágeis e controlados...", "Iniciativa": "Velocidade de reação quando o combate começa...", "Montaria": "Controle de veículos e montarias complexas...", "Furtividade": "A arte de mover-se sem ser notado...", "Pontaria": "Precisão com armas de longo alcance...", "Ladinagem": "Manipulação veloz e precisa com as mãos...", "Reflexos": "Rapidez em reagir a estímulos..." },
-            "✨ CARISMA": { "Adestramento": "Treinamento e comando de animais...", "Enganação": "A arte de manipular a verdade...", "Intimidação": "Uso da força de personalidade para impor medo...", "Persuasão": "A habilidade de influenciar e inspirar..." },
-            "🧠 INTELIGÊNCIA": { "Arcanismo": "Conhecimento das artes místicas...", "História": "Memória de tempos antigos...", "Investigação": "Capacidade de analisar cenários e reunir pistas...", "Ofício": "Criação, manutenção e reparo de objetos...", "Religião": "Conhecimento sobre divindades e rituais...", "Tecnologia": "Compreensão de mecanismos e engenhocas..." },
-            "🏋️ FORÇA": { "Atletismo": "Medida da força bruta aplicada com técnica...", "Luta": "Combate corpo a corpo com armas simples ou improvisadas..." },
-            "🦉 SABEDORIA": { "Intuição": "Habilidade de ler emoções e detectar mentiras...", "Percepção": "Capacidade de notar detalhes ao redor...", "Medicina": "Conhecimento de curas e tratamento de feridas...", "Natureza": "Sabedoria sobre o mundo natural...", "Sobrevivência": "A perícia de se adaptar ao mundo selvagem...", "Vontade": "Força interior e estabilidade emocional..." },
-            "❤️ VIGOR": { "Fortitude": "Resistência física e imunológica do personagem..." }
-        };
-
         document.addEventListener('DOMContentLoaded', () => {
             const root = document.documentElement;
 
@@ -985,6 +994,15 @@
                     });
                 }
             }
+     
+            const periciasData = {
+                "AGILIDADE": { "Acrobacia": "Capacidade de realizar movimentos ágeis e controlados...", "Iniciativa": "Velocidade de reação quando o combate começa...", "Montaria": "Controle de veículos e montarias complexas...", "Furtividade": "A arte de mover-se sem ser notado...", "Pontaria": "Precisão com armas de longo alcance...", "Ladinagem": "Manipulação veloz e precisa com as mãos...", "Reflexos": "Rapidez em reagir a estímulos..." },
+                "CARISMA": { "Adestramento": "Treinamento e comando de animais...", "Enganação": "A arte de manipular a verdade...", "Intimidação": "Uso da força de personalidade para impor medo...", "Persuasão": "A habilidade de influenciar e inspirar..." },
+                "INTELIGÊNCIA": { "Arcanismo": "Conhecimento das artes místicas...", "História": "Memória de tempos antigos...", "Investigação": "Capacidade de analisar cenários e reunir pistas...", "Ofício": "Criação, manutenção e reparo de objetos...", "Religião": "Conhecimento sobre divindades e rituais...", "Tecnologia": "Compreensão de mecanismos e engenhocas..." },
+                "FORÇA": { "Atletismo": "Medida da força bruta aplicada com técnica...", "Luta": "Combate corpo a corpo com armas simples ou improvisadas..." },
+                "SABEDORIA": { "Intuição": "Habilidade de ler emoções e detectar mentiras...", "Percepção": "Capacidade de notar detalhes ao redor...", "Medicina": "Conhecimento de curas e tratamento de feridas...", "Natureza": "Sabedoria sobre o mundo natural...", "Sobrevivência": "A perícia de se adaptar ao mundo selvagem...", "Vontade": "Força interior e estabilidade emocional..." },
+                "VIGOR": { "Fortitude": "Resistência física e imunológica do personagem..." }
+            };
 
             // Referências aos elementos do DOM
             const cardForm = document.getElementById('cardForm');
@@ -1016,7 +1034,6 @@
             const characterImagePreview = document.getElementById('characterImagePreview');
             const backgroundImagePreview = document.getElementById('backgroundImagePreview');
             
-            // Inputs de Status de Combate
             const vidaInput = document.getElementById('vida');
             const manaInput = document.getElementById('mana');
             const vidaAtualInput = document.getElementById('vidaAtual');
@@ -1026,7 +1043,6 @@
             const bloqueioInput = document.getElementById('bloqueio');
             const deslocamentoInput = document.getElementById('deslocamento');
 
-            // Inputs de Atributos Principais
             const agilidadeInput = document.getElementById('agilidade');
             const carismaInput = document.getElementById('carisma');
             const forcaInput = document.getElementById('forca');
@@ -1051,7 +1067,6 @@
             const mainContent = document.getElementById('mainContent');
             const nav = document.getElementById('nav');
 
-            // Elementos do menu e seções
             const showDisplayBtn = document.getElementById('showDisplayBtn');
             const showLinkBtn = document.getElementById('showLinkBtn');
             const showSpellDisplayBtn = document.getElementById('showSpellDisplayBtn');
@@ -1066,25 +1081,24 @@
             const itemCreationSection = document.getElementById('item-creation-section');
             const linkSection = document.getElementById('link-section');
 
-            // Elementos da seção de Vínculo
             const characterSelect = document.getElementById('character-select');
             const characterManagementArea = document.getElementById('character-management-area');
             const inventoryManagementArea = document.getElementById('inventory-management-area');
             const spellManagementArea = document.getElementById('spell-management-area');
             const slotsInfo = document.getElementById('slots-info');
             const itemSlotsContainer = document.getElementById('item-slots-container');
+            const backpackSlotContainer = document.getElementById('backpack-slot-container'); // NOVO
+            const zeroChargeItemsContainer = document.getElementById('zero-charge-items-container'); // NOVO
             const linkedSpellsContainer = document.getElementById('linked-spells-container');
             const addSpellBtn = document.getElementById('add-spell-btn');
+            const addSpellTypeSelect = document.getElementById('add-spell-type-select'); // NOVO
             const addItemBtn = document.getElementById('add-item-btn');
 
-
-            // Modal de Seleção
             const selectionModal = document.getElementById('selection-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalCloseBtn = document.getElementById('modal-close-btn');
             const modalList = document.getElementById('modal-list');
 
-            // Modal de Status
             const statusModal = document.getElementById('status-modal');
             const statusModalCloseBtn = document.getElementById('status-modal-close-btn');
             const statusForm = document.getElementById('status-form');
@@ -1102,7 +1116,6 @@
                 activeButton.classList.add('active');
             }
 
-            // Funções para controlar a visibilidade das seções
             function hideAllSections() {
                 creationSection.classList.add('hidden');
                 displaySection.classList.add('hidden');
@@ -1117,20 +1130,18 @@
                 hideAllSections();
                 displaySection.classList.remove('hidden');
                 updateActiveNav(showDisplayBtn);
-                stopParticles();
-                part();
             }
 
             function showCreationView(isEditing = false) {
                 hideAllSections();
                 creationSection.classList.remove('hidden');
-                stopParticles(); 
                 
                 if (!isEditing) {
                     formTitle.textContent = "Criar Novo Cartão de Personagem";
                     submitButton.textContent = 'Criar Cartão';
                     submitButton.classList.add('btn-gradient-pulse');
                     cardForm.reset();
+                    populatePericiasCheckboxes(); // Reset pericias as well
                     showImagePreview(characterImagePreview, null, true);
                     showImagePreview(backgroundImagePreview, null, false);
                     currentEditingCardId = null;
@@ -1140,11 +1151,10 @@
             function showSpellCreationView(isEditing = false) {
                 hideAllSections();
                 spellCreationSection.classList.remove('hidden');
-                stopParticles();
 
                 if (!isEditing) {
-                    spellFormTitle.textContent = "Nova Magia (Pré-criada)";
-                    spellSubmitButton.textContent = 'Salvar Magia';
+                    spellFormTitle.textContent = "Nova Magia/Habilidade";
+                    spellSubmitButton.textContent = 'Salvar';
                     spellForm.reset();
                     showImagePreview(spellImagePreview, null, true);
                     currentEditingSpellId = null;
@@ -1155,19 +1165,17 @@
                 hideAllSections();
                 spellDisplaySection.classList.remove('hidden');
                 updateActiveNav(showSpellDisplayBtn);
-                stopParticles();
-                part();
             }
 
             function showItemCreationView(isEditing = false) {
                 hideAllSections();
                 itemCreationSection.classList.remove('hidden');
-                stopParticles();
-
+                
                 if (!isEditing) {
                     itemFormTitle.textContent = "Novo Item (Pré-criado)";
                     itemSubmitButton.textContent = 'Salvar Item';
                     itemForm.reset();
+                    document.getElementById('itemCharge').value = 1; // Default charge
                     showImagePreview(itemImagePreview, null, true);
                     currentEditingItemId = null;
                 }
@@ -1177,8 +1185,6 @@
                 hideAllSections();
                 itemDisplaySection.classList.remove('hidden');
                 updateActiveNav(showItemDisplayBtn);
-                stopParticles();
-                part();
             }
             
             async function showLinkView() {
@@ -1187,7 +1193,6 @@
                 updateActiveNav(showLinkBtn);
                 await populateCharacterSelect();
                 characterManagementArea.classList.add('hidden');
-                stopParticles();
             }
 
             showDisplayBtn.addEventListener('click', showDisplayView);
@@ -1203,7 +1208,6 @@
                 });
             });
 
-            // Funções da tela de splash
             function showSplash() {
                 splashScreen.classList.remove('hidden');
                 mainContent.classList.add('hidden');
@@ -1226,9 +1230,9 @@
                 splashScreen.classList.add('hidden');
                 mainContent.classList.remove('hidden');
                 nav.classList.remove('hidden');
-                part();
             }
 
+            // ALTERADO: Função para popular perícias com input numérico
             function populatePericiasCheckboxes() {
                 periciasCheckboxesContainer.innerHTML = '';
                 for (const attribute in periciasData) {
@@ -1239,11 +1243,18 @@
                     details.querySelector('summary').addEventListener('click', () => { setTimeout(() => { details.querySelector('svg').style.transform = details.open ? 'rotate(90deg)' : 'rotate(0deg)'; }, 300); });
                     for (const periciaName in periciasData[attribute]) {
                         const periciaItem = document.createElement('div');
-                        periciaItem.className = 'flex items-center pericia-item rounded-md p-1 cursor-pointer';
-                        periciaItem.innerHTML = `<input type="checkbox" id="pericia-${periciaName.replace(/\s+/g, '-')}" name="pericia" value="${periciaName}" class="form-checkbox h-4 w-4 text-indigo-500 rounded border-gray-600 focus:ring-indigo-500"><label for="pericia-${periciaName.replace(/\s+/g, '-')}" class="ml-2 text-sm text-gray-200 cursor-pointer">${periciaName}</label>`;
+                        periciaItem.className = 'flex items-center justify-between pericia-item rounded-md p-1';
+                        const periciaId = `pericia-${periciaName.replace(/\s+/g, '-')}`;
+                        periciaItem.innerHTML = `
+                            <div class="flex items-center">
+                                <input type="checkbox" id="${periciaId}" name="pericia" value="${periciaName}" class="form-checkbox h-4 w-4 text-indigo-500 rounded border-gray-600 focus:ring-indigo-500">
+                                <label for="${periciaId}" class="ml-2 text-sm text-gray-200 cursor-pointer">${periciaName}</label>
+                            </div>
+                            <input type="number" id="${periciaId}-value" placeholder="0" class="w-16 px-2 py-1 bg-gray-800 text-white text-sm rounded-md border border-gray-600 focus:border-indigo-500">
+                        `;
                         periciasList.appendChild(periciaItem);
-                        periciaItem.addEventListener('click', (e) => {
-                            if (e.target.tagName !== 'INPUT') { const checkbox = periciaItem.querySelector('input'); checkbox.checked = !checkbox.checked; }
+                        
+                        periciaItem.querySelector('label').addEventListener('click', (e) => {
                             periciaDescriptionTitle.textContent = periciaName;
                             periciaDescriptionText.textContent = periciasData[attribute][periciaName];
                             periciaDescriptionDisplay.classList.remove('hidden');
@@ -1253,15 +1264,14 @@
                 }
             }
 
-            // Variáveis de estado e IndexedDB
             let currentEditingCardId = null;
             let currentEditingSpellId = null;
             let currentEditingItemId = null;
             let currentLinkingCharacterId = null;
-            let currentStatusEditingCardId = null; // Para o modal de status
+            let currentStatusEditingCardId = null;
 
             let db;
-            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 5; // Versão incrementada para novos campos
+            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 6; // Versão incrementada
             const CARD_STORE_NAME = 'rpgCards';
             const SPELL_STORE_NAME = 'rpgSpells';
             const ITEM_STORE_NAME = 'rpgItems';
@@ -1283,23 +1293,13 @@
                             db.createObjectStore(CARD_STORE_NAME, { keyPath: 'id' }); 
                         }
                         
-                        let spellStore;
                         if (!db.objectStoreNames.contains(SPELL_STORE_NAME)) {
-                            spellStore = db.createObjectStore(SPELL_STORE_NAME, { keyPath: 'id' });
-                        } else {
-                            spellStore = e.target.transaction.objectStore(SPELL_STORE_NAME);
-                        }
-                        if (!spellStore.indexNames.contains('characterId')) {
+                            const spellStore = db.createObjectStore(SPELL_STORE_NAME, { keyPath: 'id' });
                             spellStore.createIndex('characterId', 'characterId', { unique: false });
                         }
 
-                        let itemStore;
                         if (!db.objectStoreNames.contains(ITEM_STORE_NAME)) {
-                            itemStore = db.createObjectStore(ITEM_STORE_NAME, { keyPath: 'id' });
-                        } else {
-                            itemStore = e.target.transaction.objectStore(ITEM_STORE_NAME);
-                        }
-                        if (!itemStore.indexNames.contains('characterId')) {
+                            const itemStore = db.createObjectStore(ITEM_STORE_NAME, { keyPath: 'id' });
                             itemStore.createIndex('characterId', 'characterId', { unique: false });
                         }
                     }; 
@@ -1372,11 +1372,15 @@
                 sabedoriaInput.value = cardData.attributes.sabedoria;
                 vigorInput.value = cardData.attributes.vigor;
 
-                document.querySelectorAll('#pericias-checkboxes-container input[type="checkbox"]').forEach(cb => cb.checked = false);
+                populatePericiasCheckboxes(); // Repopula para garantir que os inputs existam
+                document.querySelectorAll('.pericia-item input[type="checkbox"]').forEach(cb => cb.checked = false);
                 if (Array.isArray(cardData.attributes.pericias)) {
-                    cardData.attributes.pericias.forEach(periciaName => {
-                        const checkbox = document.getElementById(`pericia-${periciaName.replace(/\s+/g, '-')}`);
+                    cardData.attributes.pericias.forEach(pericia => {
+                        const periciaId = `pericia-${pericia.name.replace(/\s+/g, '-')}`;
+                        const checkbox = document.getElementById(periciaId);
+                        const valueInput = document.getElementById(`${periciaId}-value`);
                         if (checkbox) checkbox.checked = true;
+                        if (valueInput) valueInput.value = pericia.value;
                     });
                 }
 
@@ -1461,12 +1465,11 @@
                 cardDisplayArea.appendChild(cardElement);
                 setTimeout(() => cardElement.classList.add('visible'), 10);
 
-                // Atualiza os visuais com os dados do cartão exibido
+                // NOVO: Inicializa as abas do card
+                initializeCardTabs(cardElement.querySelector('.rpg-card'), cardId);
+
                 updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
                 updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
-
-                await stopParticles();
-                part();
             }
 
             async function createCardElement(cardData) {
@@ -1478,48 +1481,50 @@
                 cardDiv.style.backgroundImage = `url(${cardData.backgroundURL})`;
                 let palette = { cardBg: 'rgba(31,41,55,0.9)', highlightColor: '#6366f1', textColor: '#e5e7eb', borderColor: '#4b5563' };
                 if (cardData.backgroundURL && !cardData.backgroundURL.includes('placehold.co')) {
-                    try { palette = await getPredominantColorAndPalette(cardData.backgroundURL); } catch (e) { alert('Falha ao gerar paleta.', e); }
+                    try { palette = await getPredominantColorAndPalette(cardData.backgroundURL); } catch (e) { console.error('Falha ao gerar paleta.', e); }
                 }
-                const periciasString = Array.isArray(cardData.attributes.pericias) && cardData.attributes.pericias.length > 0 ? cardData.attributes.pericias.join(', ') : 'Nenhuma';
+                
+                let periciasHtml = '<p class="text-xs text-gray-400 italic">Nenhuma perícia selecionada.</p>';
+                if (Array.isArray(cardData.attributes.pericias) && cardData.attributes.pericias.length > 0) {
+                    const groupedPericias = cardData.attributes.pericias.reduce((acc, pericia) => {
+                        const className = pericia.class || 'Outras';
+                        if (!acc[className]) acc[className] = [];
+                        acc[className].push(pericia);
+                        return acc;
+                    }, {});
+                    const sortedClasses = Object.keys(groupedPericias).sort();
+                    periciasHtml = sortedClasses.map(className => {
+                        const periciasList = groupedPericias[className].map(p => `<span class="text-xs text-gray-400 italic">${p.name} +${p.value}; </span>`).join('');
+                        return `<div class="text-left mt-1"><p class="text-xs text-gray-400 italic" style="font-size: 11px;">${className}</p><div class="flex flex-wrap gap-1 mb-1">${periciasList}</div></div>`;
+                    }).join('');
+                }
+
                 cardDiv.innerHTML = `
                     <div class="card-3d-container">
                         <div class="card-3d divPartculas">
                             <div class="card-front" style="border-color: ${palette.borderColor}">
-                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:url(${cardData.backgroundURL}) !important; height: 650px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between;">
+                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:url(${cardData.backgroundURL}) !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between;">
                                     
                                     <div class="absolute top-4 left-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Mana">
                                         <div class="icon-container potion-container">
                                             <svg class="potion-svg" viewBox="0 0 50 50">
-                                                <defs>
-                                                    <clipPath id="potion-mask-${cardData.id}">
-                                                        <path d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" />
-                                                    </clipPath>
-                                                </defs>
+                                                <defs><clipPath id="potion-mask-${cardData.id}"><path d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" /></clipPath></defs>
                                                 <g clip-path="url(#potion-mask-${cardData.id})">
                                                     <rect class="potion-liquid" x="8" y="5" width="34" height="45" />
-                                                    <circle class="bubble" cx="20" cy="45" r="2.5" data-base-radius="2.5"/>
-                                                    <circle class="bubble" cx="28" cy="42" r="2" data-base-radius="2"/>
-                                                    <circle class="bubble" cx="33" cy="46" r="1.5" data-base-radius="1.5"/>
+                                                    <circle class="bubble" cx="20" cy="45" r="2.5" data-base-radius="2.5"/><circle class="bubble" cx="28" cy="42" r="2" data-base-radius="2"/><circle class="bubble" cx="33" cy="46" r="1.5" data-base-radius="1.5"/>
                                                 </g>
-                                                <path class="potion-glass" d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" />
-                                                <rect class="potion-cork" x="18" y="0" width="14" height="5" rx="2" />
+                                                <path class="potion-glass" d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" /><rect class="potion-cork" x="18" y="0" width="14" height="5" rx="2" />
                                             </svg>
-                                             <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
-                                                <span>${cardData.attributes.manaAtual || '?'}</span>
-                                                <span class="fraction-line" style="width: 50%;"></span>
-                                                <span>${cardData.attributes.mana || '?'}</span>
+                                            <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
+                                                <span>${cardData.attributes.manaAtual || '?'}</span><span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.mana || '?'}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="absolute top-2 right-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Vida">
                                         <div class="icon-container heart-container">
-                                            <svg class="heart-svg" viewBox="0 0 24 24">
-                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                            </svg>
+                                            <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                             <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
-                                                <span>${cardData.attributes.vidaAtual || '?'}</span>
-                                                <span class="fraction-line" style="width: 50%;"></span>
-                                                <span>${cardData.attributes.vida || '?'}</span>
+                                                <span>${cardData.attributes.vidaAtual || '?'}</span><span class="fraction-line" style="width: 50%;"></span><span>${cardData.attributes.vida || '?'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1536,28 +1541,46 @@
                                             <div class="text-center">DL<br>${cardData.attributes.deslocamento || 0}m</div>
                                         </div>
                                         ${Object.entries(cardData.attributes).filter(([key]) => ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'].includes(key)).map(([key, value]) => `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${(value * 100) / 3}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / 3</span></div>`).join('')}
-                                        <div class="flex flex-col gap-2 mt-4"><div class="flex items-center justify-center w-full"></div><p class="text-xs text-gray-400 italic">Perícias</p><p class="text-xs text-gray-400 italic" style="font-size: 11px;">${periciasString}</p></div>
+                                        <p class="text-xs text-gray-400 italic  mt-4">Perícias</p>
+                                        <div class="flex flex-col gap-2 mt-4" style="max-height: 100px; overflow-y: auto;"><div class="flex items-center justify-center w-full"></div>${periciasHtml}</div>
                                     </div>
+                                    
+                                    <!-- INÍCIO DA ESTRUTURA DAS ABAS -->
+                                    <div class="tab-container collapsed">
+                                        <div class="tab-toggler">
+                                            <div class="tab-buttons flex gap-2">
+                                                <button data-tab="spell" class="active">Grimório</button>
+                                                <button data-tab="item">Inventário</button>
+                                            </div>
+                                            <svg class="w-5 h-5 toggler-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                        </div>
+                                        <div class="tab-content-wrapper">
+                                            <div class="tab-content" data-tab-content="spell"></div>
+                                            <div class="tab-content hidden" data-tab-content="item"></div>
+                                        </div>
+                                    </div>
+                                    <!-- FIM DA ESTRUTURA DAS ABAS -->
+
                                 </div>
                             </div>
                             <div class="card-back divPartculas" style="background-image:url(${cardData.backgroundURL}) !important; background-size: cover !important; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
                                 <div class="back-content" style="border: 5px solid ${palette.borderColor};">
-                                    <h2></h2>
-                                    <p></p>
+                                    <h2>Detalhes</h2>
+                                    <div class="p-4 text-left">${periciasHtml}</div>
                                 </div>
                             </div>
                         </div>
                     </div>`;
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.className = 'flex justify-center space-x-2 w-full';
-                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-btn" data-card-id="${cardData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-btn" data-card-id="${cardData.id}" style="border-radius: 0; background-color: ${palette.highlightColor};">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 fullscreen-btn" data-card-id="${cardData.id}" style="border-radius: 0 50px 50px 0; background-color: #23426d;">Expandir</button>`;
+                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-btn" data-card-id="${cardData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;">Editar</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-btn" data-card-id="${cardData.id}" style="border-radius: 0; background-color: ${palette.highlightColor};">Excluir</button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 download-btn" data-card-id="${cardData.id}" style="border-radius: 0 50px 50px 0; background-color: #166534;">Baixar Ficha</button>`;
                 cardWrapper.appendChild(cardDiv);
 
                 const card3d = cardDiv.querySelector('.card-3d');
                 if(card3d)
                 {
                     card3d.addEventListener('click', (e) => {
-                        if (e.target.closest('[data-action="open-status-modal"]')) return;
+                        if (e.target.closest('[data-action="open-status-modal"]') || e.target.closest('.tab-container')) return;
                         card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
                     });
                 }
@@ -1588,9 +1611,8 @@
 
             async function renderSpellCards() {
                 spellThumbnailList.innerHTML = '';
-                // Carrega apenas magias sem characterId (pré-criadas)
                 const allSpells = (await getData(SPELL_STORE_NAME, null)).filter(s => !s.characterId);
-                spellCardDisplayArea.innerHTML = '<p class="text-gray-400">Selecione uma magia na lista acima para ver os detalhes.</p>';
+                spellCardDisplayArea.innerHTML = '<p class="text-gray-400">Selecione uma magia ou habilidade na lista para ver os detalhes.</p>';
 
                 let spellsLoaded = 0;
                 for (const spellData of allSpells) {
@@ -1610,7 +1632,7 @@
                 if (allSpells.length > 0) {
                     await displaySpell(allSpells[0].id);
                 } else {
-                    spellCardDisplayArea.innerHTML = '<p class="text-gray-400 text-center">Nenhuma magia pré-criada encontrada. Clique no botão + para criar uma.</p>';
+                    spellCardDisplayArea.innerHTML = '<p class="text-gray-400 text-center">Nenhuma magia ou habilidade pré-criada encontrada. Clique no botão + para criar uma.</p>';
                 }
             }
             
@@ -1627,9 +1649,6 @@
                 
                 spellCardDisplayArea.appendChild(spellCardElement);
                 setTimeout(() => spellCardElement.classList.add('visible'), 10);
-
-                await stopParticles();
-                part();
             }
 
             async function createSpellCardElement(spellData) {
@@ -1639,12 +1658,20 @@
                 cardDiv.className = 'w-full h-auto rounded-3xl shadow-2xl rpg-card';
                 cardDiv.dataset.spellId = spellData.id;
                 
-                let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#2dd4bf', textColor: '#e5e7eb', borderColor: '#0d9488' };
+                const isMagia = spellData.type === 'magia';
+                let palette = { 
+                    cardBg: isMagia ? 'rgba(17, 24, 39, 0.9)' : 'rgba(29, 17, 39, 0.9)', 
+                    highlightColor: isMagia ? '#2dd4bf' : '#c084fc', 
+                    textColor: '#e5e7eb', 
+                    borderColor: isMagia ? '#0d9488' : '#a855f7' 
+                };
                 if (spellData.imageURL && !spellData.imageURL.includes('placehold.co')) {
                     try { 
-                        palette = await getPredominantColorAndPalette(spellData.imageURL); 
+                        const newPalette = await getPredominantColorAndPalette(spellData.imageURL); 
+                        palette.borderColor = newPalette.borderColor;
+                        palette.highlightColor = newPalette.highlightColor;
                     } catch (e) { 
-                        alert('Falha ao gerar paleta para magia.', e); 
+                        console.error('Falha ao gerar paleta para magia/habilidade.', e); 
                     }
                 }
 
@@ -1656,7 +1683,7 @@
                     <div class="card-3d-container">
                         <div class="card-3d divPartculas">
                             <div class="card-front" style="border-color: ${palette.borderColor};background-image:url(${spellData.imageURL}) !important; background-position: center; background-size: cover">
-                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
+                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
                                     <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
                                      <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
                                             <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
@@ -1702,21 +1729,27 @@
                 return cardWrapper;
             }
 
-            // MODIFICAÇÃO 2: Adicionado nome da magia na miniatura
             function createSpellThumbnailElement(spellData) {
                 const thumb = document.createElement('div');
-                thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-teal-500 transition-colors duration-200';
+                const isMagia = spellData.type === 'magia';
+                const borderColor = isMagia ? 'border-teal-500' : 'border-purple-500';
+                const bgColor = isMagia ? `linear-gradient(45deg, #0f172a, #1e293b)` : `linear-gradient(45deg, #1e1b4b, #312e81)`;
+                const icon = isMagia ? `<i class="fas fa-hat-wizard"></i>` : `<i class="fas fa-fist-raised"></i>`;
+                
+                thumb.className = `relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:${borderColor} transition-colors duration-200`;
                 thumb.dataset.spellId = spellData.id;
-                thumb.style.background = `linear-gradient(45deg, #0f172a, #1e293b), url(${spellData.imageURL})`;
+                thumb.style.background = `${bgColor}, url(${spellData.imageURL})`;
                 thumb.style.backgroundSize = 'cover';
                 thumb.style.backgroundPosition = 'center';
                 thumb.style.backgroundBlendMode = 'multiply';
                 thumb.style.minWidth = '5rem';
                 thumb.innerHTML = `
                     <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-1 text-center">
-                        <img src="${spellData.imageURL}" onerror="this.src='https://placehold.co/40x40/14b8a6/1f2937?text=M';" alt="Miniatura da Magia" class="w-10 h-10 object-cover rounded-full border-2 border-teal-400 mb-1">
+                        <img src="${spellData.imageURL}" onerror="this.src='https://placehold.co/40x40/14b8a6/1f2937?text=M';" alt="Miniatura" class="w-10 h-10 object-cover rounded-full border-2 ${isMagia ? 'border-teal-400' : 'border-purple-400'} mb-1">
                         <p class="text-white text-[10px] font-bold leading-tight" style="text-shadow: 1px 1px 2px black;">${spellData.name}</p>
-                    </div>`;
+                    </div>
+                    <div class="type-icon">${icon}</div>
+                `;
                 
                 thumb.addEventListener('click', () => displaySpell(spellData.id));
                 return thumb;
@@ -1731,6 +1764,7 @@
                 spellFormTitle.textContent = `Editando: ${spellData.name}`;
                 currentEditingSpellId = spellId;
 
+                document.getElementById('spellType').value = spellData.type || 'magia';
                 document.getElementById('spellName').value = spellData.name;
                 document.getElementById('spellExecution').value = spellData.execution;
                 document.getElementById('spellRange').value = spellData.range;
@@ -1767,14 +1801,13 @@
                 } else if (e.target.classList.contains('fullscreen-spell-btn')) {
                     const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
                     if (document.fullscreenElement) document.exitFullscreen();
-                    else cardDiv.requestFullscreen().catch(err => alert(`Erro: ${err.message}`));
+                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
                 }
             });
 
             // --- Funções CRUD para Itens ---
             async function renderItemsAndThumbnails() {
                 itemThumbnailList.innerHTML = '';
-                // Carrega apenas itens sem characterId (pré-criados)
                 const allItems = (await getData(ITEM_STORE_NAME, null)).filter(i => !i.characterId);
                 itemCardDisplayArea.innerHTML = '<p class="text-gray-400">Selecione um item na lista acima para ver os detalhes.</p>';
 
@@ -1812,10 +1845,7 @@
                 const itemCardElement = await createItemCardElement({ ...fullItemData, imageURL });
 
                 itemCardDisplayArea.appendChild(itemCardElement);
-                setTimeout(() => itemCardElement.classList.add('visible'), 10);
-
-                await stopParticles();
-                part();
+                setTimeout(() => itemCardElement.classList.add('visible'), 10);                
             }
 
             async function createItemCardElement(itemData) {
@@ -1827,7 +1857,7 @@
                 
                 let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
                 if (itemData.imageURL && !itemData.imageURL.includes('placehold.co')) {
-                    try { palette = await getPredominantColorAndPalette(itemData.imageURL); } catch(e) { alert('Falha ao gerar paleta para item.', e); }
+                    try { palette = await getPredominantColorAndPalette(itemData.imageURL); } catch(e) { console.error('Falha ao gerar paleta para item.', e); }
                 }
 
                 cardDiv.style.backgroundImage = `url(${itemData.imageURL})`;
@@ -1838,12 +1868,12 @@
                     <div class="card-3d-container">
                         <div class="card-3d divPartculas">
                             <div class="card-front" style="border-color: ${palette.borderColor};background-image:url(${itemData.imageURL}) !important; background-position: center; background-size: cover">
-                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
+                                <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;    background-blend-mode: multiply;">
                                     <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
                                      <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
                                             <p class="text-left"><strong>Tipo:</strong> ${itemData.type || '-'}</p>
                                             <p class="text-left"><strong>Dano:</strong> ${itemData.damage || '-'}</p>
-                                            <p class="text-left"><strong>Carga:</strong> ${itemData.charge || '-'}</p>
+                                            <p class="text-left"><strong>Carga:</strong> ${itemData.charge}</p>
                                             <p class="text-left"><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
                                     </div>
                                     <div class="w-full">                                       
@@ -1876,7 +1906,6 @@
                 return cardWrapper;
             }
             
-            // MODIFICAÇÃO 3: Adicionado nome e carga do item na miniatura
             function createItemThumbnailElement(itemData) {
                 const thumb = document.createElement('div');
                 thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-amber-500 transition-colors duration-200';
@@ -1890,7 +1919,7 @@
                     <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-1 text-center">
                         <img src="${itemData.imageURL}" onerror="this.src='https://placehold.co/40x40/f59e0b/422006?text=I';" alt="Miniatura do Item" class="w-10 h-10 object-cover rounded-full border-2 border-amber-400 mb-1">
                         <p class="text-white text-[10px] font-bold leading-tight" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 80%;">${itemData.name}</p>
-                        <p class="text-amber-300 text-[9px] font-semibold">Carga: ${itemData.charge || 1}</p>
+                        <p class="text-amber-300 text-[9px] font-semibold">Carga: ${itemData.charge}</p>
                     </div>`;
                 
                 thumb.addEventListener('click', () => displayItem(itemData.id));
@@ -1940,7 +1969,7 @@
                 } else if (e.target.classList.contains('fullscreen-item-btn')) {
                     const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
                     if (document.fullscreenElement) document.exitFullscreen();
-                    else cardDiv.requestFullscreen().catch(err => alert(`Erro: ${err.message}`));
+                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
                 }
             });
 
@@ -1957,7 +1986,22 @@
 
             cardForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const selectedPericias = Array.from(document.querySelectorAll('#pericias-checkboxes-container input:checked')).map(cb => cb.value);
+                
+                const selectedPericias = [];
+                const periciaCheckboxes = document.querySelectorAll('#pericias-checkboxes-container input[type="checkbox"]:checked');
+                periciaCheckboxes.forEach(cb => {
+                    const periciaName = cb.value;
+                    const periciaId = `pericia-${periciaName.replace(/\s+/g, '-')}`;
+                    const valueInput = document.getElementById(`${periciaId}-value`);
+                    const periciaClass = Object.keys(periciasData).find(key => periciasData[key][periciaName]);
+
+                    selectedPericias.push({
+                        name: periciaName,
+                        value: parseInt(valueInput.value) || 0,
+                        class: periciaClass
+                    });
+                });
+
                 const attributes = { 
                     vida: vidaInput.value, mana: manaInput.value, 
                     vidaAtual: vidaAtualInput.value, manaAtual: manaAtualInput.value,
@@ -2009,6 +2053,7 @@
                 let spellData;
 
                 const spellDetails = {
+                    type: document.getElementById('spellType').value,
                     name: document.getElementById('spellName').value,
                     execution: document.getElementById('spellExecution').value,
                     range: document.getElementById('spellRange').value,
@@ -2017,7 +2062,7 @@
                     description: document.getElementById('spellDescription').value,
                     enhance: document.getElementById('spellEnhance').value,
                     true: document.getElementById('spellTrue').value,
-                    characterId: null // Magias criadas aqui são pré-criadas
+                    characterId: null
                 };
 
                 if (currentEditingSpellId) {
@@ -2051,11 +2096,11 @@
                     name: document.getElementById('itemName').value,
                     type: document.getElementById('itemType').value,
                     damage: document.getElementById('itemDamage').value,
-                    charge: parseInt(document.getElementById('itemCharge').value) || 1,
+                    charge: parseInt(document.getElementById('itemCharge').value) || 0,
                     prerequisite: document.getElementById('itemPrerequisite').value,
                     effect: document.getElementById('itemEffect').value,
-                    characterId: null, // Itens criados aqui são pré-criados
-                    slot: -1 // -1 indica que não está em um slot
+                    characterId: null,
+                    slot: -1 
                 };
 
                 if (currentEditingItemId) {
@@ -2083,9 +2128,12 @@
             });
 
 
-            // --- Lógica de Exibição de Magias em Tela Cheia ---
+            // --- Lógica de Exibição em Tela Cheia e Abas ---
 
-            async function createExpandedCardView(data, type) {
+            async function showExpandedDetailView(data, type) {
+                const existingContainer = document.querySelector('.expanded-card-container');
+                if (existingContainer) existingContainer.remove();
+
                 let imageURL, palette;
                 if (type === 'spell') {
                     imageURL = 'https://placehold.co/400x650/14b8a6/1f2937?text=Magia';
@@ -2102,7 +2150,7 @@
                         const newPalette = await getPredominantColorAndPalette(imageURL);
                         palette.borderColor = newPalette.borderColor;
                         palette.highlightColor = newPalette.highlightColor;
-                    } catch (e) { alert(`Falha ao gerar paleta para ${type}.`, e); }
+                    } catch (e) { console.error(`Falha ao gerar paleta para ${type}.`, e); }
                 }
 
                 const cardElement = document.createElement('div');
@@ -2113,163 +2161,96 @@
                 cardElement.style.backgroundPosition = 'center';
 
                 let detailsHtml, mainContentHtml;
-
                 if (type === 'spell') {
-                    detailsHtml = `
-                        <p class="text-left"><strong>Execução:</strong> ${data.execution || '-'}</p>
-                        <p class="text-left"><strong>Alcance:</strong> ${data.range || '-'}</p>
-                        <p class="text-left"><strong>Alvo:</strong> ${data.target || '-'}</p>
-                        <p class="text-left"><strong>Duração:</strong> ${data.duration || '-'}</p>
-                    `;
-                    mainContentHtml = `
-                        <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;">
-                            <h4 class="font-semibold text-gray-300">Descrição</h4>
-                            <p class="text-gray-300 text-xs">${data.description || 'Nenhuma descrição.'}</p>
-                        </div>
-                        <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;">
-                            <h4 class="font-semibold text-gray-300">Aprimorar</h4>
-                            <p class="text-gray-300 text-xs">${data.enhance || 'Nenhum aprimoramento.'}</p>
-                        </div>
-                        <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;">
-                            <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
-                            <p class="text-gray-300 text-xs">${data.true || 'Nenhum efeito verdadeiro.'}</p>
-                        </div>
-                    `;
-                } else { // item
-                    detailsHtml = `
-                        <p class="text-left"><strong>Tipo:</strong> ${data.type || '-'}</p>
-                        <p class="text-left"><strong>Dano:</strong> ${data.damage || '-'}</p>
-                        <p class="text-left"><strong>Carga:</strong> ${data.charge || '-'}</p>
-                        <p class="text-left"><strong>Pré-requisito:</strong> ${data.prerequisite || '-'}</p>
-                    `;
-                    mainContentHtml = `
-                        <div class="p-3 rounded-3xl w-full">
-                            <h4 class="font-semibold text-gray-300">Efeito</h4>
-                            <p class="text-gray-300 text-xs">${data.effect || 'Nenhum efeito.'}</p>
-                        </div>
-                    `;
+                    detailsHtml = `<p><strong>Execução:</strong> ${data.execution||'-'}</p><p><strong>Alcance:</strong> ${data.range||'-'}</p><p><strong>Alvo:</strong> ${data.target||'-'}</p><p><strong>Duração:</strong> ${data.duration||'-'}</p>`;
+                    mainContentHtml = `<div class="mb-4"><h4>Descrição</h4><p class="text-xs">${data.description||'N/A'}</p></div><div class="mb-4"><h4>Aprimorar</h4><p class="text-xs">${data.enhance||'N/A'}</p></div><div><h4>Verdadeiro</h4><p class="text-xs">${data.true||'N/A'}</p></div>`;
+                } else {
+                    detailsHtml = `<p><strong>Tipo:</strong> ${data.type||'-'}</p><p><strong>Dano:</strong> ${data.damage||'-'}</p><p><strong>Carga:</strong> ${data.charge}</p><p><strong>Pré-req:</strong> ${data.prerequisite||'-'}</p>`;
+                    mainContentHtml = `<div><h4>Efeito</h4><p class="text-xs">${data.effect||'N/A'}</p></div>`;
                 }
                 
-                cardElement.innerHTML = `
-                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); height: 650px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background-blend-mode: multiply;">        
-                        <div class="text-center w-full"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${data.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div></div>
-                        <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
-                            ${detailsHtml}
-                        </div>
-                       <div class="w-full">                                       
-                            <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px; scroll-snap-type: x mandatory;">                                             
-                               ${mainContentHtml}                                           
-                            </div>
-                        </div>
-                    </div>`;
+                cardElement.innerHTML = `<div class="rounded-3xl relative w-full h-full p-4 flex flex-col justify-between" style="background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent, rgba(0,0,0,0.9));">
+                    <div class="text-center"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${data.name}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent);"></div></div>
+                    <div class="text-xs text-gray-300 text-left">${detailsHtml}</div>
+                    <div class="text-sm text-gray-200 text-left p-2 rounded-lg bg-black/50 overflow-y-auto" style="max-height: 50%;">${mainContentHtml}</div>
+                </div>`;
                 
-                
-                return cardElement;
+                const expandedContainer = document.createElement('div');
+                expandedContainer.className = 'expanded-card-container';
+                const cardHolder = document.createElement('div');
+                cardHolder.className = 'expanded-card';
+                cardHolder.appendChild(cardElement);
+                expandedContainer.appendChild(cardHolder);
+                document.body.appendChild(expandedContainer);
+
+                setTimeout(() => expandedContainer.classList.add('visible'), 10);
+
+                expandedContainer.addEventListener('click', function(event) {
+                    if (event.target === expandedContainer) {
+                        expandedContainer.classList.remove('visible');
+                        expandedContainer.addEventListener('transitionend', () => expandedContainer.remove(), { once: true });
+                    }
+                });
             }
 
-            async function displayTabsInFullscreen(fullscreenElement, characterId) {
-                // Carrega apenas itens e magias do personagem específico
+            async function initializeCardTabs(cardElement, characterId) {
                 const allSpells = await getData(SPELL_STORE_NAME, 'characterId', characterId);
                 const allItems = await getData(ITEM_STORE_NAME, 'characterId', characterId);
-
-                const tabContainer = document.createElement('div');
-                tabContainer.className = 'fullscreen-tab-container collapsed';
+                
+                const tabContainer = cardElement.querySelector('.tab-container');
+                if (!tabContainer) return;
 
                 const createTabContent = (items, type) => {
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'fullscreen-tab-content hidden';
-                    contentDiv.dataset.tab = type;
+                    const contentDiv = cardElement.querySelector(`.tab-content[data-tab-content="${type}"]`);
+                    contentDiv.innerHTML = '';
+                    if (items.length === 0) {
+                        contentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Nenhum ${type === 'spell' ? 'feitiço' : 'item'}.</p>`;
+                        return;
+                    }
                     items.forEach(item => {
                         let imageURL = type === 'spell' ? 'https://placehold.co/60x60/14b8a6/1f2937?text=M' : 'https://placehold.co/60x60/f59e0b/422006?text=I';
-                        if (item.image) {
-                            imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
-                        }
+                        if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                        
                         const itemEl = document.createElement('div');
-                        itemEl.className = 'tab-list-item';
+                        itemEl.className = 'tab-item';
                         itemEl.dataset.id = item.id;
                         itemEl.dataset.type = type;
                         itemEl.innerHTML = `<img src="${imageURL}" alt="${item.name}"><p>${item.name}</p>`;
                         contentDiv.appendChild(itemEl);
                     });
-                    return contentDiv;
                 };
 
-                const spellContent = createTabContent(allSpells, 'spell');
-                const itemContent = createTabContent(allItems, 'item');
+                createTabContent(allSpells, 'spell');
+                createTabContent(allItems, 'item');
                 
-                const toggler = document.createElement('div');
-                toggler.className = 'tab-list-toggler';
-                toggler.innerHTML = `
-                    <div class="flex gap-2">
-                        <button data-tab="spell" class="px-3 py-1 rounded-lg bg-indigo-600 text-white" style="display: block; border-radius: 0.5rem .5rem 0 0;">Grimório</button>
-                        <button data-tab="item" class="px-3 py-1 rounded-lg bg-gray-600 text-white" style="display: block; border-radius: 0.5rem .5rem 0 0;">Inventário</button>
-                    </div>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                `;
-                
-                toggler.querySelector('svg').addEventListener('click', (e) => {
+                const toggler = tabContainer.querySelector('.tab-toggler');
+                toggler.querySelector('.toggler-arrow').addEventListener('click', (e) => {
                     e.stopPropagation();
                     tabContainer.classList.toggle('collapsed');
                 });
 
-                tabContainer.appendChild(toggler);
-                tabContainer.appendChild(spellContent);
-                tabContainer.appendChild(itemContent);
-                fullscreenElement.appendChild(tabContainer);
-
-                toggler.querySelectorAll('button').forEach(button => {
+                tabContainer.querySelectorAll('.tab-buttons button').forEach(button => {
                     button.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const tab = e.target.dataset.tab;
-                        tabContainer.querySelectorAll('.fullscreen-tab-content').forEach(content => content.classList.add('hidden'));
-                        tabContainer.querySelector(`.fullscreen-tab-content[data-tab="${tab}"]`).classList.remove('hidden');
+                        tabContainer.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                        tabContainer.querySelector(`.tab-content[data-tab-content="${tab}"]`).classList.remove('hidden');
                         
-                        toggler.querySelectorAll('button').forEach(btn => btn.classList.replace('bg-indigo-600', 'bg-gray-600'));
-                        e.target.classList.replace('bg-gray-600', 'bg-indigo-600');
-                        
-                        if (tabContainer.classList.contains('collapsed')) {
-                            tabContainer.classList.remove('collapsed');
-                        }
+                        tabContainer.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
                     });
                 });
                 
-                toggler.querySelector('button[data-tab="spell"]').click();
-
-
-                [spellContent, itemContent].forEach(content => {
+                tabContainer.querySelectorAll('.tab-content').forEach(content => {
                     content.addEventListener('click', async (e) => {
-                        const itemEl = e.target.closest('.tab-list-item');
+                        const itemEl = e.target.closest('.tab-item');
                         if (!itemEl) return;
-
                         const id = itemEl.dataset.id;
                         const type = itemEl.dataset.type;
-                        
-                        const data = await getData(type === 'spell' ? SPELL_STORE_NAME : ITEM_STORE_NAME);
+                        const dataStore = type === 'spell' ? SPELL_STORE_NAME : ITEM_STORE_NAME;
+                        const data = await getData(dataStore);
                         const itemData = data.find(d => d.id === id);
-                        if (!itemData) return;
-                        
-                        const existingCard = fullscreenElement.querySelector('.expanded-card-container');
-                        if (existingCard) existingCard.remove();
-
-                        const expandedContainer = document.createElement('div');
-                        expandedContainer.className = 'expanded-card-container';
-                        
-                        const cardHolder = document.createElement('div');
-                        cardHolder.className = 'expanded-card';
-                        
-                        const cardContent = await createExpandedCardView(itemData, type);
-                        cardHolder.appendChild(cardContent);
-                        expandedContainer.appendChild(cardHolder);
-                        fullscreenElement.appendChild(expandedContainer);
-
-                        setTimeout(() => expandedContainer.classList.add('visible'), 2);
-
-                        expandedContainer.addEventListener('click', function(event) {
-                            if (event.target === expandedContainer) {
-                                expandedContainer.classList.remove('visible');
-                                expandedContainer.addEventListener('transitionend', () => expandedContainer.remove(), { once: true });
-                            }
-                        });
+                        if (itemData) showExpandedDetailView(itemData, type);
                     });
                 });
             }
@@ -2278,7 +2259,7 @@
                 const actionElement = e.target.closest('[data-action]');
                 const cardElement = e.target.closest('.rpg-card');
                 
-                if (!cardElement) { // Handle clicks on edit/remove/fullscreen buttons
+                if (!cardElement) {
                     const cardId = e.target.dataset.cardId;
                     if (!cardId) return;
 
@@ -2286,32 +2267,24 @@
                         await editCard(cardId);
                     } else if (e.target.classList.contains('remove-btn')) {
                         await removeCard(cardId);
-                    } else if (e.target.classList.contains('fullscreen-btn')) {
-                        const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
-                        if (document.fullscreenElement) {
-                            document.exitFullscreen();
-                        } else {
-                            cardDiv.requestFullscreen().catch(err => alert(`Erro ao entrar em tela cheia: ${err.message}`));
-                            
-                            displayTabsInFullscreen(cardDiv, cardId);
-                            
-                            const onFullscreenChange = () => {
-                                if (!document.fullscreenElement) {
-                                    const tabContainer = cardDiv.querySelector('.fullscreen-tab-container');
-                                    if (tabContainer) tabContainer.remove();
-                                    const expandedCard = cardDiv.querySelector('.expanded-card-container');
-                                    if (expandedCard) expandedCard.remove();
-                                    document.removeEventListener('fullscreenchange', onFullscreenChange);
-                                }
-                            };
-                            document.addEventListener('fullscreenchange', onFullscreenChange);
-                        }
+                    } else if (e.target.classList.contains('download-btn')) {
+                        const textContent = await generateSingleCharacterSheetText(cardId);
+                        const cardData = (await getData(CARD_STORE_NAME)).find(c => c.id === cardId);
+                        const filename = `ficha_${cardData.title.replace(/\s+/g, '_')}.txt`;
+                        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
                     }
                     return;
                 }
 
                 const cardId = cardElement.dataset.cardId;
-
                 if (actionElement && actionElement.dataset.action === 'open-status-modal') {
                     openStatusModal(cardId);
                 }
@@ -2328,6 +2301,10 @@
                 modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
                 modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
                 modalDinheiroInput.value = cardData.dinheiro || 0;
+
+                // Definir o valor máximo para os inputs
+                modalVidaAtualInput.max = cardData.attributes.vida || 1;
+                modalManaAtualInput.max = cardData.attributes.mana || 1;
 
                 statusModal.classList.remove('hidden');
             }
@@ -2347,7 +2324,7 @@
                 await saveData(CARD_STORE_NAME, cardData);
 
                 statusModal.classList.add('hidden');
-                await displayCard(currentStatusEditingCardId); // Refresh the card view
+                await displayCard(currentStatusEditingCardId);
                 currentStatusEditingCardId = null;
             });
 
@@ -2382,7 +2359,6 @@
                 }
             });
 
-            // LÓGICA DE INVENTÁRIO REFEITA
             async function renderInventoryManagement(characterId) {
                 const characters = await getData(CARD_STORE_NAME);
                 const character = characters.find(c => c.id === characterId);
@@ -2391,28 +2367,43 @@
                 const strength = parseInt(character.attributes.forca) || 0;
                 const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
                 
+                const backpack = items.find(item => item.name.toLowerCase().includes('mochila'));
+                const zeroChargeItems = items.filter(item => item.charge === 0 && !item.name.toLowerCase().includes('mochila'));
+                const regularItems = items.filter(item => item.charge > 0 && !item.name.toLowerCase().includes('mochila'));
+
                 let totalSlots = strength * 5;
-                if (items.some(item => item.name.toLowerCase().includes('mochila'))) {
-                    totalSlots += 3;
-                }
+                if (backpack) totalSlots += 2;
                 
-                const totalCharge = items.reduce((acc, item) => acc + (item.charge || 1), 0);
+                const totalCharge = regularItems.reduce((acc, item) => acc + (item.charge || 0), 0);
                 
                 slotsInfo.textContent = `Força: ${strength} | Carga: ${totalCharge}/${totalSlots}`;
-                itemSlotsContainer.innerHTML = '';
+                
+                backpackSlotContainer.innerHTML = '';
+                const backpackSlot = document.createElement('div');
+                if (backpack) {
+                    backpackSlot.className = 'slot slot-occupied';
+                    backpackSlot.title = `Clique para remover "${backpack.name}"`;
+                    let imageURL = 'https://placehold.co/60x60/d2a679/422006?text=B';
+                    if (backpack.image) imageURL = URL.createObjectURL(bufferToBlob(backpack.image, backpack.imageMimeType));
+                    backpackSlot.innerHTML = `<img src="${imageURL}" alt="${backpack.name}"><span class="slot-item-name">${backpack.name}</span>`;
+                    backpackSlot.addEventListener('click', () => unlinkItem(backpack.id));
+                } else {
+                    backpackSlot.className = 'slot slot-available';
+                    backpackSlot.title = 'Slot para Mochila';
+                }
+                backpackSlotContainer.appendChild(backpackSlot);
 
-                // 1. Inicializa todos os slots como disponíveis
+                itemSlotsContainer.innerHTML = '';
                 const slotStates = new Array(totalSlots).fill('available');
 
-                // 2. Coloca os itens nos seus slots designados
-                items.sort((a,b) => a.slot - b.slot).forEach(item => {
+                regularItems.forEach(item => {
                     if (item.slot >= 0 && item.slot < totalSlots) {
-                        slotStates[item.slot] = item; // Armazena o objeto do item
+                        slotStates[item.slot] = item;
                     }
                 });
 
-                // 3. Bloqueia os slots do final para trás com base na carga extra
-                let slotsToBlock = totalCharge - items.length;
+                let slotsToBlock = totalCharge - regularItems.length;
+                
                 for (let i = totalSlots - 1; i >= 0 && slotsToBlock > 0; i--) {
                     if (slotStates[i] === 'available') {
                         slotStates[i] = 'blocked';
@@ -2420,48 +2411,62 @@
                     }
                 }
 
-                // 4. Renderiza os slots com base nos estados
                 for (let i = 0; i < totalSlots; i++) {
                     const slot = document.createElement('div');
                     const state = slotStates[i];
 
-                    if (typeof state === 'object') { // Slot ocupado por um item
+                    if (typeof state === 'object') {
                         slot.className = 'slot slot-occupied';
                         slot.title = `Clique para remover "${state.name}"`;
                         let imageURL = 'https://placehold.co/60x60/f59e0b/422006?text=I';
-                        if (state.image) {
-                            imageURL = URL.createObjectURL(bufferToBlob(state.image, state.imageMimeType));
-                        }
+                        if (state.image) imageURL = URL.createObjectURL(bufferToBlob(state.image, state.imageMimeType));
                         slot.innerHTML = `<img src="${imageURL}" alt="${state.name}"><span class="slot-item-name">${state.name}</span>`;
                         slot.addEventListener('click', () => unlinkItem(state.id));
                     } else if (state === 'blocked') {
                         slot.className = 'slot slot-blocked';
-                    } else { // Slot disponível
+                    } else {
                         slot.className = 'slot slot-available';
                     }
                     itemSlotsContainer.appendChild(slot);
                 }
+
+                zeroChargeItemsContainer.innerHTML = '';
+                if (zeroChargeItems.length > 0) {
+                    zeroChargeItems.forEach(item => {
+                        const slot = document.createElement('div');
+                        slot.className = 'slot slot-occupied';
+                        slot.title = `Clique para remover "${item.name}"`;
+                        let imageURL = 'https://placehold.co/60x60/9ca3af/1f2937?text=0';
+                        if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
+                        slot.innerHTML = `<img src="${imageURL}" alt="${item.name}"><span class="slot-item-name">${item.name}</span>`;
+                        slot.addEventListener('click', () => unlinkItem(item.id));
+                        zeroChargeItemsContainer.appendChild(slot);
+                    });
+                } else {
+                    zeroChargeItemsContainer.innerHTML = '<p class="col-span-5 text-center text-xs text-gray-500">Nenhum item de carga zero.</p>';
+                }
             }
             
             async function findFirstAvailableSlot(characterId) {
-                const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
+                const items = (await getData(ITEM_STORE_NAME, 'characterId', characterId))
+                    .filter(item => item.charge > 0 && !item.name.toLowerCase().includes('mochila'));
                 const occupiedSlots = new Set(items.map(item => item.slot));
                 
                 const characters = await getData(CARD_STORE_NAME);
                 const character = characters.find(c => c.id === characterId);
                 if (!character) return -1;
+
                 const strength = parseInt(character.attributes.forca) || 0;
-                let totalSlots = strength * 5;
-                if (items.some(item => item.name.toLowerCase().includes('mochila'))) {
-                    totalSlots += 3;
-                }
+                const hasBackpack = (await getData(ITEM_STORE_NAME, 'characterId', characterId))
+                    .some(item => item.name.toLowerCase().includes('mochila'));
+                let totalSlots = strength * 5 + (hasBackpack ? 2 : 0);
 
                 for (let i = 0; i < totalSlots; i++) {
                     if (!occupiedSlots.has(i)) {
                         return i;
                     }
                 }
-                return -1; // No slot available
+                return -1;
             }
 
             async function linkItem(itemId) {
@@ -2469,20 +2474,41 @@
                 const templateItem = allItems.find(i => i.id === itemId && !i.characterId);
                 if (!templateItem) return;
 
+                const charItems = await getData(ITEM_STORE_NAME, 'characterId', currentLinkingCharacterId);
+                const isBackpack = templateItem.name.toLowerCase().includes('mochila');
+
+                if (isBackpack) {
+                    if (charItems.some(item => item.name.toLowerCase().includes('mochila'))) {
+                        alert("Personagem já possui uma mochila.");
+                        selectionModal.classList.add('hidden');
+                        return;
+                    }
+                    const newItemInstance = { ...templateItem, id: Date.now().toString(), characterId: currentLinkingCharacterId, slot: -2 };
+                    await saveData(ITEM_STORE_NAME, newItemInstance);
+                    await renderInventoryManagement(currentLinkingCharacterId);
+                    selectionModal.classList.add('hidden');
+                    return;
+                }
+
+                if (templateItem.charge === 0) {
+                    const newItemInstance = { ...templateItem, id: Date.now().toString(), characterId: currentLinkingCharacterId, slot: -1 };
+                    await saveData(ITEM_STORE_NAME, newItemInstance);
+                    await renderInventoryManagement(currentLinkingCharacterId);
+                    selectionModal.classList.add('hidden');
+                    return;
+                }
+
                 const characters = await getData(CARD_STORE_NAME);
                 const character = characters.find(c => c.id === currentLinkingCharacterId);
                 if (!character) return;
                 
                 const strength = parseInt(character.attributes.forca) || 0;
-                const charItems = await getData(ITEM_STORE_NAME, 'characterId', currentLinkingCharacterId);
+                const hasBackpack = charItems.some(item => item.name.toLowerCase().includes('mochila'));
+                let totalSlots = strength * 5 + (hasBackpack ? 2 : 0);
                 
-                let totalSlots = strength * 5;
-                 if (charItems.some(item => item.name.toLowerCase().includes('mochila')) || templateItem.name.toLowerCase().includes('mochila')) {
-                    totalSlots += 3;
-                }
-
-                const totalCharge = charItems.reduce((acc, item) => acc + (item.charge || 1), 0);
-                const newTotalCharge = totalCharge + (templateItem.charge || 1);
+                const regularItems = charItems.filter(item => item.charge > 0 && !item.name.toLowerCase().includes('mochila'));
+                const totalCharge = regularItems.reduce((acc, item) => acc + (item.charge || 0), 0);
+                const newTotalCharge = totalCharge + (templateItem.charge || 0);
 
                 if(newTotalCharge > totalSlots) {
                     alert("Não há espaço suficiente para este item (carga excede o total).");
@@ -2491,45 +2517,21 @@
                 }
                 
                 const firstAvailableSlot = await findFirstAvailableSlot(currentLinkingCharacterId);
-                if (firstAvailableSlot === -1 || charItems.length >= totalSlots) {
+                if (firstAvailableSlot === -1) {
                      alert("Não há espaço suficiente para este item (nenhum slot livre).");
                      selectionModal.classList.add('hidden');
                      return;
                 }
                 
-                const newItemInstance = { ...templateItem };
-                newItemInstance.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-                newItemInstance.characterId = currentLinkingCharacterId;
-                newItemInstance.slot = firstAvailableSlot;
-                
+                const newItemInstance = { ...templateItem, id: Date.now().toString(), characterId: currentLinkingCharacterId, slot: firstAvailableSlot };
                 await saveData(ITEM_STORE_NAME, newItemInstance);
-                
                 await renderInventoryManagement(currentLinkingCharacterId);
                 selectionModal.classList.add('hidden');
             }
 
             async function unlinkItem(itemId) {
-                const itemToUnlink = (await getData(ITEM_STORE_NAME)).find(i => i.id === itemId);
-                if (itemToUnlink) {
-                    await removeData(ITEM_STORE_NAME, itemId);
-                    await reorganizeInventory(currentLinkingCharacterId);
-                }
-            }
-
-            async function reorganizeInventory(characterId) {
-                const items = await getData(ITEM_STORE_NAME, 'characterId', characterId);
-                const sortedItems = items.sort((a, b) => a.slot - b.slot);
-
-                let nextAvailableSlot = 0;
-                for (const item of sortedItems) {
-                    if (item.slot !== nextAvailableSlot) {
-                        item.slot = nextAvailableSlot;
-                        await saveData(ITEM_STORE_NAME, item);
-                    }
-                    nextAvailableSlot++;
-                }
-
-                await renderInventoryManagement(characterId);
+                await removeData(ITEM_STORE_NAME, itemId);
+                await renderInventoryManagement(currentLinkingCharacterId);
             }
             
             async function openItemSelectionModal() {
@@ -2546,15 +2548,13 @@
                         itemDiv.dataset.itemId = item.id;
                         
                         let imageURL = 'https://placehold.co/40x40/f59e0b/422006?text=I';
-                        if (item.image) {
-                            imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
-                        }
+                        if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
 
                         itemDiv.innerHTML = `
                             <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
                             <div>
                                 <p class="font-bold">${item.name}</p>
-                                <p class="text-xs text-gray-400">Carga: ${item.charge || 1}</p>
+                                <p class="text-xs text-gray-400">Carga: ${item.charge}</p>
                             </div>
                         `;
                         itemDiv.addEventListener('click', () => linkItem(item.id));
@@ -2572,32 +2572,37 @@
                 linkedSpellsContainer.innerHTML = '';
                 const spells = await getData(SPELL_STORE_NAME, 'characterId', characterId);
                 if (spells.length === 0) {
-                    linkedSpellsContainer.innerHTML = '<p class="text-gray-500 text-sm w-full text-center">Nenhuma magia vinculada.</p>';
+                    linkedSpellsContainer.innerHTML = '<p class="text-gray-500 text-sm w-full text-center col-span-5">Nenhuma magia ou habilidade vinculada.</p>';
                 } else {
                     spells.forEach(spell => {
+                        const isMagia = spell.type === 'magia';
                         const spellCard = document.createElement('div');
-                        spellCard.className = 'slot slot-occupied';
+                        spellCard.className = `slot slot-occupied ${isMagia ? 'is-magia' : 'is-habilidade'}`;
                         spellCard.title = `Clique para desvincular "${spell.name}"`;
                         
                         let imageURL = 'https://placehold.co/48x48/14b8a6/1f2937?text=M';
-                        if (spell.image) {
-                            imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
-                        }
+                        if (spell.image) imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
                         
-                        spellCard.innerHTML = `<img src="${imageURL}" alt="${spell.name}"><p class="slot-item-name">${spell.name}</p>`;
+                        const icon = isMagia ? `<i class="fas fa-hat-wizard"></i>` : `<i class="fas fa-fist-raised"></i>`;
+
+                        spellCard.innerHTML = `
+                            <img src="${imageURL}" alt="${spell.name}">
+                            <p class="slot-item-name">${spell.name}</p>
+                            <div class="type-icon">${icon}</div>
+                        `;
                         spellCard.addEventListener('click', () => unlinkSpell(spell.id));
                         linkedSpellsContainer.appendChild(spellCard);
                     });
                 }
             }
 
-            async function openSpellSelectionModal() {
-                modalTitle.textContent = "Selecione uma Magia para Adicionar";
-                const unlinkedSpells = (await getData(SPELL_STORE_NAME)).filter(s => !s.characterId);
+            async function openSpellSelectionModal(type) {
+                modalTitle.textContent = `Selecione uma ${type === 'magia' ? 'Magia' : 'Habilidade'} para Adicionar`;
+                const unlinkedSpells = (await getData(SPELL_STORE_NAME)).filter(s => !s.characterId && s.type === type);
                 modalList.innerHTML = '';
 
                 if (unlinkedSpells.length === 0) {
-                    modalList.innerHTML = '<p class="text-gray-400">Nenhuma magia pré-criada disponível.</p>';
+                    modalList.innerHTML = `<p class="text-gray-400">Nenhuma ${type === 'magia' ? 'magia' : 'habilidade'} pré-criada disponível.</p>`;
                 } else {
                     unlinkedSpells.forEach(spell => {
                         const spellDiv = document.createElement('div');
@@ -2605,9 +2610,7 @@
                         spellDiv.dataset.spellId = spell.id;
                         
                         let imageURL = 'https://placehold.co/40x40/14b8a6/1f2937?text=M';
-                        if (spell.image) {
-                            imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
-                        }
+                        if (spell.image) imageURL = URL.createObjectURL(bufferToBlob(spell.image, spell.imageMimeType));
 
                         spellDiv.innerHTML = `
                             <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
@@ -2620,16 +2623,16 @@
                 selectionModal.classList.remove('hidden');
             }
 
-            addSpellBtn.addEventListener('click', openSpellSelectionModal);
+            addSpellBtn.addEventListener('click', () => {
+                const selectedType = addSpellTypeSelect.value;
+                openSpellSelectionModal(selectedType);
+            });
 
             async function linkSpell(spellId) {
                 const allSpells = await getData(SPELL_STORE_NAME);
                 const templateSpell = allSpells.find(s => s.id === spellId && !s.characterId);
                 if (templateSpell) {
-                    const newSpellInstance = { ...templateSpell };
-                    newSpellInstance.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-                    newSpellInstance.characterId = currentLinkingCharacterId;
-                    
+                    const newSpellInstance = { ...templateSpell, id: Date.now().toString(), characterId: currentLinkingCharacterId };
                     await saveData(SPELL_STORE_NAME, newSpellInstance);
                     await renderLinkedSpells(currentLinkingCharacterId);
                     selectionModal.classList.add('hidden');
@@ -2642,9 +2645,8 @@
             }
 
 
-            // --- FIM DA LÓGICA DE VINCULAR ---
-
-            async function generateCharacterSheetText() {
+            // --- LÓGICA DE DOWNLOAD DE FICHA ---
+               async function generateCharacterSheetText() {
                 const allCards = await getData(CARD_STORE_NAME);
                 const allSpells = await getData(SPELL_STORE_NAME);
                 const allItems = await getData(ITEM_STORE_NAME);
@@ -2710,21 +2712,83 @@
 
                 return text;
             }
+    
+            async function generateSingleCharacterSheetText(cardId) {
+                const allCards = await getData(CARD_STORE_NAME);
+                const card = allCards.find(c => c.id === cardId);
+                if (!card) return "Personagem não encontrado.";
+
+                const allSpells = await getData(SPELL_STORE_NAME);
+                const allItems = await getData(ITEM_STORE_NAME);
+
+                let text = `FICHA DE PERSONAGEM\n`;
+                text += "========================================\n";
+                text += `Nome: ${card.title || ''}\n`;
+                text += `Raça e Classe: ${card.subTitle || ''}\n`;
+                text += `Nível: ${card.level || ''}\n`;
+                text += `Dinheiro: ${card.dinheiro || 0}\n\n`;
+                text += "--- STATUS ---\n";
+                if (card.attributes) {
+                    text += `Vida: ${card.attributes.vidaAtual || ''} / ${card.attributes.vida || ''}\n`;
+                    text += `Mana: ${card.attributes.manaAtual || ''} / ${card.attributes.mana || ''}\n`;
+                    text += `Armadura: ${card.attributes.armadura || 0}\n`;
+                    text += `Esquiva: ${card.attributes.esquiva || 0}\n`;
+                    text += `Bloqueio: ${card.attributes.bloqueio || 0}\n`;
+                    text += `Deslocamento: ${card.attributes.deslocamento || 0}m\n\n`;
+                    
+                    text += "--- ATRIBUTOS ---\n";
+                    text += `Força: ${card.attributes.forca || 0}\n`;
+                    text += `Agilidade: ${card.attributes.agilidade || 0}\n`;
+                    text += `Vigor: ${card.attributes.vigor || 0}\n`;
+                    text += `Inteligência: ${card.attributes.inteligencia || 0}\n`;
+                    text += `Sabedoria: ${card.attributes.sabedoria || 0}\n`;
+                    text += `Carisma: ${card.attributes.carisma || 0}\n\n`;
+
+                    text += "--- PERÍCIAS ---\n";
+                    if(card.attributes.pericias && card.attributes.pericias.length > 0) {
+                        card.attributes.pericias.forEach(p => {
+                            text += `- ${p.name} (+${p.value})\n`;
+                        });
+                    } else {
+                        text += "Nenhuma perícia selecionada.\n";
+                    }
+                }
+                
+                const charItems = allItems.filter(i => i.characterId === card.id);
+                if (charItems.length > 0) {
+                    text += "\n--- INVENTÁRIO ---\n";
+                    charItems.forEach(item => {
+                        text += `- ${item.name} (Carga: ${item.charge})\n`;
+                        if(item.effect) text += `  Efeito: ${item.effect}\n`;
+                    });
+                }
+
+                const charSpells = allSpells.filter(s => s.characterId === card.id);
+                if (charSpells.length > 0) {
+                    text += "\n--- MAGIAS E HABILIDADES ---\n";
+                    charSpells.forEach(spell => {
+                        text += `- ${spell.name} (${spell.type})\n`;
+                        if(spell.description) text += `  Descrição: ${spell.description}\n`;
+                    });
+                }
+
+                text += "\n========================================\n";
+                return text;
+            }
 
             saveDbBtn.addEventListener('click', async () => {
-                const textContent = await generateCharacterSheetText();
+                const textContent = await generateCharacterSheetText(); // Mantém a função de baixar tudo
                 const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'ficha_rpg.txt';
+                a.download = 'todas_as_fichas_rpg.txt';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             });
 
-            // Adiciona listeners aos inputs do formulário para atualização em tempo real
             [vidaAtualInput, vidaInput, manaAtualInput, manaInput].forEach(input => {
                 input.addEventListener('input', () => {
                     updateHeartVisuals(vidaAtualInput.value, vidaInput.value);
@@ -2732,7 +2796,6 @@
                 });
             });
 
-            // Inicialização
             async function initializeApp() {
                 showSplash();
                 try {
@@ -2744,13 +2807,13 @@
                     showDisplayView();
                     setTimeout(hideSplash, 1000);
                 } catch (e) {
-                    alert("Falha ao inicializar o app:", e);
+                    console.error("Falha ao inicializar o app:", e);
                     hideSplash();
                 }
             }
 
             initializeApp();
         });
-    </script>
+     </script>
 </body>
 </html>
