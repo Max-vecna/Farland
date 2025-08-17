@@ -1314,6 +1314,22 @@
                 }); 
             }
             
+            async function deleteOldDatabases() {
+                try {
+                    if (indexedDB.databases) {
+                        const databases = await indexedDB.databases();
+                        for (const dbInfo of databases) {
+                            if (dbInfo.name !== DB_NAME) {
+                                console.log(`Excluindo banco de dados antigo: ${dbInfo.name}`);
+                                indexedDB.deleteDatabase(dbInfo.name);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Seu navegador não suporta a listagem de bancos de dados. A limpeza automática não funcionará.", e);
+                }
+            }
+            
             async function saveData(storeName, data) { 
                 const tx = db.transaction([storeName], 'readwrite'); 
                 const store = tx.objectStore(storeName); 
@@ -2731,6 +2747,7 @@
                 showSplash();
                 try {
                     await openDatabase();
+                    await deleteOldDatabases();
                     populatePericiasCheckboxes();
                     await renderCardsAndThumbnails();
                     await renderSpellCards();
@@ -2748,3 +2765,4 @@
     </script>
 </body>
 </html>
+
