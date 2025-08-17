@@ -1314,22 +1314,6 @@
                 }); 
             }
             
-            async function deleteOldDatabases() {
-                try {
-                    if (indexedDB.databases) {
-                        const databases = await indexedDB.databases();
-                        for (const dbInfo of databases) {
-                            if (dbInfo.name !== DB_NAME) {
-                                console.log(`Excluindo banco de dados antigo: ${dbInfo.name}`);
-                                indexedDB.deleteDatabase(dbInfo.name);
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.error("Seu navegador não suporta a listagem de bancos de dados. A limpeza automática não funcionará.", e);
-                }
-            }
-            
             async function saveData(storeName, data) { 
                 const tx = db.transaction([storeName], 'readwrite'); 
                 const store = tx.objectStore(storeName); 
@@ -1502,7 +1486,7 @@
                 cardDiv.style.backgroundImage = `url(${cardData.backgroundURL})`;
                 let palette = { cardBg: 'rgba(31,41,55,0.9)', highlightColor: '#6366f1', textColor: '#e5e7eb', borderColor: '#4b5563' };
                 if (cardData.backgroundURL && !cardData.backgroundURL.includes('placehold.co')) {
-                    try { palette = await getPredominantColorAndPalette(cardData.backgroundURL); } catch (e) { console.error('Falha ao gerar paleta.', e); }
+                    try { palette = await getPredominantColorAndPalette(cardData.backgroundURL); } catch (e) { alert('Falha ao gerar paleta.', e); }
                 }
                 const periciasString = Array.isArray(cardData.attributes.pericias) && cardData.attributes.pericias.length > 0 ? cardData.attributes.pericias.join(', ') : 'Nenhuma';
                 cardDiv.innerHTML = `
@@ -1671,7 +1655,7 @@
                     try { 
                         palette = await getPredominantColorAndPalette(spellData.imageURL); 
                     } catch (e) { 
-                        console.error('Falha ao gerar paleta para magia.', e); 
+                        alert('Falha ao gerar paleta para magia.', e); 
                     }
                 }
 
@@ -1786,7 +1770,7 @@
                 } else if (e.target.classList.contains('fullscreen-spell-btn')) {
                     const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
                     if (document.fullscreenElement) document.exitFullscreen();
-                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
+                    else cardDiv.requestFullscreen().catch(err => alert(`Erro: ${err.message}`));
                 }
             });
 
@@ -1846,7 +1830,7 @@
                 
                 let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
                 if (itemData.imageURL && !itemData.imageURL.includes('placehold.co')) {
-                    try { palette = await getPredominantColorAndPalette(itemData.imageURL); } catch(e) { console.error('Falha ao gerar paleta para item.', e); }
+                    try { palette = await getPredominantColorAndPalette(itemData.imageURL); } catch(e) { alert('Falha ao gerar paleta para item.', e); }
                 }
 
                 cardDiv.style.backgroundImage = `url(${itemData.imageURL})`;
@@ -1950,7 +1934,7 @@
                 } else if (e.target.classList.contains('fullscreen-item-btn')) {
                     const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
                     if (document.fullscreenElement) document.exitFullscreen();
-                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
+                    else cardDiv.requestFullscreen().catch(err => alert(`Erro: ${err.message}`));
                 }
             });
 
@@ -2112,7 +2096,7 @@
                         const newPalette = await getPredominantColorAndPalette(imageURL);
                         palette.borderColor = newPalette.borderColor;
                         palette.highlightColor = newPalette.highlightColor;
-                    } catch (e) { console.error(`Falha ao gerar paleta para ${type}.`, e); }
+                    } catch (e) { alert(`Falha ao gerar paleta para ${type}.`, e); }
                 }
 
                 const cardElement = document.createElement('div');
@@ -2301,7 +2285,7 @@
                         if (document.fullscreenElement) {
                             document.exitFullscreen();
                         } else {
-                            cardDiv.requestFullscreen().catch(err => console.error(`Erro ao entrar em tela cheia: ${err.message}`));
+                            cardDiv.requestFullscreen().catch(err => alert(`Erro ao entrar em tela cheia: ${err.message}`));
                             
                             displayTabsInFullscreen(cardDiv, cardId);
                             
@@ -2502,7 +2486,7 @@
                 
                 const firstAvailableSlot = await findFirstAvailableSlot(currentLinkingCharacterId);
                 if (firstAvailableSlot === -1 || charItems.length >= totalSlots) {
-                     console.error("Não há espaço suficiente para este item (nenhum slot livre).");
+                     alert("Não há espaço suficiente para este item (nenhum slot livre).");
                      selectionModal.classList.add('hidden');
                      return;
                 }
@@ -2747,7 +2731,6 @@
                 showSplash();
                 try {
                     await openDatabase();
-                    await deleteOldDatabases();
                     populatePericiasCheckboxes();
                     await renderCardsAndThumbnails();
                     await renderSpellCards();
@@ -2755,7 +2738,7 @@
                     showDisplayView();
                     setTimeout(hideSplash, 1000);
                 } catch (e) {
-                    console.error("Falha ao inicializar o app:", e);
+                    alert("Falha ao inicializar o app:", e);
                     hideSplash();
                 }
             }
@@ -2766,3 +2749,4 @@
 </body>
 </html>
 
+//ultimaversao
