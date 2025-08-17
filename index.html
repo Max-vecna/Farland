@@ -919,6 +919,14 @@
                         <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemPrerequisite" class="block text-sm font-semibold mb-1">Pré-requisito</label><input type="text" id="itemPrerequisite" placeholder="Ex: Saber magia" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                     </div>
+                     <!-- NOVO CAMPO USABILIDADE -->
+                    <div>
+                        <label for="itemUsable" class="block text-sm font-semibold mb-1">Usabilidade</label>
+                        <select id="itemUsable" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                            <option value="true">Usável</option>
+                            <option value="false">Não Usável</option>
+                        </select>
+                    </div>
                     <!-- NOVOS CAMPOS DE RESTAURAÇÃO -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -1085,9 +1093,8 @@
             function updateHeartVisuals(currentLife, maxLife) {
                 let current = parseInt(currentLife) || 0;
                 let max = parseInt(maxLife) || 1;
-                if (current > max) current = max;
-
-                const lifePercentage = max > 0 ? (current / max) * 100 : 0;
+                // Allow current life to be negative, but cap percentage at 0 for visual consistency.
+                const lifePercentage = max > 0 ? (Math.max(0, current) / max) * 100 : 0;
                 const beatDuration = 2.5 - (lifePercentage / 100) * 2;
 
                 root.style.setProperty('--life-percent', lifePercentage.toFixed(2));
@@ -1097,9 +1104,8 @@
             function updatePotionVisuals(currentMana, maxMana) {
                 let current = parseInt(currentMana) || 0;
                 let max = parseInt(maxMana) || 1;
-                if (current > max) current = max;
-
-                const manaPercentage = max > 0 ? (current / max) * 100 : 0;
+                 // Allow current mana to be negative, but cap percentage at 0.
+                const manaPercentage = max > 0 ? (Math.max(0, current) / max) * 100 : 0;
                 root.style.setProperty('--mana-percent', manaPercentage.toFixed(2));
 
                 const displayedCard = cardDisplayArea.querySelector('.rpg-card');
@@ -1328,21 +1334,16 @@
                 await renderLinkedSpells(characterId);
                 characterManagementArea.classList.remove('hidden');
             }
-
+            
+            // CORREÇÃO: Evita recarregamento duplo
             showDisplayBtn.addEventListener('click', async () => {
-                const displayedCardWrapper = cardDisplayArea.querySelector('.card-wrapper');
-                const currentCardId = displayedCardWrapper ? displayedCardWrapper.querySelector('.rpg-card')?.dataset.cardId : null;
-
                 hideAllSections();
                 displaySection.classList.remove('hidden');
                 updateActiveNav(showDisplayBtn);
-
-                await renderCardsAndThumbnails(); // Sempre recarrega os thumbnails
-
-                if (currentCardId && (await getData(CARD_STORE_NAME)).find(c => c.id === currentCardId)) {
-                    await displayCard(currentCardId); // Tenta reexibir o card atual se ele ainda existir
-                }
+                // A função renderCardsAndThumbnails já cuida de exibir o primeiro card se houver algum.
+                await renderCardsAndThumbnails(); 
             });
+
 
             showSpellDisplayBtn.addEventListener('click', showSpellDisplayView);
             showItemDisplayBtn.addEventListener('click', showItemDisplayView);
@@ -1415,11 +1416,12 @@
             let currentEditingCardId = null;
             let currentEditingSpellId = null;
             let currentEditingItemId = null;
+            let currentEditingOriginalName = null; // Para rastrear o nome original ao editar
             let currentLinkingCharacterId = null;
             let currentStatusEditingCardId = null;
 
             let db;
-            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 8; // Versão incrementada para novos campos de item
+            const DB_NAME = 'rpgCreatorDB', DB_VERSION = 9; // Versão incrementada para novo campo de item
             const CARD_STORE_NAME = 'rpgCards';
             const SPELL_STORE_NAME = 'rpgSpells';
             const ITEM_STORE_NAME = 'rpgItems';
@@ -1683,7 +1685,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                   
                                     <div class="absolute top-20 left-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-yellow-200 cursor-pointer" data-action="toggle-lore" title="Ver História">
                                         <i class="fas fa-book"></i>
                                     </div>
@@ -1691,7 +1692,7 @@
                                         💰 ${cardData.dinheiro || 0}
                                     </div>
 
-                                    <div class="text-center" style="width: 60%; margin-top: 1rem;"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p></div>
+                                    <div class="text-center" style="width: 60%;"><h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${cardData.title}</h3><div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.subTitle}</p><p class="text-sm italic" style="color: ${palette.highlightColor};">${cardData.level}</p></div>
                                     <div class="wave-container flex justify-center img-max" style="position: relative; width: 180px !important; height: 180px;"><img style="border-color: ${palette.borderColor}; z-index: 1; height: 180px" src="${cardData.imageURL}" onerror="this.src='https://placehold.co/160x160/E5E7EB/4B5563?text=Personagem';" alt="Imagem do personagem" class="object-cover rounded-full border-4 border-white shadow-lg w-full h-full"></div>
                                     <div class="p-3 rounded-3xl text-center w-full rpg-card-frame" style="--card-bg-color: ${palette.cardBg}; z-index: 1; --text-color: ${palette.textColor}; --border-color: ${palette.borderColor};">
                                         <div class="grid grid-cols-4 gap-x-4 gap-y-1 text-xs my-2 mb-4">
@@ -1971,6 +1972,7 @@
                 showSpellCreationView(true);
                 spellFormTitle.textContent = `Editando: ${spellData.name}`;
                 currentEditingSpellId = spellId;
+                currentEditingOriginalName = spellData.name; // Armazena o nome original
 
                 document.getElementById('spellType').value = spellData.type || 'magia';
                 document.getElementById('spellName').value = spellData.name;
@@ -1992,24 +1994,36 @@
                 spellImageUpload.value = null;
                 spellSubmitButton.textContent = 'Salvar Edição';
             }
-
+            
+            // ATUALIZAÇÃO: Remove o feitiço mestre e todas as suas instâncias vinculadas
             async function removeSpell(spellId) {
-                await removeData(SPELL_STORE_NAME, spellId);
+                const allSpells = await getData(SPELL_STORE_NAME);
+                const spellToRemove = allSpells.find(s => s.id === spellId);
+                if (!spellToRemove) return;
+
+                // Encontra e remove todas as instâncias vinculadas pelo nome
+                const linkedSpells = allSpells.filter(s => s.characterId !== null && s.name === spellToRemove.name);
+                const deletePromises = linkedSpells.map(s => removeData(SPELL_STORE_NAME, s.id));
+                
+                // Remove o feitiço mestre
+                deletePromises.push(removeData(SPELL_STORE_NAME, spellId));
+
+                await Promise.all(deletePromises);
                 await renderSpellCards();
             }
 
+
             spellCardDisplayArea.addEventListener('click', e => {
-                const spellId = e.target.dataset.spellId;
+                const button = e.target.closest('button');
+                if (!button) return;
+                
+                const spellId = button.dataset.spellId;
                 if (!spellId) return;
 
-                if (e.target.classList.contains('edit-spell-btn')) {
+                if (button.classList.contains('edit-spell-btn')) {
                     editSpell(spellId);
-                } else if (e.target.classList.contains('remove-spell-btn')) {
+                } else if (button.classList.contains('remove-spell-btn')) {
                     removeSpell(spellId);
-                } else if (e.target.classList.contains('fullscreen-spell-btn')) {
-                    const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
-                    if (document.fullscreenElement) document.exitFullscreen();
-                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
                 }
             });
 
@@ -2086,6 +2100,7 @@
                             <p><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
                              <p><strong>Restaurar Vida:</strong> ${itemData.restoreLife || 0} PV</p>
                             <p><strong>Restaurar Mana:</strong> ${itemData.restoreMana || 0} PM</p>
+                            <p><strong>Usável:</strong> ${itemData.usable ? 'Sim' : 'Não'}</p>
                         </div>
                         <div class="w-full">                                       
                             <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
@@ -2135,6 +2150,7 @@
                 showItemCreationView(true);
                 itemFormTitle.textContent = `Editando: ${itemData.name}`;
                 currentEditingItemId = itemId;
+                currentEditingOriginalName = itemData.name; // Armazena o nome original
 
                 document.getElementById('itemName').value = itemData.name;
                 document.getElementById('itemType').value = itemData.type;
@@ -2144,6 +2160,7 @@
                 document.getElementById('itemEffect').value = itemData.effect;
                 document.getElementById('itemRestoreLife').value = itemData.restoreLife || 0;
                 document.getElementById('itemRestoreMana').value = itemData.restoreMana || 0;
+                document.getElementById('itemUsable').value = itemData.usable ? 'true' : 'false';
                 
                 if (itemData.image) {
                     const imageBlob = bufferToBlob(itemData.image, itemData.imageMimeType);
@@ -2155,24 +2172,36 @@
                 itemImageUpload.value = null;
                 itemSubmitButton.textContent = 'Salvar Edição';
             }
-
+            
+            // ATUALIZAÇÃO: Remove o item mestre e todas as suas instâncias vinculadas
             async function removeItem(itemId) {
-                await removeData(ITEM_STORE_NAME, itemId);
+                const allItems = await getData(ITEM_STORE_NAME);
+                const itemToRemove = allItems.find(i => i.id === itemId);
+                if (!itemToRemove) return;
+
+                // Encontra e remove todas as instâncias vinculadas pelo nome
+                const linkedItems = allItems.filter(i => i.characterId !== null && i.name === itemToRemove.name);
+                const deletePromises = linkedItems.map(i => removeData(ITEM_STORE_NAME, i.id));
+
+                // Remove o item mestre
+                deletePromises.push(removeData(ITEM_STORE_NAME, itemId));
+                
+                await Promise.all(deletePromises);
                 await renderItemsAndThumbnails();
             }
 
+
             itemCardDisplayArea.addEventListener('click', e => {
-                const itemId = e.target.dataset.itemId;
+                const button = e.target.closest('button');
+                if (!button) return;
+
+                const itemId = button.dataset.itemId;
                 if (!itemId) return;
 
-                if (e.target.classList.contains('edit-item-btn')) {
+                if (button.classList.contains('edit-item-btn')) {
                     editItem(itemId);
-                } else if (e.target.classList.contains('remove-item-btn')) {
+                } else if (button.classList.contains('remove-item-btn')) {
                     removeItem(itemId);
-                } else if (e.target.classList.contains('fullscreen-item-btn')) {
-                    const cardDiv = e.target.closest('.card-wrapper').querySelector('.rpg-card');
-                    if (document.fullscreenElement) document.exitFullscreen();
-                    else cardDiv.requestFullscreen().catch(err => console.error(`Erro: ${err.message}`));
                 }
             });
 
@@ -2294,9 +2323,23 @@
 
                 await saveData(SPELL_STORE_NAME, spellData);
                 
+                // ATUALIZAÇÃO: Propaga as alterações para os personagens
+                if (currentEditingSpellId && currentEditingOriginalName) {
+                    const allSpellsDB = await getData(SPELL_STORE_NAME);
+                    const linkedSpells = allSpellsDB.filter(s => s.characterId !== null && s.name === currentEditingOriginalName);
+
+                    const updatePromises = linkedSpells.map(linkedSpell => {
+                        const updatedLinkedSpell = { ...linkedSpell, ...spellDetails };
+                        return saveData(SPELL_STORE_NAME, updatedLinkedSpell);
+                    });
+                    await Promise.all(updatePromises);
+                }
+
+
                 spellForm.reset();
                 spellImageFile = null;
                 currentEditingSpellId = null;
+                currentEditingOriginalName = null;
                 showImagePreview(spellImagePreview, null, true);
                 await renderSpellCards();
                 showSpellDisplayView();
@@ -2314,6 +2357,7 @@
                     effect: document.getElementById('itemEffect').value,
                     restoreLife: parseInt(document.getElementById('itemRestoreLife').value) || 0,
                     restoreMana: parseInt(document.getElementById('itemRestoreMana').value) || 0,
+                    usable: document.getElementById('itemUsable').value === 'true',
                     characterId: null,
                     slot: -1 
                 };
@@ -2334,9 +2378,22 @@
 
                 await saveData(ITEM_STORE_NAME, itemData);
                 
+                // ATUALIZAÇÃO: Propaga as alterações para os personagens
+                if (currentEditingItemId && currentEditingOriginalName) {
+                    const allItemsDB = await getData(ITEM_STORE_NAME);
+                    const linkedItems = allItemsDB.filter(i => i.characterId !== null && i.name === currentEditingOriginalName);
+
+                    const updatePromises = linkedItems.map(linkedItem => {
+                        const updatedLinkedItem = { ...linkedItem, ...itemValues };
+                        return saveData(ITEM_STORE_NAME, updatedLinkedItem);
+                    });
+                    await Promise.all(updatePromises);
+                }
+                
                 itemForm.reset();
                 itemImageFile = null;
                 currentEditingItemId = null;
+                currentEditingOriginalName = null;
                 showImagePreview(itemImagePreview, null, true);
                 await renderItemsAndThumbnails();
                 showItemDisplayView();
@@ -2381,8 +2438,9 @@
                 if (cardItself) {
                     cardHolder.appendChild(cardItself);
                     cardHolder.appendChild(closeButton);
-
-                    if (type === 'item' && characterId) {
+                    
+                    // ATUALIZAÇÃO: Botão de usar condicional
+                    if (type === 'item' && characterId && data.usable) {
                         const useButton = document.createElement('button');
                         useButton.textContent = 'Usar';
                         useButton.className = 'absolute top-1/2 -translate-x-1/2 py-3 px-4 text-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors z-50 btn-usar';
@@ -2529,13 +2587,14 @@
                 modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
                 modalDinheiroInput.value = cardData.dinheiro || 0;
 
-                // Definir o valor máximo para os inputs
-                modalVidaAtualInput.max = cardData.attributes.vida || 1;
-                modalManaAtualInput.max = cardData.attributes.mana || 1;
+                // Definir o valor máximo para os inputs (removido para permitir valores negativos, mas a lógica pode ser ajustada se necessário)
+                // modalVidaAtualInput.max = cardData.attributes.vida || 1;
+                // modalManaAtualInput.max = cardData.attributes.mana || 1;
 
                 statusModal.classList.remove('hidden');
             }
-
+            
+            // CORREÇÃO: Animação de status em vez de recarregar o card
             statusForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!currentStatusEditingCardId) return;
@@ -2544,16 +2603,48 @@
                 const cardData = allCards.find(card => card.id === currentStatusEditingCardId);
                 if (!cardData) return;
 
-                cardData.attributes.vidaAtual = modalVidaAtualInput.value;
-                cardData.attributes.manaAtual = modalManaAtualInput.value;
-                cardData.dinheiro = modalDinheiroInput.value;
+                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
+                const animationDuration = 500;
+
+                // Animação da Vida
+                const newLife = parseInt(modalVidaAtualInput.value);
+                const currentLife = parseInt(cardData.attributes.vidaAtual);
+                if (newLife !== currentLife && cardOnScreen) {
+                    const lifeText = cardOnScreen.querySelector('span[data-status="life"]');
+                    if (lifeText) animateValue(lifeText, currentLife, newLife, animationDuration);
+                }
+                cardData.attributes.vidaAtual = newLife;
+
+                // Animação da Mana
+                const newMana = parseInt(modalManaAtualInput.value);
+                const currentMana = parseInt(cardData.attributes.manaAtual);
+                if (newMana !== currentMana && cardOnScreen) {
+                    const manaText = cardOnScreen.querySelector('span[data-status="mana"]');
+                    if (manaText) animateValue(manaText, currentMana, newMana, animationDuration);
+                }
+                cardData.attributes.manaAtual = newMana;
+
+                // Animação do Dinheiro
+                const newMoney = parseInt(modalDinheiroInput.value);
+                const currentMoney = parseInt(cardData.dinheiro);
+                 if (newMoney !== currentMoney && cardOnScreen) {
+                    const moneyText = cardOnScreen.querySelector('span[data-status="money"]');
+                    if (moneyText) animateValue(moneyText, currentMoney, newMoney, animationDuration);
+                }
+                cardData.dinheiro = newMoney;
 
                 await saveData(CARD_STORE_NAME, cardData);
 
+                // Espera a animação terminar e atualiza os visuais
+                setTimeout(() => {
+                    updateHeartVisuals(cardData.attributes.vidaAtual, cardData.attributes.vida);
+                    updatePotionVisuals(cardData.attributes.manaAtual, cardData.attributes.mana);
+                }, animationDuration);
+
                 statusModal.classList.add('hidden');
-                await displayCard(currentStatusEditingCardId);
                 currentStatusEditingCardId = null;
             });
+
 
             statusModalCloseBtn.addEventListener('click', () => {
                 statusModal.classList.add('hidden');
