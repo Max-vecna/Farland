@@ -43,7 +43,6 @@
           cursor: pointer;
         }
         
-        /* ANIMAÇÃO REMOVIDA: A animação de batida foi removida para não tocar ao carregar o card */
         .heart-container {
              /* animation: beat var(--beat-duration) infinite cubic-bezier(0.215, 0.610, 0.355, 1); */
         }
@@ -78,7 +77,6 @@
         
         .potion-cork { fill: #d2a679; }
 
-        /* ANIMAÇÃO REMOVIDA: A animação de bolhas foi removida */
         .bubble {
             fill: #c39bd3;
             /* animation: bubble-rise 4s infinite ease-in-out; */
@@ -187,7 +185,7 @@
             margin: 15px;
             border-radius: 7px;
         }
-        .card-3d-container { perspective: 1500px; width: 100%; height: 700px; }
+        .card-3d-container { perspective: 1500px; width: 100%; height: 700px; transform: scale(.9);}
         .card-3d {
             width: 100%;
             height: 100%;
@@ -344,99 +342,129 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.4);
         }
 
-        .tab-container {
+        /* --- NOVOS ESTILOS DAS BARRAS LATERAIS --- */
+        .sidebar {
             position: absolute;
-            bottom: 0px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 20px);
-            max-width: calc(100% - 20px);
-            z-index: 100;
-            transition: transform 0.4s ease-out, bottom 0.4s ease-out;
-        }
-        .tab-container.collapsed {
-            bottom: -105px;
-        }
-        .rpg-card:fullscreen .tab-container.collapsed {
-             bottom: -115px;
-        }
-        .tab-toggler {
-            position: absolute;
-            top: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 8px 10px;
-            background-color: #23426d;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-bottom: none;
-            border-radius: 12px 12px 0 0;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .tab-toggler .tab-buttons button {
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 6px;
-            background-color: #374151;
-            transition: background-color 0.2s;
-        }
-        .tab-toggler .tab-buttons button.active {
-            background-color: #4f46e5;
-        }
-        .tab-toggler .toggler-arrow {
-            transition: transform 0.3s ease;
-        }
-        .tab-container.collapsed .toggler-arrow {
-            transform: rotate(180deg);
-        }
-        .tab-content {
-            padding: 10px;
+            top: 0;
+            height: 100%;
+            width: 120px; /* Largura da barra expandida */
             background-color: rgba(17, 24, 39, 0.85);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.4s ease-out;
+            z-index: 20;
             display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            height: 100px;
+            border-radius: 20px;
         }
-        .tab-content::-webkit-scrollbar { height: 5px; }
-        .tab-content::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
-        .tab-content::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
-        .tab-item {
+        .sidebar-left {
+            left: -20px;
+            transform: translateX(-100px); /* Esconde a maior parte, deixa o botão visível */
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-right {
+            right: -20px;
+            transform: translateX(100px); /* Esconde a maior parte, deixa o botão visível */
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-left.expanded {
+            transform: translateX(0);
+        }
+        .sidebar-right.expanded {
+            transform: translateX(0);
+        }
+        .sidebar-toggle {
+           width: 20px;
+            height: 50px;
+            position: relative;
+            background-color: rgba(30, 41, 59, 0.9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex        ;
+            margin: auto;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-left .sidebar-toggle { 
+            order: 2; 
+            border-radius: 0 10px 10px 0;
+            left: 20px;
+        }
+        .sidebar-right .sidebar-toggle { 
+            order: 1; 
+            border-radius: 10px 0 0 10px;
+            right: 20px;
+        }
+        .sidebar-toggle i { 
+            transition: transform 0.3s ease; 
+        }
+        .sidebar-left.expanded .sidebar-toggle i { 
+            transform: rotate(180deg); 
+        }
+        .sidebar-right.expanded .sidebar-toggle i { 
+            transform: rotate(180deg); 
+        }
+
+        .sidebar-content {
+            width: 100px;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-left .sidebar-content { order: 1; }
+        .sidebar-right .sidebar-content { order: 2; }
+
+        .sidebar-title {
+            text-align: center;
+            font-weight: bold;
+            color: #d1d5db;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .sidebar-list {
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        .sidebar-list::-webkit-scrollbar { width: 4px; }
+        .sidebar-list::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        .sidebar-list::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+
+        .sidebar-item {
             cursor: pointer;
             text-align: center;
             transition: transform 0.2s ease;
             flex-shrink: 0;
-            width: 70px;
+            width: 80px;
             position: relative;
         }
-        /* EFEITO HOVER REMOVIDO para melhor usabilidade mobile */
-        /* .tab-item:hover { transform: scale(1.1); } */
-        .tab-item img {
-            width: 50px;
-            height: 50px;
+        .sidebar-item:hover {
+            transform: scale(1.05);
+        }
+        .sidebar-item img {
+            width: 60px;
+            height: 60px;
             border-radius: 15px;
             border: 2px solid #4f46e5;
             object-fit: cover;
             margin: 0 auto;
             box-shadow: 0 0 8px rgba(79, 70, 229, 0.6);
         }
-        .tab-item p {
+        .sidebar-item p {
             margin-top: 4px;
             font-size: 11px;
             color: #d1d5db;
-            white-space: nowrap;
+            white-space: normal; /* Permite quebra de linha */
             overflow: hidden;
             text-overflow: ellipsis;
-            width: 70px;
+            width: 100%;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
+        /* --- FIM DOS ESTILOS DAS BARRAS LATERAIS --- */
 
         .expanded-card-container {
             position: fixed;
@@ -505,12 +533,6 @@
             border-color: #22c55e;
             cursor: pointer;
         }
-        /* EFEITO HOVER REMOVIDO para melhor usabilidade mobile */
-        /* .slot-occupied:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 10px #ef4444;
-            border-color: #ef4444;
-        } */
         .slot-occupied img {
             width: 100%;
             height: 100%;
@@ -576,12 +598,6 @@
             background-color: rgba(192, 132, 252, 0.2);
             border: 1px dashed #c084fc;
         }
-        /* EFEITO HOVER REMOVIDO para melhor usabilidade mobile */
-        /* .spell-mini-card:hover {
-            background-color: rgba(220, 38, 38, 0.4);
-            border-color: #dc2626;
-            transform: scale(1.05);
-        } */
         .spell-mini-card img {
             width: 48px;
             height: 48px;
@@ -1059,6 +1075,51 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const root = document.documentElement;
+            let audioContext; // Contexto de áudio para os efeitos sonoros
+
+            // --- Funções de áudio ---
+            function initAudioContext() {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        console.error("Web Audio API is not supported in this browser");
+                    }
+                }
+            }
+            
+            // Adiciona um listener para iniciar o AudioContext na primeira interação do usuário
+            document.body.addEventListener('click', initAudioContext, { once: true });
+            document.body.addEventListener('touchend', initAudioContext, { once: true });
+
+
+            async function playMp3Sound(url) {
+                if (!audioContext) {
+                    console.log("Audio Context not ready.");
+                    return;
+                }
+
+                try {
+                    // Faz o download do arquivo de áudio
+                    const response = await fetch(url);
+                    const arrayBuffer = await response.arrayBuffer();
+
+                    // Decodifica o áudio para que o navegador possa tocar
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+                    // Cria uma fonte de áudio para tocar o buffer
+                    const source = audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(audioContext.destination);
+                    source.start(0); // Toca imediatamente
+                } catch (error) {
+                    console.error("Error playing MP3:", error);
+                }
+            }
+
+// Exemplo de como chamar a função
+// playMp3Sound('URL_PARA_SEU_ARQUIVO.mp3');
+
 
             // --- Funções de atualização visual ---
             function updateHeartVisuals(currentLife, maxLife) {
@@ -1368,11 +1429,10 @@
             let currentStatusEditingCardId = null;
 
             let db;
-            // ATUALIZADO: Versão do DB incrementada para refletir a nova estrutura de dados
             const DB_NAME = 'rpgCreatorDB', DB_VERSION = 11;
             const CARD_STORE_NAME = 'rpgCards';
-            const SPELL_STORE_NAME = 'rpgSpells'; // Agora armazena apenas modelos
-            const ITEM_STORE_NAME = 'rpgItems';   // Agora armazena apenas modelos
+            const SPELL_STORE_NAME = 'rpgSpells';
+            const ITEM_STORE_NAME = 'rpgItems';
             let characterImageFile = null, backgroundImageFile = null, spellImageFile = null, itemImageFile = null;
 
             // --- Funções Utilitárias ---
@@ -1389,7 +1449,6 @@
                     req.onerror = (e) => reject(e.target.error); 
                     req.onupgradeneeded = (e) => { 
                         db = e.target.result; 
-                        // Garante que as object stores existam
                         if (!db.objectStoreNames.contains(CARD_STORE_NAME)) { 
                             db.createObjectStore(CARD_STORE_NAME, { keyPath: 'id' }); 
                         }
@@ -1398,21 +1457,6 @@
                         }
                         if (!db.objectStoreNames.contains(ITEM_STORE_NAME)) {
                             db.createObjectStore(ITEM_STORE_NAME, { keyPath: 'id' });
-                        }
-
-                        // REFAKTOR: Remove os índices antigos que não são mais necessários
-                        const transaction = e.target.transaction;
-                        if(db.objectStoreNames.contains(SPELL_STORE_NAME)){
-                            const spellStore = transaction.objectStore(SPELL_STORE_NAME);
-                            if (spellStore.indexNames.contains('characterId')) {
-                                spellStore.deleteIndex('characterId');
-                            }
-                        }
-                        if(db.objectStoreNames.contains(ITEM_STORE_NAME)){
-                            const itemStore = transaction.objectStore(ITEM_STORE_NAME);
-                            if (itemStore.indexNames.contains('characterId')) {
-                                itemStore.deleteIndex('characterId');
-                            }
                         }
                     }; 
                 }); 
@@ -1579,7 +1623,7 @@
                 cardDisplayArea.appendChild(cardElement);
                 setTimeout(() => cardElement.classList.add('visible'), 10);
 
-                await updateCardTabsContent(cardElement.querySelector('.rpg-card'), cardId);
+                await updateSidebarsContent(cardElement.querySelector('.rpg-card'), cardId);
 
                 updateHeartVisuals(fullCardData.attributes.vidaAtual, fullCardData.attributes.vida);
                 updatePotionVisuals(fullCardData.attributes.manaAtual, fullCardData.attributes.mana);
@@ -1618,6 +1662,23 @@
                             <div class="card-front" style="border-color: ${palette.borderColor}">
                                 <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:url(${cardData.backgroundURL}) !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between;">
                                     
+                                    <!-- Barras Laterais -->
+                                    <div id="spell-sidebar" class="sidebar sidebar-left">
+                                        <div class="sidebar-content" >
+                                            <h4 class="sidebar-title"  style="margin-right: -40px;">Grimório</h4>
+                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px;"></div>
+                                        </div>
+                                        <button class="sidebar-toggle"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                    <div id="item-sidebar" class="sidebar sidebar-right">
+                                        <button class="sidebar-toggle"><i class="fas fa-chevron-left"></i></button>
+                                        <div class="sidebar-content">
+                                            <h4 class="sidebar-title" style="margin-left: -40px;">Inventário</h4>
+                                            <div id="item-sidebar-content" class="sidebar-list"  style="margin-left: -40px;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Fim das Barras Laterais -->
+
                                     <div class="absolute top-4 left-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Mana">
                                         <div class="icon-container potion-container">
                                             <svg class="potion-svg" viewBox="0 0 50 50">
@@ -1662,20 +1723,6 @@
                                         <div class="flex flex-col gap-2 mt-4" style="max-height: 100px; overflow-y: auto;"><div class="flex items-center justify-center w-full"></div>${periciasHtml}</div>
                                     </div>
                                     
-                                    <div class="tab-container collapsed">
-                                        <div class="tab-toggler">
-                                            <div class="tab-buttons flex gap-2">
-                                                <button data-tab="spell" class="active">Grimório</button>
-                                                <button data-tab="item">Inventário</button>
-                                            </div>
-                                            <svg class="w-5 h-5 toggler-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                                        </div>
-                                        <div class="tab-content-wrapper">
-                                            <div class="tab-content" data-tab-content="spell"></div>
-                                            <div class="tab-content hidden" data-tab-content="item"></div>
-                                        </div>
-                                    </div>
-
                                     <div class="lore-card" data-action="toggle-lore">
                                         <h4 style="color: ${palette.highlightColor}; border-color: ${palette.borderColor};">História</h4>
                                         <p>${cardData.lore?.historia || 'Nenhuma história definida.'}</p>
@@ -1707,52 +1754,47 @@
                 const card3d = cardDiv.querySelector('.card-3d');
                 if(card3d) {
                     card3d.addEventListener('click', (e) => {
-                        if (e.target.closest('[data-action]') || e.target.closest('.tab-container')) return;
+                        if (e.target.closest('[data-action]') || e.target.closest('.sidebar')) return;
                         card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
                     });
                 }
-
-                const tabContainer = cardDiv.querySelector('.tab-container');
-                if (tabContainer) {
-                    const toggler = tabContainer.querySelector('.tab-toggler');
-                    toggler.querySelector('.toggler-arrow').addEventListener('click', (e) => {
+                
+                // Adiciona eventos para as barras laterais
+                const spellSidebar = cardDiv.querySelector('#spell-sidebar');
+                const itemSidebar = cardDiv.querySelector('#item-sidebar');
+                if (spellSidebar) {
+                    spellSidebar.querySelector('.sidebar-toggle').addEventListener('click', (e) => {
                         e.stopPropagation();
-                        tabContainer.classList.toggle('collapsed');
-                    });
-
-                    tabContainer.querySelectorAll('.tab-buttons button').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const tab = e.target.dataset.tab;
-                            tabContainer.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-                            tabContainer.querySelector(`.tab-content[data-tab-content="${tab}"]`).classList.remove('hidden');
-                            
-                            tabContainer.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active'));
-                            e.target.classList.add('active');
-                        });
-                    });
-
-                    tabContainer.querySelectorAll('.tab-content').forEach(content => {
-                        content.addEventListener('click', async (e) => {
-                            const itemEl = e.target.closest('.tab-item');
-                            if (!itemEl) return;
-                            
-                            const type = itemEl.dataset.type;
-                            const templateId = itemEl.dataset.templateId;
-                            
-                            let itemData;
-                            if (type === 'item') {
-                                itemData = await getData(ITEM_STORE_NAME, templateId);
-                            } else {
-                                itemData = await getData(SPELL_STORE_NAME, templateId);
-                            }
-
-                            if (itemData) {
-                                await showExpandedCardInModal(itemData, type, cardData.id);
-                            }
-                        });
+                        spellSidebar.classList.toggle('expanded');
                     });
                 }
+                if (itemSidebar) {
+                    itemSidebar.querySelector('.sidebar-toggle').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        itemSidebar.classList.toggle('expanded');
+                    });
+                }
+
+                // Adiciona delegação de evento para os itens nas barras laterais
+                cardDiv.addEventListener('click', async (e) => {
+                    const itemEl = e.target.closest('.sidebar-item');
+                    if (!itemEl) return;
+                    
+                    const type = itemEl.dataset.type;
+                    const templateId = itemEl.dataset.templateId;
+                    
+                    let itemData;
+                    if (type === 'item') {
+                        itemData = await getData(ITEM_STORE_NAME, templateId);
+                    } else { // 'spell'
+                        itemData = await getData(SPELL_STORE_NAME, templateId);
+                    }
+
+                    if (itemData) {
+                        await showExpandedCardInModal(itemData, type, cardData.id);
+                    }
+                });
+
 
                 cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
@@ -1828,6 +1870,7 @@
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative';
                 cardDiv.dataset.spellId = spellData.id;
+                cardDiv.style.transform = "scale(.9)";
                 
                 const isMagia = spellData.type === 'magia';
                 let palette = { 
@@ -1948,7 +1991,6 @@
             async function removeSpell(spellId) {
                 await removeData(SPELL_STORE_NAME, spellId);
                 
-                // REFAKTOR: Remove a referência da magia de todos os personagens
                 const allCards = await getData(CARD_STORE_NAME);
                 for (const card of allCards) {
                     if (card.spells && card.spells.includes(spellId)) {
@@ -1958,10 +2000,9 @@
                 }
                 
                 await renderSpellCards();
-                // Atualiza o card visível se ele foi afetado
                 const displayedCard = document.querySelector('.rpg-card[data-card-id]');
                 if (displayedCard) {
-                    await updateCardTabsContent(displayedCard, displayedCard.dataset.cardId);
+                    await updateSidebarsContent(displayedCard, displayedCard.dataset.cardId);
                 }
             }
 
@@ -2028,7 +2069,8 @@
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
                 const cardDiv = document.createElement('div');
-                cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative';
+                cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative';                
+                cardDiv.style.transform = "scale(.9)";
                 cardDiv.dataset.itemId = itemData.id;
                 
                 let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
@@ -2128,7 +2170,6 @@
             async function removeItem(itemId) {
                 await removeData(ITEM_STORE_NAME, itemId);
 
-                // REFAKTOR: Remove a referência do item de todos os personagens
                 const allCards = await getData(CARD_STORE_NAME);
                 for (const card of allCards) {
                     if (card.items && card.items.includes(itemId)) {
@@ -2138,10 +2179,9 @@
                 }
 
                 await renderItemsAndThumbnails();
-                // Atualiza o card visível se ele foi afetado
                 const displayedCard = document.querySelector('.rpg-card[data-card-id]');
                 if (displayedCard) {
-                    await updateCardTabsContent(displayedCard, displayedCard.dataset.cardId);
+                    await updateSidebarsContent(displayedCard, displayedCard.dataset.cardId);
                 }
             }
 
@@ -2226,7 +2266,7 @@
                         dinheiro: parseInt(dinheiroInput.value) || 0,
                         attributes,
                         lore,
-                        items: [], // REFAKTOR: Inicializa listas de IDs
+                        items: [],
                         spells: []
                     };
                 }
@@ -2352,7 +2392,7 @@
                 
                 const closeButton = document.createElement('button');
                 closeButton.innerHTML = '&times;';
-                closeButton.className = 'absolute top-2 right-4 text-white text-4xl z-50 font-bold hover:text-red-500 transition-colors';
+                closeButton.className = 'absolute top-4 right-6 text-white text-4xl z-50 font-bold hover:text-red-500 transition-colors';
                 closeButton.onclick = () => {
                     expandedContainer.classList.remove('visible');
                     expandedContainer.addEventListener('transitionend', () => expandedContainer.remove(), { once: true });
@@ -2367,7 +2407,7 @@
                         useButton.textContent = 'Usar';
                         useButton.className = 'absolute top-1/2 -translate-x-1/2 py-3 px-4 text-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors z-50 btn-usar';
                         useButton.onclick = () => {
-                            useItem(data.id, characterId); // REFAKTOR: Passa o ID do modelo
+                            useItem(data.id, characterId);
                         };
                         cardHolder.appendChild(useButton);
                     }
@@ -2386,7 +2426,7 @@
                 });
             }
             
-            async function updateCardTabsContent(cardElement, characterId) {
+            async function updateSidebarsContent(cardElement, characterId) {
                 if (!cardElement) return;
                 const character = await getData(CARD_STORE_NAME, characterId);
                 if (!character) return;
@@ -2397,11 +2437,11 @@
                 const spellsMap = new Map(allMasterSpells.map(s => [s.id, s]));
                 const itemsMap = new Map(allMasterItems.map(i => [i.id, i]));
 
-                // Renderiza Magias
-                const spellContentDiv = cardElement.querySelector(`.tab-content[data-tab-content="spell"]`);
+                // Renderiza Magias na barra lateral esquerda
+                const spellContentDiv = cardElement.querySelector("#spell-sidebar-content");
                 spellContentDiv.innerHTML = '';
                 if (!character.spells || character.spells.length === 0) {
-                    spellContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Nenhum feitiço.</p>`;
+                    spellContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Feitiço.</p>`;
                 } else {
                     character.spells.forEach(spellId => {
                         const spellData = spellsMap.get(spellId);
@@ -2411,7 +2451,7 @@
                         if (spellData.image) imageURL = URL.createObjectURL(bufferToBlob(spellData.image, spellData.imageMimeType));
                         
                         const itemEl = document.createElement('div');
-                        itemEl.className = 'tab-item';
+                        itemEl.className = 'sidebar-item';
                         itemEl.dataset.templateId = spellId;
                         itemEl.dataset.type = 'spell';
                         itemEl.innerHTML = `<img src="${imageURL}" alt="${spellData.name}"><p>${spellData.name}</p>`;
@@ -2419,11 +2459,11 @@
                     });
                 }
 
-                // Renderiza Itens
-                const itemContentDiv = cardElement.querySelector(`.tab-content[data-tab-content="item"]`);
+                // Renderiza Itens na barra lateral direita
+                const itemContentDiv = cardElement.querySelector("#item-sidebar-content");
                 itemContentDiv.innerHTML = '';
                 if (!character.items || character.items.length === 0) {
-                    itemContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Nenhum item.</p>`;
+                    itemContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Item.</p>`;
                 } else {
                     const itemCounts = character.items.reduce((acc, id) => {
                         acc[id] = (acc[id] || 0) + 1;
@@ -2438,7 +2478,7 @@
                         if (itemData.image) imageURL = URL.createObjectURL(bufferToBlob(itemData.image, itemData.imageMimeType));
                         
                         const itemEl = document.createElement('div');
-                        itemEl.className = 'tab-item';
+                        itemEl.className = 'sidebar-item';
                         itemEl.dataset.templateId = itemId;
                         itemEl.dataset.type = 'item';
                         itemEl.innerHTML = `
@@ -2571,76 +2611,92 @@
             async function useItem(templateId, characterId) {
                 if (!templateId || !characterId) return;
 
+                 // Toca o som imediatamente
+
                 const itemToUse = await getData(ITEM_STORE_NAME, templateId);
                 const character = await getData(CARD_STORE_NAME, characterId);
                 if (!itemToUse || !character) return;
-
-                const expandedItemModal = document.querySelector('.expanded-card-container');
-                if (expandedItemModal) {
-                    expandedItemModal.classList.add('fading-out');
-                    await new Promise(resolve => setTimeout(resolve, 300)); 
-                    expandedItemModal.remove();
-                }
-
-                let characterWasUpdated = false;
-                const animationDuration = 1000;
-                const glowDuration = 1500;
-                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
-                const cardFront = cardOnScreen ? cardOnScreen.querySelector('.card-front') : null;
-
-                if (itemToUse.restoreLife > 0) {
-                    let currentLife = parseInt(character.attributes.vidaAtual) || 0;
-                    const maxLife = parseInt(character.attributes.vida) || 0;
-                    let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
-                    
-                    if (cardFront) {
-                        cardFront.classList.add('life-restore-card-glow');
-                        animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
-                        setTimeout(() => cardFront.classList.remove('life-restore-card-glow'), glowDuration);
-                    }
-                    character.attributes.vidaAtual = newLife;
-                    characterWasUpdated = true;
-                }
-
-                if (itemToUse.restoreMana > 0) {
-                    let currentMana = parseInt(character.attributes.manaAtual) || 0;
-                    const maxMana = parseInt(character.attributes.mana) || 0;
-                    let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
-
-                    if (cardFront) {
-                        setTimeout(() => {
-                           cardFront.classList.add('mana-restore-card-glow');
-                           setTimeout(() => cardFront.classList.remove('mana-restore-card-glow'), glowDuration);
-                        }, 100); 
-                        animateValue(cardFront.querySelector('span[data-status="mana"]'), currentMana, newMana, animationDuration);
-                    }
-                    character.attributes.manaAtual = newMana;
-                    characterWasUpdated = true;
-                }
-
-                // Remove uma instância do item do inventário do personagem
-                const itemIndex = character.items.indexOf(templateId);
-                if (itemIndex > -1) {
-                    character.items.splice(itemIndex, 1);
-                    characterWasUpdated = true;
-                }
-
-                if (characterWasUpdated) {
-                    await saveData(CARD_STORE_NAME, character);
-                }
-
-                await new Promise(resolve => setTimeout(resolve, glowDuration));
                 
-                updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
-                updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
-
+                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
+                let sidebarsWereOpen = false;
                 if (cardOnScreen) {
-                    await updateCardTabsContent(cardOnScreen, characterId);
+                    const spellSidebar = cardOnScreen.querySelector('#spell-sidebar');
+                    const itemSidebar = cardOnScreen.querySelector('#item-sidebar');
+                    if (spellSidebar && spellSidebar.classList.contains('expanded')) {
+                        spellSidebar.classList.remove('expanded');
+                        sidebarsWereOpen = true;
+                    }
+                    if (itemSidebar && itemSidebar.classList.contains('expanded')) {
+                        itemSidebar.classList.remove('expanded');
+                        sidebarsWereOpen = true;
+                    }
                 }
+                const animationDelay = sidebarsWereOpen ? 400 : 0; 
+const expandedItemModal = document.querySelector('.expanded-card-container');
+                    if (expandedItemModal) {
+                        
+                        expandedItemModal.remove();
+                    }
+                setTimeout(async () => {
+                    playMp3Sound('magia.mp3');
+
+                    let characterWasUpdated = false;
+                    const animationDuration = 1000;
+                    const glowDuration = 1500;
+                    const cardFront = cardOnScreen ? cardOnScreen.querySelector('.card-front') : null;
+
+                    if (itemToUse.restoreLife > 0) {
+                        let currentLife = parseInt(character.attributes.vidaAtual) || 0;
+                        const maxLife = parseInt(character.attributes.vida) || 0;
+                        let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
+
+                        if (cardFront) {
+                            cardFront.classList.add('life-restore-card-glow');
+                            animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
+                            setTimeout(() => cardFront.classList.remove('life-restore-card-glow'), glowDuration);
+                        }
+                        character.attributes.vidaAtual = newLife;
+                        characterWasUpdated = true;
+                    }
+
+                    if (itemToUse.restoreMana > 0) {
+                        let currentMana = parseInt(character.attributes.manaAtual) || 0;
+                        const maxMana = parseInt(character.attributes.mana) || 0;
+                        let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
+
+                        if (cardFront) {
+                            setTimeout(() => {
+                                cardFront.classList.add('mana-restore-card-glow');
+                                setTimeout(() => cardFront.classList.remove('mana-restore-card-glow'), glowDuration);
+                            }, 100);
+                            animateValue(cardFront.querySelector('span[data-status="mana"]'), currentMana, newMana, animationDuration);
+                        }
+                        character.attributes.manaAtual = newMana;
+                        characterWasUpdated = true;
+                    }
+
+                    const itemIndex = character.items.indexOf(templateId);
+                    if (itemIndex > -1) {
+                        character.items.splice(itemIndex, 1);
+                        characterWasUpdated = true;
+                    }
+
+                    if (characterWasUpdated) {
+                        await saveData(CARD_STORE_NAME, character);
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, animationDuration));
+
+                    updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
+                    updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
+
+                    if (cardOnScreen) {
+                        await updateSidebarsContent(cardOnScreen, characterId);
+                    }
+                }, animationDelay);
             }
 
-
-            // --- Lógica da Tela de Vínculo ---
+            // --- Lógica da Tela de Vínculo (NOVA LÓGICA DE SLOTS) ---
             async function renderInventoryManagement(characterId) {
                 const character = await getData(CARD_STORE_NAME, characterId);
                 if (!character) return;
@@ -2648,30 +2704,51 @@
                 const allMasterItems = await getData(ITEM_STORE_NAME);
                 const itemsMap = new Map(allMasterItems.map(i => [i.id, i]));
                 
-                const charItems = (character.items || []).map(id => itemsMap.get(id)).filter(Boolean);
+                const charItemsWithOriginalIndex = (character.items || []).map((id, index) => ({
+                    ...itemsMap.get(id),
+                    originalIndex: index
+                })).filter(item => item.id);
+
 
                 const strength = parseInt(character.attributes.forca) || 0;
-                const slotAddingItems = charItems.filter(item => item.charge < 0);
-                const zeroChargeItems = charItems.filter(item => item.charge === 0);
-                const regularItems = charItems.filter(item => item.charge > 0);
+                const slotAddingItems = charItemsWithOriginalIndex.filter(item => item.charge < 0);
+                const zeroChargeItems = charItemsWithOriginalIndex.filter(item => item.charge === 0);
+                const regularItems = charItemsWithOriginalIndex.filter(item => item.charge > 0);
 
                 const extraSlots = slotAddingItems.reduce((acc, item) => acc + Math.abs(item.charge), 0);
                 let totalSlots = (strength * 5) + extraSlots;
-                const totalCharge = regularItems.reduce((acc, item) => acc + (item.charge || 0), 0);
+                
+                let slots = Array(totalSlots).fill({ state: 'available' });
+                let totalCharge = 0;
+
+                let slotsToBlock = regularItems.reduce((acc, item) => acc + (item.charge > 1 ? item.charge - 1 : 0), 0);
+                for (let i = totalSlots - 1; i >= 0 && slotsToBlock > 0; i--) {
+                    slots[i] = { state: 'blocked' };
+                    slotsToBlock--;
+                }
+
+                let itemIndex = 0;
+                for (let i = 0; i < totalSlots && itemIndex < regularItems.length; i++) {
+                    if (slots[i].state === 'available') {
+                        const currentItem = regularItems[itemIndex];
+                        slots[i] = { state: 'occupied', item: currentItem };
+                        totalCharge += currentItem.charge;
+                        itemIndex++;
+                    }
+                }
                 
                 slotsInfo.textContent = `Força: ${strength} | Carga: ${totalCharge}/${totalSlots}`;
-                
+
                 specialEquipmentContainer.innerHTML = '';
                  if (slotAddingItems.length > 0) {
                     slotAddingItems.forEach(item => {
-                        const itemIndex = character.items.findIndex(id => id === item.id);
                         const slot = document.createElement('div');
                         slot.className = 'slot slot-occupied';
                         slot.title = `Clique para remover "${item.name}"`;
                         let imageURL = 'https://placehold.co/60x60/d2a679/422006?text=B';
                         if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
                         slot.innerHTML = `<img src="${imageURL}" alt="${item.name}"><span class="slot-item-name">${item.name} (${item.charge})</span>`;
-                        slot.addEventListener('click', () => unlinkItem(itemIndex));
+                        slot.addEventListener('click', () => unlinkItem(item.originalIndex));
                         specialEquipmentContainer.appendChild(slot);
                     });
                 } else {
@@ -2679,45 +2756,29 @@
                 }
 
                 itemSlotsContainer.innerHTML = '';
-                let currentCharge = 0;
-                for (let i = 0; i < totalSlots; i++) {
-                    const slot = document.createElement('div');
-                    const itemInSlot = regularItems.find(item => {
-                        const itemIndex = character.items.findIndex(id => id === item.id);
-                        // Lógica complexa para alocar, simplificada para apenas preencher
-                        return itemIndex === i; // Isso não está correto, precisa de uma lógica de alocação
-                    });
-
-                    slot.className = 'slot slot-available'; // Simplificado
-                    itemSlotsContainer.appendChild(slot);
-                }
-
-                // Preenche os slots com os itens regulares
-                regularItems.forEach(item => {
-                    const availableSlot = itemSlotsContainer.querySelector('.slot-available');
-                    if (availableSlot) {
-                        availableSlot.classList.remove('slot-available');
-                        availableSlot.classList.add('slot-occupied');
-                        availableSlot.title = `Clique para remover "${item.name}"`;
+                slots.forEach(slotData => {
+                    const slotEl = document.createElement('div');
+                    slotEl.className = `slot slot-${slotData.state}`;
+                    if (slotData.state === 'occupied') {
                         let imageURL = 'https://placehold.co/60x60/f59e0b/422006?text=I';
-                        if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
-                        const itemIndex = character.items.findIndex(id => id === item.id);
-                        availableSlot.innerHTML = `<img src="${imageURL}" alt="${item.name}"><span class="slot-item-name">${item.name}</span>`;
-                        availableSlot.addEventListener('click', () => unlinkItem(itemIndex));
+                        if (slotData.item.image) imageURL = URL.createObjectURL(bufferToBlob(slotData.item.image, slotData.item.imageMimeType));
+                        slotEl.innerHTML = `<img src="${imageURL}" alt="${slotData.item.name}"><span class="slot-item-name">${slotData.item.name} (${slotData.item.charge})</span>`;
+                        slotEl.title = `Clique para remover "${slotData.item.name}"`;
+                        slotEl.addEventListener('click', () => unlinkItem(slotData.item.originalIndex));
                     }
+                    itemSlotsContainer.appendChild(slotEl);
                 });
 
                 zeroChargeItemsContainer.innerHTML = '';
                 if (zeroChargeItems.length > 0) {
                     zeroChargeItems.forEach(item => {
-                        const itemIndex = character.items.findIndex(id => id === item.id);
                         const slot = document.createElement('div');
                         slot.className = 'slot slot-occupied';
                         slot.title = `Clique para remover "${item.name}"`;
                         let imageURL = 'https://placehold.co/60x60/9ca3af/1f2937?text=0';
                         if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
                         slot.innerHTML = `<img src="${imageURL}" alt="${item.name}"><span class="slot-item-name">${item.name}</span>`;
-                        slot.addEventListener('click', () => unlinkItem(itemIndex));
+                        slot.addEventListener('click', () => unlinkItem(item.originalIndex));
                         zeroChargeItemsContainer.appendChild(slot);
                     });
                 } else {
@@ -2727,7 +2788,15 @@
             
             async function linkItem(templateId) {
                 const character = await getData(CARD_STORE_NAME, currentLinkingCharacterId);
-                if (!character) return;
+                const itemToAdd = await getData(ITEM_STORE_NAME, templateId);
+                if (!character || !itemToAdd) return;
+
+                const inventoryStatus = await getInventoryStatus(character.id);
+                
+                if (itemToAdd.charge > 0 && itemToAdd.charge > inventoryStatus.availableSlots) {
+                    showCustomAlert("Não há espaço suficiente no inventário para este item.");
+                    return;
+                }
                 
                 character.items = character.items || [];
                 character.items.push(templateId);
@@ -2736,19 +2805,42 @@
                 selectionModal.classList.add('hidden');
             }
 
-            async function unlinkItem(itemIndex) {
+            async function unlinkItem(itemIndexInCharacterArray) {
                 const character = await getData(CARD_STORE_NAME, currentLinkingCharacterId);
                 if (!character || !character.items) return;
 
-                character.items.splice(itemIndex, 1);
+                character.items.splice(itemIndexInCharacterArray, 1);
                 await saveData(CARD_STORE_NAME, character);
                 await renderInventoryManagement(currentLinkingCharacterId);
             }
             
+            async function getInventoryStatus(characterId) {
+                const character = await getData(CARD_STORE_NAME, characterId);
+                if (!character) return { totalSlots: 0, availableSlots: 0 };
+
+                const allMasterItems = await getData(ITEM_STORE_NAME);
+                const itemsMap = new Map(allMasterItems.map(i => [i.id, i]));
+                const charItems = (character.items || []).map(id => itemsMap.get(id)).filter(Boolean);
+                
+                const strength = parseInt(character.attributes.forca) || 0;
+                const slotAddingItems = charItems.filter(item => item.charge < 0);
+                const regularItems = charItems.filter(item => item.charge > 0);
+
+                const extraSlots = slotAddingItems.reduce((acc, item) => acc + Math.abs(item.charge), 0);
+                const totalSlots = (strength * 5) + extraSlots;
+                
+                const occupiedSlots = regularItems.length;
+                const blockedSlots = regularItems.reduce((acc, item) => acc + (item.charge > 1 ? item.charge - 1 : 0), 0);
+                
+                const availableSlots = totalSlots - occupiedSlots - blockedSlots;
+                return { totalSlots, availableSlots: Math.max(0, availableSlots) };
+            }
+
             async function openItemSelectionModal() {
                 modalTitle.textContent = "Selecione um Item para Adicionar";
                 const masterItems = await getData(ITEM_STORE_NAME);
                 const character = await getData(CARD_STORE_NAME, currentLinkingCharacterId);
+                const inventoryStatus = await getInventoryStatus(currentLinkingCharacterId);
                 const charItemCounts = (character.items || []).reduce((acc, id) => {
                     acc[id] = (acc[id] || 0) + 1;
                     return acc;
@@ -2761,21 +2853,35 @@
                     masterItems.forEach(item => {
                         const countInInventory = charItemCounts[item.id] || 0;
                         const itemDiv = document.createElement('div');
-                        itemDiv.className = 'modal-item p-2 rounded-md flex items-center gap-4';
+                        itemDiv.className = 'modal-item p-2 rounded-md flex items-center justify-between gap-4';
                         itemDiv.dataset.itemId = item.id;
                         
                         let imageURL = 'https://placehold.co/40x40/f59e0b/422006?text=I';
                         if (item.image) imageURL = URL.createObjectURL(bufferToBlob(item.image, item.imageMimeType));
 
+                        const canFit = item.charge <= 0 || item.charge <= inventoryStatus.availableSlots;
+
                         itemDiv.innerHTML = `
-                            <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
-                            <div class="flex-grow">
-                                <p class="font-bold">${item.name}</p>
-                                <p class="text-xs text-gray-400">Carga: ${item.charge}</p>
+                            <div class="flex items-center gap-4 flex-grow">
+                                <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
+                                <div>
+                                    <p class="font-bold">${item.name}</p>
+                                    <p class="text-xs text-gray-400">Carga: ${item.charge}</p>
+                                </div>
                             </div>
-                            ${countInInventory > 0 ? `<span class="text-xs text-green-400 font-semibold">No inv.: ${countInInventory}</span>` : ''}
+                            <div class="flex items-center gap-3">
+                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">No inv.: ${countInInventory}</span>` : ''}
+                                ${!canFit ? `<span class="text-xs text-red-400 font-semibold">Não cabe</span>` : ''}
+                            </div>
                         `;
-                        itemDiv.addEventListener('click', () => linkItem(item.id));
+
+                        if (canFit) {
+                            itemDiv.addEventListener('click', () => linkItem(item.id));
+                        } else {
+                            itemDiv.setAttribute('disabled', true);
+                            itemDiv.classList.add('opacity-50', 'cursor-not-allowed');
+                        }
+                        
                         modalList.appendChild(itemDiv);
                     });
                 }
@@ -2994,6 +3100,42 @@
                 URL.revokeObjectURL(url);
             });
 
+            function showCustomAlert(message) {
+                const existingAlert = document.getElementById('custom-alert');
+                if (existingAlert) existingAlert.remove();
+
+                const alertBox = document.createElement('div');
+                alertBox.id = 'custom-alert';
+                alertBox.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #b91c1c;
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    z-index: 9999;
+                    font-weight: bold;
+                    opacity: 0;
+                    transition: opacity 0.3s ease-in-out, top 0.3s ease-in-out;
+                `;
+                alertBox.textContent = message;
+                document.body.appendChild(alertBox);
+
+                setTimeout(() => {
+                    alertBox.style.opacity = '1';
+                    alertBox.style.top = '30px';
+                }, 10);
+
+                setTimeout(() => {
+                    alertBox.style.opacity = '0';
+                    alertBox.style.top = '20px';
+                    alertBox.addEventListener('transitionend', () => alertBox.remove());
+                }, 3000);
+            }
+
             // --- Inicialização da Aplicação ---
             async function initializeApp() {
                 showSplash();
@@ -3016,3 +3158,4 @@
      </script>
 </body>
 </html>
+
