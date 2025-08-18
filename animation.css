@@ -218,7 +218,7 @@
         .spill-container.glowing-card.animate { animation: glow-animation 3.5s ease-out; }
 
          /* --- ANIMAÇÃO DE PULO --- */
-        .jump-effect.animate {
+       .jump-effect {
             animation: jump-forward-animation 0.4s ease-out forwards;
         }
         @keyframes jump-forward-animation {

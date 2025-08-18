@@ -651,7 +651,7 @@
             margin: auto;
             padding: 20px;
             border: 1px solid #4b5563;
-            width: 50%;
+            width: 90%;
             max-width: 500px;
             border-radius: 1rem;
         }
@@ -2848,8 +2848,9 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
                         }
                         if (newLife > oldLife) {
                             playMp3Sound('magia.mp3');
-                            createManaMist(vidaIcon, 'in', '#ff1a1a');  // Efeito de névoa/estrelas    
-                            card3d.classList.add('star-container', 'glowing-card', 'glow-red'); 
+                            createManaMist(vidaIcon, 'in', '#ff1a1a'); 
+                              
+                           card3d.classList.add('star-container', 'glowing-card', 'glow-red'); 
                         }
                     }
                     if (newMana !== oldMana) {
@@ -2928,98 +2929,96 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
             }
             
        async function useItem(templateId, characterId) {
-    if (!templateId || !characterId) return;
+            if (!templateId || !characterId) return;
 
-    const itemToUse = await getData(ITEM_STORE_NAME, templateId);
-    const character = await getData(CARD_STORE_NAME, characterId);
-    if (!itemToUse || !character) return;
+            const itemToUse = await getData(ITEM_STORE_NAME, templateId);
+            const character = await getData(CARD_STORE_NAME, characterId);
+            if (!itemToUse || !character) return;
 
-    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
-    if (!cardOnScreen) return;
-    
-    const card3d = cardOnScreen.querySelector('.card-3d');
-
-    // --- ETAPA 1: Inicia a animação e o som principal ---
-    
-    resetcard3d(card3d); // Limpa animações anteriores
-    card3d.classList.add('spill-container', 'glowing-card', 'glow-potion');
-    createPotionEffect(4, card3d); // Cria os elementos visuais
-    
-    // Toca o som mágico geral no início
-    playMp3Sound('magia.mp3');
-    
-    // Dispara a animação
-    triggerAnimation(card3d, 'animate');
-
-    // Fecha sidebars e modais
-    const expandedItemModal = document.querySelector('.expanded-card-container');
-    if (expandedItemModal) expandedItemModal.remove();
-    const spellSidebar = cardOnScreen.querySelector('#spell-sidebar');
-    if (spellSidebar) spellSidebar.classList.remove('expanded');
-    const itemSidebar = cardOnScreen.querySelector('#item-sidebar');
-    if (itemSidebar) itemSidebar.classList.remove('expanded');
-
-    // --- ETAPA 2: Sincroniza o som do líquido ---
-
-    const POTION_ANIMATION_DURATION = 4000; // 3.5 segundos
-    const POUR_START_TIME = 1400; // 40% de 3500ms
-
-    setTimeout(() => {
-        playMp3Sound('liquido.mp3');
-    }, POUR_START_TIME);
-
-    // --- ETAPA 3: Espera a animação terminar para atualizar os status ---
-
-    setTimeout(async () => {
-        resetcard3d(card3d);
-        let characterWasUpdated = false;
-        const animationDuration = 1000;
-        const cardFront = cardOnScreen.querySelector('.card-front');
-
-        if (itemToUse.restoreLife > 0) {
-            let currentLife = parseInt(character.attributes.vidaAtual) || 0;
-            const maxLife = parseInt(character.attributes.vida) || 0;
-            let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
+            const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
+            if (!cardOnScreen) return;
             
-            if (cardFront) { 
-                animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
-            }
-            character.attributes.vidaAtual = newLife;
-            characterWasUpdated = true;
+            const card3d = cardOnScreen.querySelector('.card-3d');
+
+            // --- ETAPA 1: Inicia a animação e o som principal ---
+            
+            resetcard3d(card3d); // Limpa animações anteriores
+            card3d.classList.add('spill-container', 'glowing-card', 'glow-potion');
+            createPotionEffect(4, card3d); // Cria os elementos visuais
+                
+            // Dispara a animação
+            triggerAnimation(card3d, 'animate');
+
+            // Fecha sidebars e modais
+            const expandedItemModal = document.querySelector('.expanded-card-container');
+            if (expandedItemModal) expandedItemModal.remove();
+            const spellSidebar = cardOnScreen.querySelector('#spell-sidebar');
+            if (spellSidebar) spellSidebar.classList.remove('expanded');
+            const itemSidebar = cardOnScreen.querySelector('#item-sidebar');
+            if (itemSidebar) itemSidebar.classList.remove('expanded');
+
+            // --- ETAPA 2: Sincroniza o som do líquido ---
+
+            const POTION_ANIMATION_DURATION = 4000; // 3.5 segundos
+            const POUR_START_TIME = 1400; // 40% de 3500ms
+
+            setTimeout(() => {
+                playMp3Sound('liquido.mp3');
+            }, POUR_START_TIME);
+
+            // --- ETAPA 3: Espera a animação terminar para atualizar os status ---
+
+            setTimeout(async () => {
+                resetcard3d(card3d);
+                let characterWasUpdated = false;
+                const animationDuration = 1000;
+                const cardFront = cardOnScreen.querySelector('.card-front');
+
+                if (itemToUse.restoreLife > 0) {
+                    let currentLife = parseInt(character.attributes.vidaAtual) || 0;
+                    const maxLife = parseInt(character.attributes.vida) || 0;
+                    let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
+                    
+                    if (cardFront) { 
+                        animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
+                    }
+                    character.attributes.vidaAtual = newLife;
+                    characterWasUpdated = true;
+                }
+
+                if (itemToUse.restoreMana > 0) {
+                    let currentMana = parseInt(character.attributes.manaAtual) || 0;
+                    const maxMana = parseInt(character.attributes.mana) || 0;
+                    let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
+                    if (cardFront) {
+                        animateValue(cardFront.querySelector('span[data-status="mana"]'), currentMana, newMana, animationDuration);
+                    }
+                    character.attributes.manaAtual = newMana;
+                    characterWasUpdated = true;
+                }
+                
+                const itemIndex = character.items.indexOf(templateId);
+                if (itemIndex > -1) {
+                    character.items.splice(itemIndex, 1);
+                    characterWasUpdated = true;
+                }
+
+                if (characterWasUpdated) {
+                    await saveData(CARD_STORE_NAME, character);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, animationDuration));
+
+                updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
+                updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
+
+                if (cardOnScreen) {
+                    await updateSidebarsContent(cardOnScreen, characterId);
+                }
+            // Toca o som mágico geral no início
+            playMp3Sound('magia.mp3');
+            }, POTION_ANIMATION_DURATION);
         }
-
-        if (itemToUse.restoreMana > 0) {
-            let currentMana = parseInt(character.attributes.manaAtual) || 0;
-            const maxMana = parseInt(character.attributes.mana) || 0;
-            let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
-            if (cardFront) {
-                animateValue(cardFront.querySelector('span[data-status="mana"]'), currentMana, newMana, animationDuration);
-            }
-            character.attributes.manaAtual = newMana;
-            characterWasUpdated = true;
-        }
-        
-        const itemIndex = character.items.indexOf(templateId);
-        if (itemIndex > -1) {
-            character.items.splice(itemIndex, 1);
-            characterWasUpdated = true;
-        }
-
-        if (characterWasUpdated) {
-            await saveData(CARD_STORE_NAME, character);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, animationDuration));
-
-        updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
-        updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
-
-        if (cardOnScreen) {
-            await updateSidebarsContent(cardOnScreen, characterId);
-        }
-
-    }, POTION_ANIMATION_DURATION);
-}
             // --- Lógica da Tela de Vínculo (NOVA LÓGICA DE SLOTS) ---
             async function renderInventoryManagement(characterId) {
                 const character = await getData(CARD_STORE_NAME, characterId);

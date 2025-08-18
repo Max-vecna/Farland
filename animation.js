@@ -1,4 +1,4 @@
-        const ALL_CLASSES = ['star-container', 'star-purple', 'star-dark', 'zoom-box', 'heal-container', 'coin-container', 'spill-container', 'glowing-card', 'glow-purple', 'glow-dark', 'glow-red', 'glow-green', 'glow-gold', 'glow-potion', 'animate'];
+        const ALL_CLASSES = ['star-container', 'star-purple', 'star-dark', 'zoom-box', 'heal-container', 'coin-container', 'spill-container', 'glowing-card', 'glow-purple', 'glow-dark', 'glow-red', 'glow-green', 'glow-gold', 'glow-potion', 'glow-yellow','animate'];
 
      function resetcard3d(animationBox) {
             // Remove todas as classes de animação
