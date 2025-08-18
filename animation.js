@@ -1,10 +1,10 @@
-        const ALL_CLASSES = ['star-container', 'star-purple', 'star-dark', 'zoom-box', 'heal-container', 'coin-container', 'spill-container', 'glowing-card', 'glow-purple', 'glow-dark', 'glow-red', 'glow-green', 'glow-gold', 'glow-potion', 'glow-yellow','animate'];
+        const ALL_CLASSES = ['arcane-recharge', 'star-container', 'star-dark', 'zoom-box', 'heal-container', 'coin-container', 'spill-container', 'jump-effect', 'glowing-card', 'glow-purple', 'glow-dark', 'glow-red', 'glow-yellow','glow-green', 'glow-gold', 'glow-potion', 'animate'];
 
      function resetcard3d(animationBox) {
             // Remove todas as classes de animação
             animationBox.classList.remove(...ALL_CLASSES);
             // Remove todas as partículas geradas, preservando o conteúdo original
-            animationBox.querySelectorAll('.star, .heal-particle, .coin, .potion-pulse, .potion-svg-container, .potion-stream').forEach(el => el.remove());
+            animationBox.querySelectorAll('.arcane-particle, .rune-container, .star, .heal-particle, .coin, .potion-pulse, .potion-svg-container').forEach(el => el.remove());
         }
 
         function triggerAnimation(element, animationClass) {

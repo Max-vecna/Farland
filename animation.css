@@ -218,10 +218,21 @@
         .spill-container.glowing-card.animate { animation: glow-animation 3.5s ease-out; }
 
          /* --- ANIMAÇÃO DE PULO --- */
-       .jump-effect {
-            animation: jump-forward-animation 0.4s ease-out forwards;
+       .card-3d.heal-container.animate .aura-particle {
+            animation: aura-rise 3s ease-out forwards;
         }
-        @keyframes jump-forward-animation {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+        @keyframes aura-rise {
+            0% { transform: translateY(0); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translateY(-300px); opacity: 0; }
+        }
+        
+        .card-3d.star-container.jump-effect.glowing-card.animate {
+            animation: glow-animation 2.5s ease-out, bounce-animation 0.5s ease-out;
+        }
+
+        @keyframes glow-impact-animation {
+            0%, 80% { box-shadow: none; }
+            90% { box-shadow: 0 0 30px rgba(var(--glow-color), 0.8), 0 0 40px rgba(var(--glow-color), 0.6); }
+            100% { box-shadow: none; }
         }

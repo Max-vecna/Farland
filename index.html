@@ -1100,8 +1100,8 @@
     </div>
 
     <!-- Modal de Status -->
-    <div id="status-modal">
-        <div class="modal-content" class="modal hidden">
+    <div id="status-modal" class="modal hidden">
+        <div class="modal-content" style="width: 50%;">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-indigo-300">Alterar Status</h3>
                 <button id="status-modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
@@ -1867,7 +1867,7 @@
 
                 cardDiv.innerHTML = `
                     <div class="card-3d-container">
-                        <div class="card-3d divPartculas">
+                        <div class="card-3d">
                             <div class="card-front" style="border-color: ${palette.borderColor}">
                                 <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:url(${cardData.backgroundURL}) !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between;">
                                     
@@ -2840,6 +2840,7 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
                     const vidaIcon = cardOnScreen.querySelector('.heart-container');
                     const card3d = cardOnScreen.querySelector('.card-3d');
                     resetcard3d(card3d);
+
                     if (newLife !== oldLife) {
                         if (newLife < oldLife) {
                             playMp3Sound('sopro.mp3');
@@ -2849,8 +2850,7 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
                         if (newLife > oldLife) {
                             playMp3Sound('magia.mp3');
                             createManaMist(vidaIcon, 'in', '#ff1a1a'); 
-                              
-                           card3d.classList.add('star-container', 'glowing-card', 'glow-red'); 
+                            card3d.classList.add('star-container', 'jump-effect', 'glowing-card', 'glow-red');
                         }
                     }
                     if (newMana !== oldMana) {
@@ -3557,6 +3557,3 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
      </script>
 </body>
 </html>
-
-
-
