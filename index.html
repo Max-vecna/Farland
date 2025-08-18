@@ -184,6 +184,7 @@
             height: calc(100% - 30px);
             margin: 15px;
             border-radius: 7px;
+            overflow-y: auto;
         }
         .card-3d-container { perspective: 1500px; width: 100%; height: 700px; transform: scale(.9);}
         .card-3d {
@@ -483,7 +484,6 @@
             pointer-events: none;
         }
         .expanded-card {
-            transform: scale(0.8);
             transition: transform 0.2s ease-in-out;
             cursor: default;
             max-width: 90vw;
@@ -710,6 +710,11 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-2">
+    <audio id="background-music" loop autoplay>
+        <!-- IMPORTANTE: Substitua o link abaixo pelo link do seu arquivo MP3 -->
+        <source src="fundo.mp3" type="audio/mpeg">
+    </audio>
+    
 
     <!-- Tela de Carregamento -->
     <div id="splashScreen" class="splash-screen">
@@ -1069,11 +1074,73 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
             <span class="hidden md:inline">Ficha</span>
         </button>
+        <button id="mute-button" title="Ativar/Desativar som"  class="px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2">
+        <!-- O ícone será alterado via JavaScript -->
+            <i id="volume-icon" class="fas fa-volume-mute"></i>
+        </button>
     </nav>
 
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Pega as referências dos elementos no HTML
+            const backgroundMusic = document.getElementById('background-music');
+            const muteButton = document.getElementById('mute-button');
+            const volumeIcon = document.getElementById('volume-icon');
+
+            // Define o volume inicial
+            backgroundMusic.volume = 0.3;
+
+            // Tenta tocar a música. O 'autoplay' no HTML faz isso, mas o JS lida com o resultado.
+            backgroundMusic.play().then(() => {
+                // Autoplay funcionou! A música está tocando.
+                // Garante que o estado inicial não seja mudo e atualiza o botão.
+                backgroundMusic.muted = false;
+                volumeIcon.classList.remove('fa-volume-mute');
+                volumeIcon.classList.add('fa-volume-up');
+                muteButton.classList.add('playing');
+            }).catch(error => {
+                // Autoplay foi bloqueado. A música não está tocando.
+                // O botão já está no estado visual correto (mudo/pausado).
+                console.log("Reprodução automática bloqueada. Clique no botão para iniciar.");
+            });
+
+            // Adiciona um evento de clique ao botão
+            muteButton.addEventListener('click', () => {
+                // Se a música estiver pausada, o autoplay falhou; então damos play.
+                if (backgroundMusic.paused) {
+                    backgroundMusic.play();
+                }
+
+                // Alterna o estado de mudo
+                if (backgroundMusic.muted) {
+                    // Se estiver mutada, desmuta
+                    backgroundMusic.muted = false;
+                    // Troca o ícone para o de som ativo
+                    volumeIcon.classList.remove('fa-volume-mute');
+                    volumeIcon.classList.add('fa-volume-up');
+                    // Adiciona a classe 'playing' para mudar a cor do botão
+                    muteButton.classList.add('playing');
+                } else {
+                    // Se não estiver mutada, muta
+                    backgroundMusic.muted = true;
+                    // Troca o ícone para o de som mudo
+                    volumeIcon.classList.remove('fa-volume-up');
+                    volumeIcon.classList.add('fa-volume-mute');
+                    // Remove a classe 'playing'
+                    muteButton.classList.remove('playing');
+                }
+            });
+
+            // Sincroniza o botão se o estado de play mudar por outros motivos (como o autoplay bem-sucedido)
+            backgroundMusic.addEventListener('play', () => {
+                if (!backgroundMusic.muted) {
+                    volumeIcon.classList.remove('fa-volume-mute');
+                    volumeIcon.classList.add('fa-volume-up');
+                    muteButton.classList.add('playing');
+                }
+            });
+
             const root = document.documentElement;
             let audioContext; // Contexto de áudio para os efeitos sonoros
 
@@ -1092,7 +1159,7 @@
             document.body.addEventListener('click', initAudioContext, { once: true });
             document.body.addEventListener('touchend', initAudioContext, { once: true });
 
-
+            // Função para tocar sons gerados programaticamente
             async function playMp3Sound(url) {
                 if (!audioContext) {
                     console.log("Audio Context not ready.");
@@ -1119,7 +1186,6 @@
 
 // Exemplo de como chamar a função
 // playMp3Sound('URL_PARA_SEU_ARQUIVO.mp3');
-
 
             // --- Funções de atualização visual ---
             function updateHeartVisuals(currentLife, maxLife) {
@@ -1356,11 +1422,13 @@
             showItemDisplayBtn.addEventListener('click', showItemDisplayView);
 
             document.querySelectorAll('.back-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
+                    await renderCardsAndThumbnails();
                     if (!creationSection.classList.contains('hidden')) showDisplayView();
                     if (!spellCreationSection.classList.contains('hidden')) showSpellDisplayView();
                     if (!itemCreationSection.classList.contains('hidden')) showItemDisplayView();
                     if (!linkSection.classList.contains('hidden')) showDisplayView();
+                    
                 });
             });
 
@@ -1668,10 +1736,10 @@
                                             <h4 class="sidebar-title"  style="margin-right: -40px;">Grimório</h4>
                                             <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px;"></div>
                                         </div>
-                                        <button class="sidebar-toggle"><i class="fas fa-chevron-right"></i></button>
+                                        <button class="sidebar-toggle" style="background: rgb(20 184 166 / var(--tw-border-opacity, 1))"><i class="fas fa-chevron-right"></i></button>
                                     </div>
                                     <div id="item-sidebar" class="sidebar sidebar-right">
-                                        <button class="sidebar-toggle"><i class="fas fa-chevron-left"></i></button>
+                                        <button class="sidebar-toggle" style="background: rgb(245 158 11 / var(--tw-border-opacity, 1));"><i class="fas fa-chevron-left"></i></button>
                                         <div class="sidebar-content">
                                             <h4 class="sidebar-title" style="margin-left: -40px;">Inventário</h4>
                                             <div id="item-sidebar-content" class="sidebar-list"  style="margin-left: -40px;"></div>
@@ -1870,7 +1938,6 @@
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative';
                 cardDiv.dataset.spellId = spellData.id;
-                cardDiv.style.transform = "scale(.9)";
                 
                 const isMagia = spellData.type === 'magia';
                 let palette = { 
@@ -1895,34 +1962,52 @@
                 cardDiv.style.border = `2px solid ${palette.borderColor}`;
 
                 cardDiv.innerHTML = `
-                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
-                        <div class="text-center w-full">
-                            <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3>
-                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
-                        </div>
-                        <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
-                                <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
-                                <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
-                                <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
-                                <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
-                        </div>
-                        <div class="w-full">                                       
-                            <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
-                                <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                    <h4 class="font-semibold text-gray-300">Descrição</h4>
-                                    <p class="text-gray-300 text-xs">${spellData.description || 'Nenhuma descrição.'}</p>
-                                </div>                                            
-                                <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                    <h4 class="font-semibold text-gray-300">Aprimorar</h4>
-                                    <p class="text-gray-300 text-xs">${spellData.enhance}</p>
+                    <div class="card-3d-container">
+                        <div class="card-3d">
+                            <div class="card-front" style="background-image:url(${spellData.imageURL}); background-size: cover; background-position: center;">
+                                <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085,transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                                    <div class="text-center w-full">
+                                        <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${spellData.name}</h3>
+                                        <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-300 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
+                                            <p class="text-left"><strong>Execução:</strong> ${spellData.execution || '-'}</p>
+                                            <p class="text-left"><strong>Alcance:</strong> ${spellData.range || '-'}</p>
+                                            <p class="text-left"><strong>Alvo:</strong> ${spellData.target || '-'}</p>
+                                            <p class="text-left"><strong>Duração:</strong> ${spellData.duration || '-'}</p>
+                                    </div>
+                                    <div class="w-full">                                       
+                                        <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Descrição</h4>
+                                                <p class="text-gray-300 text-xs">${spellData.description || 'Nenhuma descrição.'}</p>
+                                            </div>                                            
+                                            <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Aprimorar</h4>
+                                                <p class="text-gray-300 text-xs">${spellData.enhance|| 'Nenhuma descrição.'}</p>
+                                            </div>
+                                            <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
+                                                <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
+                                                <p class="text-gray-300 text-xs">${spellData.true|| 'Nenhuma descrição.'}</p>
+                                            </div>                                            
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                    <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
-                                    <p class="text-gray-300 text-xs">${spellData.true}</p>
-                                </div>                                            
+                            </div>
+                            <div class="card-back" style="background-image:url(${spellData.imageURL}); background-size: cover; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;">
+                                <div class="back-content p-4 text-left" style="border: 5px solid ${palette.borderColor};">
+                                  
+                                </div>
                             </div>
                         </div>
                     </div>`;
+
+                const card3d = cardDiv.querySelector('.card-3d');
+                if(card3d) {
+                    card3d.addEventListener('click', (e) => {
+                        card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    });
+                }
 
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.className = 'flex justify-center space-x-2 w-full';
@@ -2070,7 +2155,6 @@
                 cardWrapper.className = 'card-wrapper flex flex-col items-center gap-4';
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'w-full h-[700px] rounded-3xl shadow-2xl rpg-card relative';                
-                cardDiv.style.transform = "scale(.9)";
                 cardDiv.dataset.itemId = itemData.id;
                 
                 let palette = { cardBg: 'rgba(17, 24, 39, 0.9)', highlightColor: '#f59e0b', textColor: '#e5e7eb', borderColor: '#d97706' };
@@ -2084,30 +2168,44 @@
                 cardDiv.style.border = `2px solid ${palette.borderColor}`;
 
                  cardDiv.innerHTML = `
-                    <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
-                        <div class="text-center w-full">
-                            <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3>
-                            <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
-                        </div>
-                        <div class="text-xs text-gray-400 mb-3" style="position: absolute; margin-top: 55px; left: 15px;">
-                            <p><strong>Tipo:</strong> ${itemData.type || '-'}</p>
-                            <p><strong>Dano:</strong> ${itemData.damage || '-'}</p>
-                            <p><strong>Carga:</strong> ${itemData.charge}</p>
-                            <p><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
-                             <p><strong>Restaurar Vida:</strong> ${itemData.restoreLife || 0} PV</p>
-                            <p><strong>Restaurar Mana:</strong> ${itemData.restoreMana || 0} PM</p>
-                            <p><strong>Usável:</strong> ${itemData.usable ? 'Sim' : 'Não'}</p>
-                        </div>
-                        <div class="w-full">                                       
-                            <div class="text-sm text-left" style="display: flex; flex-direction: row; overflow-y: scroll;gap: 12px;    scroll-snap-type: x mandatory;">                                             
-                                <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%; border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
-                                    <h4 class="font-semibold text-gray-300">Efeito</h4>
-                                    <p class="text-gray-300 text-xs">${itemData.effect || 'Nenhum efeito.'}</p>
+                    <div class="card-3d-container">
+                        <div class="card-3d">
+                            <div class="card-front" style="background-image:url(${itemData.imageURL}); background-size: cover; background-position: center;">
+                                <div class="rounded-3xl relative w-full h-full p-4" style="background: linear-gradient(-180deg, #000000ba, #00000085, transparent, #00000085, #000000ba); display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                                    <div class="text-center w-full">
+                                        <h3 class="text-2xl font-bold" style="color: ${palette.highlightColor};">${itemData.name}</h3>
+                                        <div class="rpg-card-title-divider" style="background: linear-gradient(to right, transparent, ${palette.borderColor}, transparent); width: 100%"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-300 mb-3 w-full px-2"  style="position: absolute; margin-top: 55px; left: 15px;">
+                                        <p><strong>Tipo:</strong> ${itemData.type || '-'}</p>
+                                        <p><strong>Dano:</strong> ${itemData.damage || '-'}</p>
+                                        <p><strong>Carga:</strong> ${itemData.charge}</p>
+                                        <p><strong>Pré-requisito:</strong> ${itemData.prerequisite || '-'}</p>
+                                        <p><strong>Restaurar Vida:</strong> ${itemData.restoreLife || 0} PV</p>
+                                        <p><strong>Restaurar Mana:</strong> ${itemData.restoreMana || 0} PM</p>
+                                        <p><strong>Usável:</strong> ${itemData.usable ? 'Sim' : 'Não'}</p>
+                                    </div>
+                                    <div class="w-full p-2">
+                                        <p class="text-xs text-gray-300 italic">Efeito</p>
+                                        <p class="text-xs text-gray-300 italic">${itemData.effect || 'Nenhum efeito.'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-back" style="background-image:url(${itemData.imageURL}); background-size: cover; background-color: rgb(0 0 0 / 50%);background-blend-mode: multiply;background-position: center;">
+                                <div class="back-content p-4 text-left" style="border: 5px solid ${palette.borderColor};">
+                                    <h4 class="font-semibold text-lg" style="color: ${palette.highlightColor};"></h4>
+                                    <p class="text-gray-300 text-sm"></p>
                                 </div>
                             </div>
                         </div>
-                       
                     </div>`;
+                
+                const card3d = cardDiv.querySelector('.card-3d');
+                if(card3d) {
+                    card3d.addEventListener('click', (e) => {
+                        card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
+                    });
+                }
 
                 const buttonsDiv = document.createElement('div');
                 buttonsDiv.className = 'flex justify-center space-x-2 w-full';
@@ -2563,14 +2661,23 @@
                 const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${currentStatusEditingCardId}"]`);
                 const animationDuration = 500;
 
+                const oldLife = cardData.attributes.vidaAtual;
+                const oldMana = cardData.attributes.manaAtual;
+                const oldMoney = cardData.dinheiro;
+
                 const newLife = parseInt(modalVidaAtualInput.value);
                 const newMana = parseInt(modalManaAtualInput.value);
                 const newMoney = parseInt(modalDinheiroInput.value);
 
+                if (newLife < oldLife) playMp3Sound('dano.mp3');
+                if (newLife > oldLife) playMp3Sound('magia.mp3');
+                if (newMana !== oldMana) playMp3Sound('mana.mp3');
+                if (newMoney !== oldMoney) playMp3Sound('money.mp3');
+
                 if (cardOnScreen) {
-                    animateValue(cardOnScreen.querySelector('span[data-status="life"]'), cardData.attributes.vidaAtual, newLife, animationDuration);
-                    animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), cardData.attributes.manaAtual, newMana, animationDuration);
-                    animateValue(cardOnScreen.querySelector('span[data-status="money"]'), cardData.dinheiro, newMoney, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
+                    animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
                 }
                 cardData.attributes.vidaAtual = newLife;
                 cardData.attributes.manaAtual = newMana;
@@ -2611,8 +2718,6 @@
             async function useItem(templateId, characterId) {
                 if (!templateId || !characterId) return;
 
-                 // Toca o som imediatamente
-
                 const itemToUse = await getData(ITEM_STORE_NAME, templateId);
                 const character = await getData(CARD_STORE_NAME, characterId);
                 if (!itemToUse || !character) return;
@@ -2632,14 +2737,11 @@
                     }
                 }
                 const animationDelay = sidebarsWereOpen ? 400 : 0; 
-const expandedItemModal = document.querySelector('.expanded-card-container');
-                    if (expandedItemModal) {
-                        
-                        expandedItemModal.remove();
-                    }
+                const expandedItemModal = document.querySelector('.expanded-card-container');
+                if (expandedItemModal) {
+                    expandedItemModal.remove();
+                }
                 setTimeout(async () => {
-                    playMp3Sound('magia.mp3');
-
                     let characterWasUpdated = false;
                     const animationDuration = 1000;
                     const glowDuration = 1500;
@@ -2649,7 +2751,7 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
                         let currentLife = parseInt(character.attributes.vidaAtual) || 0;
                         const maxLife = parseInt(character.attributes.vida) || 0;
                         let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
-
+                        playMp3Sound('magia.mp3');
                         if (cardFront) {
                             cardFront.classList.add('life-restore-card-glow');
                             animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
@@ -2663,7 +2765,7 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
                         let currentMana = parseInt(character.attributes.manaAtual) || 0;
                         const maxMana = parseInt(character.attributes.mana) || 0;
                         let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
-
+                        playMp3Sound('magia.mp3');
                         if (cardFront) {
                             setTimeout(() => {
                                 cardFront.classList.add('mana-restore-card-glow');
@@ -2803,6 +2905,8 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
                 await saveData(CARD_STORE_NAME, character);
                 await renderInventoryManagement(currentLinkingCharacterId);
                 selectionModal.classList.add('hidden');
+
+                playMp3Sound("itemColocando.mp3");
             }
 
             async function unlinkItem(itemIndexInCharacterArray) {
@@ -2812,6 +2916,7 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
                 character.items.splice(itemIndexInCharacterArray, 1);
                 await saveData(CARD_STORE_NAME, character);
                 await renderInventoryManagement(currentLinkingCharacterId);
+                playMp3Sound("itemColocando.mp3");
             }
             
             async function getInventoryStatus(characterId) {
@@ -2984,6 +3089,7 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
                 await saveData(CARD_STORE_NAME, character);
                 await renderLinkedSpells(currentLinkingCharacterId);
                 selectionModal.classList.add('hidden');
+                playMp3Sound("magiaAdd.mp3");
             }
 
             async function unlinkSpell(spellIndex) {
@@ -2993,6 +3099,7 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
                 character.spells.splice(spellIndex, 1);
                 await saveData(CARD_STORE_NAME, character);
                 await renderLinkedSpells(currentLinkingCharacterId);
+                playMp3Sound("magiaAdd.mp3");
             }
 
 
@@ -3158,4 +3265,3 @@ const expandedItemModal = document.querySelector('.expanded-card-container');
      </script>
 </body>
 </html>
-
