@@ -2970,12 +2970,12 @@
                             <div class="flex items-center gap-4 flex-grow">
                                 <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
                                 <div>
-                                    <p class="font-bold">${item.name}</p>
+                                    <p class="font-bold" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 80%;">${item.name}</p>
                                     <p class="text-xs text-gray-400">Carga: ${item.charge}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
-                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">No inv.: ${countInInventory}</span>` : ''}
+                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">${countInInventory}</span>` : ''}
                                 ${!canFit ? `<span class="text-xs text-red-400 font-semibold">Não cabe</span>` : ''}
                             </div>
                         `;
@@ -3023,7 +3023,7 @@
 
                     spellCard.innerHTML = `
                         <img src="${imageURL}" alt="${spell.name}">
-                        <p class="slot-item-name">${spell.name}</p>
+                        <p class="slot-item-name" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 80%;">${spell.name}</p>
                         <div class="type-icon">${icon}</div>
                     `;
                     spellCard.addEventListener('click', () => unlinkSpell(index));
@@ -3265,3 +3265,4 @@
      </script>
 </body>
 </html>
+
