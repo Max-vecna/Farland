@@ -1424,6 +1424,7 @@
             document.querySelectorAll('.back-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     await renderCardsAndThumbnails();
+                    playMp3Sound("ziper.mp3");
                     if (!creationSection.classList.contains('hidden')) showDisplayView();
                     if (!spellCreationSection.classList.contains('hidden')) showSpellDisplayView();
                     if (!itemCreationSection.classList.contains('hidden')) showItemDisplayView();
@@ -1883,6 +1884,7 @@
             }
 
             async function removeCard(cardId) { 
+                playMp3Sound("excluir.mp3");
                 await removeData(CARD_STORE_NAME, cardId); 
                 await renderCardsAndThumbnails(); 
             }
@@ -2074,6 +2076,7 @@
             }
             
             async function removeSpell(spellId) {
+                playMp3Sound("excluir.mp3");
                 await removeData(SPELL_STORE_NAME, spellId);
                 
                 const allCards = await getData(CARD_STORE_NAME);
@@ -2266,6 +2269,7 @@
             }
             
             async function removeItem(itemId) {
+                playMp3Sound("excluir.mp3");
                 await removeData(ITEM_STORE_NAME, itemId);
 
                 const allCards = await getData(CARD_STORE_NAME);
@@ -2600,6 +2604,7 @@
                     if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
                         await editCard(cardId);
                     } else if (e.target.classList.contains('manage-btn') || e.target.closest('.manage-btn')) {
+                        playMp3Sound("ziper.mp3");
                         await showLinkViewForCharacter(cardId);
                     } else if (e.target.classList.contains('remove-btn') || e.target.closest('.remove-btn')) {
                         await removeCard(cardId);
@@ -2970,12 +2975,12 @@
                             <div class="flex items-center gap-4 flex-grow">
                                 <img src="${imageURL}" class="w-10 h-10 rounded-md object-cover">
                                 <div>
-                                    <p class="font-bold" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 80%;">${item.name}</p>
+                                    <p class="font-bold">${item.name}</p>
                                     <p class="text-xs text-gray-400">Carga: ${item.charge}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
-                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">${countInInventory}</span>` : ''}
+                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">No inv.: ${countInInventory}</span>` : ''}
                                 ${!canFit ? `<span class="text-xs text-red-400 font-semibold">Não cabe</span>` : ''}
                             </div>
                         `;
@@ -3023,7 +3028,7 @@
 
                     spellCard.innerHTML = `
                         <img src="${imageURL}" alt="${spell.name}">
-                        <p class="slot-item-name" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 80%;">${spell.name}</p>
+                        <p class="slot-item-name">${spell.name}</p>
                         <div class="type-icon">${icon}</div>
                     `;
                     spellCard.addEventListener('click', () => unlinkSpell(index));
@@ -3265,4 +3270,3 @@
      </script>
 </body>
 </html>
-
