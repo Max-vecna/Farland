@@ -7,7 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    
+    <link rel="stylesheet" href="animation.css">
+    <script src="animation.js"></script>
     <style>
          .heart-container {
              animation: beat var(--beat-duration) infinite cubic-bezier(0.215, 0.610, 0.355, 1);
@@ -194,6 +195,7 @@
             transform-style: preserve-3d; 
             transition: transform 0.6s;
             cursor: pointer;
+            border-radius: 1.5rem;
         }
         .card-front, .card-back {
             position: absolute;
@@ -649,7 +651,7 @@
             margin: auto;
             padding: 20px;
             border: 1px solid #4b5563;
-            width: 90%;
+            width: 50%;
             max-width: 500px;
             border-radius: 1rem;
         }
@@ -707,6 +709,75 @@
             line-height: 1.5;
             white-space: pre-wrap;
         }
+        
+       /* --- NOVOS ESTILOS DE ANIMAÇÃO --- */
+@keyframes card-punch {
+    0% { transform: scale(1) rotate(0deg); box-shadow: 0 0 0 rgba(255, 0, 0, 0); }
+    10% { transform: scale(1.02) translate(-2px, 2px) rotate(-1deg); }
+    20% { transform: scale(1.02) translate(2px, -2px) rotate(1deg); }
+    30% { transform: scale(1.02) translate(-2px, -2px) rotate(-1deg); box-shadow: 0 0 15px rgba(220, 38, 38, 0.6); }
+    40% { transform: scale(1.02) translate(2px, 2px) rotate(1deg); }
+    50%, 100% { transform: scale(1) rotate(0deg); box-shadow: 0 0 0 rgba(255, 0, 0, 0); }
+}
+
+.card-damage-effect {
+    animation: card-punch 0.6s ease-in-out;
+}
+
+.mana-particle {
+    position: absolute;
+    border-radius: 50%;
+    /* A cor agora é definida via variável CSS */
+    background-color: var(--particle-color, #a78bfa); 
+    box-shadow: 0 0 5px var(--particle-color, #c4b5fd), 0 0 10px var(--particle-color, #c4b5fd);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Animação para partículas SAINDO */
+@keyframes mana-mist-out {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(var(--x), var(--y)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Animação para partículas ENTRANDO */
+@keyframes mana-mist-in {
+    0% {
+        transform: translate(var(--x), var(--y)) scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes card-mana-burst {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(167, 139, 250, 0);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 25px rgba(167, 139, 250, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(167, 139, 250, 0);
+    }
+}
+
+.card-mana-effect {
+    animation: card-mana-burst 0.8s ease-in-out;
+}
+/* --- FIM DOS NOVOS ESTILOS --- */
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-2">
@@ -755,7 +826,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="cardLevel" class="block text-sm font-semibold mb-1">Nível</label>
-                            <input type="number" id="cardLevel" placeholder="1" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
+                            <input type="card3d" id="cardLevel" placeholder="1" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                         </div>
                         <div>
                             <label for="dinheiro" class="block text-sm font-semibold mb-1">Dinheiro</label>
@@ -914,7 +985,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div><label for="itemType" class="block text-sm font-semibold mb-1">Tipo</label><input type="text" id="itemType" placeholder="Ex: Leve" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemDamage" class="block text-sm font-semibold mb-1">Dano</label><input type="text" id="itemDamage" placeholder="Ex: 2d6" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
-                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="number" id="itemCharge" placeholder="Ex: 1" value="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
+                        <div><label for="itemCharge" class="block text-sm font-semibold mb-1">Carga</label><input type="text" id="itemCharge" placeholder="Ex: 1" value="1" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                         <div><label for="itemPrerequisite" class="block text-sm font-semibold mb-1">Pré-requisito</label><input type="text" id="itemPrerequisite" placeholder="Ex: Saber magia" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600"></div>
                     </div>
                     <div>
@@ -1036,15 +1107,15 @@
                 <button id="status-modal-close-btn" class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
             </div>
             <form id="status-form" class="space-y-4">
-                <div>
+                <div id="vida-input-container">
                     <label for="modal-vida-atual" class="block text-sm font-semibold mb-1">Vida Atual</label>
                     <input type="number" id="modal-vida-atual" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                 </div>
-                <div>
+                <div id="mana-input-container">
                     <label for="modal-mana-atual" class="block text-sm font-semibold mb-1">Mana Atual</label>
                     <input type="number" id="modal-mana-atual" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                 </div>
-                <div>
+                <div id="dinheiro-input-container">
                     <label for="modal-dinheiro" class="block text-sm font-semibold mb-1">Dinheiro</label>
                     <input type="number" id="modal-dinheiro" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
                 </div>
@@ -1184,8 +1255,59 @@
                 }
             }
 
-// Exemplo de como chamar a função
-// playMp3Sound('URL_PARA_SEU_ARQUIVO.mp3');
+            // --- NOVAS FUNÇÕES DE ANIMAÇÃO ---
+
+            /**
+             * Ativa a animação de "soco" no card.
+             * @param {HTMLElement} cardElement - O elemento .rpg-card a ser animado.
+             */
+            function triggerCardPunch(cardElement, status) {
+                const card3d = cardElement.querySelector('.card-3d');
+                if (card3d && status == "soco") {
+                    resetcard3d(card3d);
+                    card3d.classList.add('zoom-box', 'glowing-card', 'glow-red');
+                    triggerAnimation(card3d, 'animate');
+                    setTimeout(() => {
+                        playMp3Sound('dano.mp3');
+                    }, 800);
+                }
+                
+            }
+
+            /**
+             * Cria um efeito de partículas de mana (névoa/estrelas) a partir de um elemento.
+             * @param {HTMLElement} containerElement - O elemento de onde as partículas devem emergir.
+             */
+           function createManaMist(containerElement, direction = 'out', color = '#a78bfa') {
+                const particleCount = 20;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'mana-particle';
+                    containerElement.appendChild(particle);
+
+                    const size = Math.random() * 8 + 2;
+                    const x = (Math.random() - 0.5) * 150;
+                    const y = (Math.random() - 0.5) * 150;
+                    const duration = Math.random() * 1.5 + 0.5;
+
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    // Define a cor e a posição final da animação
+                    particle.style.setProperty('--particle-color', color);
+                    particle.style.setProperty('--x', `${x}px`);
+                    particle.style.setProperty('--y', `${y}px`);
+                    
+                    // Define a animação correta (entrada ou saída)
+                    const animationName = direction === 'in' ? 'mana-mist-in' : 'mana-mist-out';
+                    particle.style.animation = `${animationName} ${duration}s ease-out forwards`;
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, duration * 1000);
+                }
+            }
+
 
             // --- Funções de atualização visual ---
             function updateHeartVisuals(currentLife, maxLife) {
@@ -1279,6 +1401,12 @@
             const showItemDisplayBtn = document.getElementById('showItemDisplayBtn');
             const saveDbBtn = document.getElementById('saveDbBtn');
             
+                   // Adicione referências aos containers dos inputs no início do seu script
+                const vidaInputContainer = document.getElementById('vida-input-container'); // Supondo que o container do input de vida tenha este ID
+                const manaInputContainer = document.getElementById('mana-input-container'); // Supondo que o container do input de mana tenha este ID
+                const dinheiroInputContainer = document.getElementById('dinheiro-input-container'); // Supondo que o container do input de dinheiro tenha este ID
+
+
             // Seções da aplicação
             const creationSection = document.getElementById('creation-section');
             const displaySection = document.getElementById('display-section');
@@ -1760,7 +1888,7 @@
                                     </div>
                                     <!-- Fim das Barras Laterais -->
 
-                                    <div class="absolute top-4 left-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Mana">
+                                    <div class="absolute top-4 left-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" data-local="mana" title="Alterar Mana">
                                         <div class="icon-container potion-container">
                                             <svg class="potion-svg" viewBox="0 0 50 50">
                                                 <defs><clipPath id="potion-mask-${cardData.id}"><path d="M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z" /></clipPath></defs>
@@ -1775,7 +1903,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="absolute top-2 right-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" title="Alterar Vida">
+                                    <div class="absolute top-2 right-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" data-local="life" title="Alterar Vida">
                                         <div class="icon-container heart-container">
                                             <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                             <div class="status-text-container status-fraction text-lg" style="transform: scale(.5);">
@@ -1786,7 +1914,7 @@
                                     <div class="absolute top-20 left-4 rounded-full p-3 bg-black/50 flex items-center justify-center text-lg text-yellow-200 cursor-pointer" data-action="toggle-lore" title="Ver História">
                                         <i class="fas fa-book"></i>
                                     </div>
-                                    <div class="absolute top-36 left-4 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal" title="Alterar Dinheiro" style=" writing-mode: vertical-rl; text-orientation: upright;">
+                                    <div class="absolute money-container top-36 left-4 rounded-full p-2 bg-black/50 flex items-center justify-center text-sm text-amber-300 font-bold" data-action="open-status-modal"  data-local="money" title="Alterar Dinheiro" style=" writing-mode: vertical-rl; text-orientation: upright;">
                                         💰$<span data-status="money">${cardData.dinheiro || 0}</span>
                                     </div>
 
@@ -2644,7 +2772,9 @@
                 const cardId = cardElement.dataset.cardId;
                 if (actionElement) {
                     if (actionElement.dataset.action === 'open-status-modal') {
-                        openStatusModal(cardId);
+                        // Captura o valor de data-local (ex: "life", "mana", "money")
+                        const local = actionElement.dataset.local; 
+                        openStatusModal(cardId, local); // Passa o valor para a função
                     } else if (actionElement.dataset.action === 'toggle-lore') {
                         const loreCard = cardElement.querySelector('.lore-card');
                         if (loreCard) {
@@ -2655,23 +2785,37 @@
             });
 
 
-            // --- Lógica do Modal de Status e Uso de Itens ---
-            async function openStatusModal(cardId) {
-                const cardData = await getData(CARD_STORE_NAME, cardId);
-                if (!cardData) return;
-
-                currentStatusEditingCardId = cardId;
-                modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
-                modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
-
-                modalVidaAtualInput.max = cardData.attributes.vida;
-                modalManaAtualInput.max = cardData.attributes.mana;
-
-                modalDinheiroInput.value = cardData.dinheiro || 0;
-
-                statusModal.classList.remove('hidden');
-            }
             
+
+async function openStatusModal(cardId, local) { // A função agora aceita 'local'
+    const cardData = await getData(CARD_STORE_NAME, cardId);
+    if (!cardData) return;
+
+    currentStatusEditingCardId = cardId;
+    modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
+    modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
+    modalDinheiroInput.value = cardData.dinheiro || 0;
+
+    modalVidaAtualInput.max = cardData.attributes.vida;
+    modalManaAtualInput.max = cardData.attributes.mana;
+
+    // Lógica para mostrar/ocultar os inputs
+    // Primeiro, esconde todos
+    vidaInputContainer.classList.add('hidden');
+    manaInputContainer.classList.add('hidden');
+    dinheiroInputContainer.classList.add('hidden');
+
+    // Depois, mostra apenas o que foi clicado
+    if (local === 'life') {
+        vidaInputContainer.classList.remove('hidden');
+    } else if (local === 'mana') {
+        manaInputContainer.classList.remove('hidden');
+    } else if (local === 'money') {
+        dinheiroInputContainer.classList.remove('hidden');
+    }
+
+    statusModal.classList.remove('hidden');
+}
             statusForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!currentStatusEditingCardId) return;
@@ -2690,16 +2834,63 @@
                 const newMana = parseInt(modalManaAtualInput.value);
                 const newMoney = parseInt(modalDinheiroInput.value);
 
-                if (newLife < oldLife) playMp3Sound('dano.mp3');
-                if (newLife > oldLife) playMp3Sound('magia.mp3');
-                if (newMana !== oldMana) playMp3Sound('mana.mp3');
-                if (newMoney !== oldMoney) playMp3Sound('money.mp3');
-
+                // --- LÓGICA DE ANIMAÇÃO ADICIONADA AQUI ---
                 if (cardOnScreen) {
+                      
+                    const vidaIcon = cardOnScreen.querySelector('.heart-container');
+                    const card3d = cardOnScreen.querySelector('.card-3d');
+                    resetcard3d(card3d);
+                    if (newLife !== oldLife) {
+                        if (newLife < oldLife) {
+                            playMp3Sound('sopro.mp3');
+                            triggerCardPunch(cardOnScreen, "soco"); // Efeito de soco
+                            
+                        }
+                        if (newLife > oldLife) {
+                            playMp3Sound('magia.mp3');
+                            createManaMist(vidaIcon, 'in', '#ff1a1a');  // Efeito de névoa/estrelas    
+                            card3d.classList.add('star-container', 'glowing-card', 'glow-red'); 
+                        }
+                    }
+                    if (newMana !== oldMana) {
+                        playMp3Sound('mana.mp3');
+                        const manaIcon = cardOnScreen.querySelector('.potion-container');
+                        if (manaIcon)
+                        {                           
+                            if (newMana < oldMana)
+                            {
+                                createManaMist(manaIcon, 'out', '#1a1a1a');  // Efeito de névoa/estrelas  
+                                card3d.classList.add('star-container', 'glowing-card', 'glow-dark'); 
+                            }
+                            if (newMana > oldMana)
+                            {
+                                createManaMist(manaIcon, 'in', '#a78bfa');                              
+                                card3d.classList.add('star-container', 'glowing-card', 'glow-purple');                                
+                            }                            
+                        }
+                    }
+                    if (newMoney !== oldMoney) {
+                        playMp3Sound('money.mp3');
+                        const moneyIcon = cardOnScreen.querySelector('.money-container');
+                        if(newMoney > oldMoney)
+                        {                            
+                            createManaMist(moneyIcon, 'in', '#fcd34d');
+                            
+                        }
+                         if(newMoney < oldMoney)
+                        {                            
+                            createManaMist(moneyIcon, 'out', '#fcd34d');
+                        }
+                        card3d.classList.add('star-container', 'glowing-card', 'glow-yellow');
+                    }
+                    
+                    triggerAnimation(card3d, 'animate');
                     animateValue(cardOnScreen.querySelector('span[data-status="life"]'), oldLife, newLife, animationDuration);
                     animateValue(cardOnScreen.querySelector('span[data-status="mana"]'), oldMana, newMana, animationDuration);
                     animateValue(cardOnScreen.querySelector('span[data-status="money"]'), oldMoney, newMoney, animationDuration);
                 }
+                // --- FIM DA LÓGICA DE ANIMAÇÃO ---
+
                 cardData.attributes.vidaAtual = newLife;
                 cardData.attributes.manaAtual = newMana;
                 cardData.dinheiro = newMoney;
@@ -2736,89 +2927,99 @@
                 window.requestAnimationFrame(step);
             }
             
-            async function useItem(templateId, characterId) {
-                if (!templateId || !characterId) return;
+       async function useItem(templateId, characterId) {
+    if (!templateId || !characterId) return;
 
-                const itemToUse = await getData(ITEM_STORE_NAME, templateId);
-                const character = await getData(CARD_STORE_NAME, characterId);
-                if (!itemToUse || !character) return;
-                
-                const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
-                let sidebarsWereOpen = false;
-                if (cardOnScreen) {
-                    const spellSidebar = cardOnScreen.querySelector('#spell-sidebar');
-                    const itemSidebar = cardOnScreen.querySelector('#item-sidebar');
-                    if (spellSidebar && spellSidebar.classList.contains('expanded')) {
-                        spellSidebar.classList.remove('expanded');
-                        sidebarsWereOpen = true;
-                    }
-                    if (itemSidebar && itemSidebar.classList.contains('expanded')) {
-                        itemSidebar.classList.remove('expanded');
-                        sidebarsWereOpen = true;
-                    }
-                }
-                const animationDelay = sidebarsWereOpen ? 400 : 0; 
-                const expandedItemModal = document.querySelector('.expanded-card-container');
-                if (expandedItemModal) {
-                    expandedItemModal.remove();
-                }
-                setTimeout(async () => {
-                    let characterWasUpdated = false;
-                    const animationDuration = 1000;
-                    const glowDuration = 1500;
-                    const cardFront = cardOnScreen ? cardOnScreen.querySelector('.card-front') : null;
+    const itemToUse = await getData(ITEM_STORE_NAME, templateId);
+    const character = await getData(CARD_STORE_NAME, characterId);
+    if (!itemToUse || !character) return;
 
-                    if (itemToUse.restoreLife > 0) {
-                        let currentLife = parseInt(character.attributes.vidaAtual) || 0;
-                        const maxLife = parseInt(character.attributes.vida) || 0;
-                        let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
-                        playMp3Sound('magia.mp3');
-                        if (cardFront) {
-                            cardFront.classList.add('life-restore-card-glow');
-                            animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
-                            setTimeout(() => cardFront.classList.remove('life-restore-card-glow'), glowDuration);
-                        }
-                        character.attributes.vidaAtual = newLife;
-                        characterWasUpdated = true;
-                    }
+    const cardOnScreen = document.querySelector(`.rpg-card[data-card-id="${characterId}"]`);
+    if (!cardOnScreen) return;
+    
+    const card3d = cardOnScreen.querySelector('.card-3d');
 
-                    if (itemToUse.restoreMana > 0) {
-                        let currentMana = parseInt(character.attributes.manaAtual) || 0;
-                        const maxMana = parseInt(character.attributes.mana) || 0;
-                        let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
-                        playMp3Sound('magia.mp3');
-                        if (cardFront) {
-                            setTimeout(() => {
-                                cardFront.classList.add('mana-restore-card-glow');
-                                setTimeout(() => cardFront.classList.remove('mana-restore-card-glow'), glowDuration);
-                            }, 100);
-                            animateValue(cardFront.querySelector('span[data-status="mana"]'), currentMana, newMana, animationDuration);
-                        }
-                        character.attributes.manaAtual = newMana;
-                        characterWasUpdated = true;
-                    }
+    // --- ETAPA 1: Inicia a animação e o som principal ---
+    
+    resetcard3d(card3d); // Limpa animações anteriores
+    card3d.classList.add('spill-container', 'glowing-card', 'glow-potion');
+    createPotionEffect(4, card3d); // Cria os elementos visuais
+    
+    // Toca o som mágico geral no início
+    playMp3Sound('magia.mp3');
+    
+    // Dispara a animação
+    triggerAnimation(card3d, 'animate');
 
-                    const itemIndex = character.items.indexOf(templateId);
-                    if (itemIndex > -1) {
-                        character.items.splice(itemIndex, 1);
-                        characterWasUpdated = true;
-                    }
+    // Fecha sidebars e modais
+    const expandedItemModal = document.querySelector('.expanded-card-container');
+    if (expandedItemModal) expandedItemModal.remove();
+    const spellSidebar = cardOnScreen.querySelector('#spell-sidebar');
+    if (spellSidebar) spellSidebar.classList.remove('expanded');
+    const itemSidebar = cardOnScreen.querySelector('#item-sidebar');
+    if (itemSidebar) itemSidebar.classList.remove('expanded');
 
-                    if (characterWasUpdated) {
-                        await saveData(CARD_STORE_NAME, character);
-                    }
+    // --- ETAPA 2: Sincroniza o som do líquido ---
 
-                    await new Promise(resolve => setTimeout(resolve, animationDuration));
+    const POTION_ANIMATION_DURATION = 4000; // 3.5 segundos
+    const POUR_START_TIME = 1400; // 40% de 3500ms
 
-                    updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
-                    updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
+    setTimeout(() => {
+        playMp3Sound('liquido.mp3');
+    }, POUR_START_TIME);
 
-                    if (cardOnScreen) {
-                        await updateSidebarsContent(cardOnScreen, characterId);
-                    }
-                }, animationDelay);
+    // --- ETAPA 3: Espera a animação terminar para atualizar os status ---
+
+    setTimeout(async () => {
+        resetcard3d(card3d);
+        let characterWasUpdated = false;
+        const animationDuration = 1000;
+        const cardFront = cardOnScreen.querySelector('.card-front');
+
+        if (itemToUse.restoreLife > 0) {
+            let currentLife = parseInt(character.attributes.vidaAtual) || 0;
+            const maxLife = parseInt(character.attributes.vida) || 0;
+            let newLife = Math.min(currentLife + parseInt(itemToUse.restoreLife), maxLife);
+            
+            if (cardFront) { 
+                animateValue(cardFront.querySelector('span[data-status="life"]'), currentLife, newLife, animationDuration);
             }
+            character.attributes.vidaAtual = newLife;
+            characterWasUpdated = true;
+        }
 
+        if (itemToUse.restoreMana > 0) {
+            let currentMana = parseInt(character.attributes.manaAtual) || 0;
+            const maxMana = parseInt(character.attributes.mana) || 0;
+            let newMana = Math.min(currentMana + parseInt(itemToUse.restoreMana), maxMana);
+            if (cardFront) {
+                animateValue(cardFront.querySelector('span[data-status="mana"]'), currentMana, newMana, animationDuration);
+            }
+            character.attributes.manaAtual = newMana;
+            characterWasUpdated = true;
+        }
+        
+        const itemIndex = character.items.indexOf(templateId);
+        if (itemIndex > -1) {
+            character.items.splice(itemIndex, 1);
+            characterWasUpdated = true;
+        }
+
+        if (characterWasUpdated) {
+            await saveData(CARD_STORE_NAME, character);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, animationDuration));
+
+        updateHeartVisuals(character.attributes.vidaAtual, character.attributes.vida);
+        updatePotionVisuals(character.attributes.manaAtual, character.attributes.mana);
+
+        if (cardOnScreen) {
+            await updateSidebarsContent(cardOnScreen, characterId);
+        }
+
+    }, POTION_ANIMATION_DURATION);
+}
             // --- Lógica da Tela de Vínculo (NOVA LÓGICA DE SLOTS) ---
             async function renderInventoryManagement(characterId) {
                 const character = await getData(CARD_STORE_NAME, characterId);
@@ -3280,6 +3481,79 @@
             }
 
             initializeApp();
+
+                  function createPotionEffect(numberOfPulses, animationBox) {
+            const svgNS = "http://www.w3.org/2000/svg";
+            
+            const container = document.createElement('div');
+            container.className = 'potion-svg-container';
+
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.setAttribute('viewBox', '0 0 50 50');
+
+            const defs = document.createElementNS(svgNS, 'defs');
+            const clipPath = document.createElementNS(svgNS, 'clipPath');
+            const clipPathId = `potion-mask-${Date.now()}`;
+            clipPath.id = clipPathId;
+            const clipPathPath = document.createElementNS(svgNS, 'path');
+            clipPathPath.setAttribute('d', 'M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z');
+            clipPath.appendChild(clipPathPath);
+            defs.appendChild(clipPath);
+            svg.appendChild(defs);
+
+            const g = document.createElementNS(svgNS, 'g');
+            g.setAttribute('clip-path', `url(#${clipPathId})`);
+            
+            const liquid = document.createElementNS(svgNS, 'rect');
+            liquid.classList.add('potion-liquid');
+            liquid.setAttribute('x', '8');
+            liquid.setAttribute('y', '25'); // Nível inicial do líquido
+            liquid.setAttribute('width', '34');
+            liquid.setAttribute('height', '25');
+            g.appendChild(liquid);
+
+            // Adiciona as bolhas
+            const bubbleData = [{cx: 20, cy: 45, r: 2.5}, {cx: 28, cy: 42, r: 2}, {cx: 33, cy: 46, r: 1.5}];
+            bubbleData.forEach(data => {
+                const bubble = document.createElementNS(svgNS, 'circle');
+                bubble.classList.add('bubble');
+                bubble.setAttribute('cx', data.cx);
+                bubble.setAttribute('cy', data.cy);
+                bubble.setAttribute('r', data.r);
+                bubble.style.animationDelay = `${Math.random() * 2}s`;
+                g.appendChild(bubble);
+            });
+
+            svg.appendChild(g);
+
+            const glass = document.createElementNS(svgNS, 'path');
+            glass.classList.add('potion-glass');
+            glass.setAttribute('d', 'M18,15 V5 h14 v10 a17,17 0 1,1 -14,0 z');
+            svg.appendChild(glass);
+
+            const cork = document.createElementNS(svgNS, 'rect');
+            cork.classList.add('potion-cork');
+            cork.setAttribute('x', '18');
+            cork.setAttribute('y', '0');
+            cork.setAttribute('width', '14');
+            cork.setAttribute('height', '5');
+            cork.setAttribute('rx', '2');
+            svg.appendChild(cork);
+            
+            container.appendChild(svg);
+            animationBox.appendChild(container);
+
+            const stream = document.createElement('span');
+            stream.className = 'potion-stream';
+            animationBox.appendChild(stream);
+
+            for (let i = 0; i < numberOfPulses; i++) {
+                const pulse = document.createElement('span');
+                pulse.className = 'potion-pulse';
+                pulse.style.animationDelay = `${2.1 + i * 0.3}s`;
+                animationBox.appendChild(pulse);
+            }
+        }
         });
      </script>
 </body>
