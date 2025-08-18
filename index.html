@@ -953,7 +953,7 @@
         </div>
 
         <!-- Seção de Gerenciamento/Vínculo -->
-        <div id="link-section" class="hidden" style="z-index: 10000000;">
+        <div id="link-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl space-y-6">
                 <div class="flex justify-between items-center">
                     <div class="text-center flex-grow">
@@ -1340,11 +1340,13 @@
                 hideAllSections();
                 displaySection.classList.remove('hidden');
                 updateActiveNav(showDisplayBtn);
+                nav.classList.remove('hidden'); // Garante que o menu esteja visível
             }
 
             function showCreationView(isEditing = false) {
                 hideAllSections();
                 creationSection.classList.remove('hidden');
+                nav.classList.remove('hidden'); // Garante que o menu esteja visível
                 
                 if (!isEditing) {
                     formTitle.textContent = "Criar Novo Cartão de Personagem";
@@ -1361,6 +1363,7 @@
             function showSpellCreationView(isEditing = false) {
                 hideAllSections();
                 spellCreationSection.classList.remove('hidden');
+                nav.classList.remove('hidden'); // Garante que o menu esteja visível
 
                 if (!isEditing) {
                     spellFormTitle.textContent = "Nova Magia/Habilidade";
@@ -1375,11 +1378,13 @@
                 hideAllSections();
                 spellDisplaySection.classList.remove('hidden');
                 updateActiveNav(showSpellDisplayBtn);
+                nav.classList.remove('hidden'); // Garante que o menu esteja visível
             }
 
             function showItemCreationView(isEditing = false) {
                 hideAllSections();
                 itemCreationSection.classList.remove('hidden');
+                nav.classList.remove('hidden'); // Garante que o menu esteja visível
                 
                 if (!isEditing) {
                     itemFormTitle.textContent = "Novo Item (Pré-criado)";
@@ -1395,6 +1400,7 @@
                 hideAllSections();
                 itemDisplaySection.classList.remove('hidden');
                 updateActiveNav(showItemDisplayBtn);
+                nav.classList.remove('hidden'); // Garante que o menu esteja visível
             }
             
             async function showLinkViewForCharacter(characterId) {
@@ -1405,6 +1411,7 @@
                 hideAllSections();
                 linkSection.classList.remove('hidden');
                 updateActiveNav(null);
+                nav.classList.add('hidden'); // Oculta o menu de navegação
                 
                 linkSectionTitle.textContent = `Gerenciando: ${character.title}`;
                 currentLinkingCharacterId = characterId;
@@ -1725,6 +1732,11 @@
                     }).join('');
                 }
 
+                // Lógica para encontrar o maior valor de atributo
+                const mainAttributes = ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'];
+                const attributeValues = mainAttributes.map(attr => parseInt(cardData.attributes[attr]) || 0);
+                const maxAttributeValue = Math.max(...attributeValues, 1); // Garante que o valor máximo seja pelo menos 1
+
                 cardDiv.innerHTML = `
                     <div class="card-3d-container">
                         <div class="card-3d divPartculas">
@@ -1735,7 +1747,7 @@
                                     <div id="spell-sidebar" class="sidebar sidebar-left">
                                         <div class="sidebar-content" >
                                             <h4 class="sidebar-title"  style="margin-right: -40px;">Grimório</h4>
-                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px;"></div>
+                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px; direction: rtl;"></div>
                                         </div>
                                         <button class="sidebar-toggle" style="background: rgb(20 184 166 / var(--tw-border-opacity, 1))"><i class="fas fa-chevron-right"></i></button>
                                     </div>
@@ -1787,7 +1799,11 @@
                                             <div class="text-center">BL<br>${cardData.attributes.bloqueio || 0}</div>
                                             <div class="text-center">DL<br>${cardData.attributes.deslocamento || 0}m</div>
                                         </div>
-                                        ${Object.entries(cardData.attributes).filter(([key]) => ['agilidade', 'carisma', 'forca', 'inteligencia', 'sabedoria', 'vigor'].includes(key)).map(([key, value]) => `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${((parseInt(value) || 0) * 100) / 3}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / 3</span></div>`).join('')}
+                                        ${mainAttributes.map(key => {
+                                            const value = parseInt(cardData.attributes[key]) || 0;
+                                            const percentage = maxAttributeValue > 0 ? (value * 100) / maxAttributeValue : 0;
+                                            return `<div class="mt-2 flex items-center space-x-2 text-xs"><span class="font-bold w-8">${key.slice(0,3).toUpperCase()}</span><div class="stat-bar flex-grow" style="margin-top: 0"><div class="stat-fill" style="width: ${percentage}%; background: ${palette.borderColor}"></div></div><span class="text-xs font-bold ml-auto">${value} / ${maxAttributeValue}</span></div>`;
+                                        }).join('')}
                                         <p class="text-xs text-gray-400 italic  mt-4">Perícias</p>
                                         <div class="flex flex-col gap-2 mt-4" style="max-height: 100px; overflow-y: auto;"><div class="flex items-center justify-center w-full"></div>${periciasHtml}</div>
                                     </div>
@@ -2980,7 +2996,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
-                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">${countInInventory}</span>` : ''}
+                                ${countInInventory > 0 ? `<span class="text-xs bg-gray-600 text-green-300 font-semibold px-2 py-1 rounded-full">No inv.: ${countInInventory}</span>` : ''}
                                 ${!canFit ? `<span class="text-xs text-red-400 font-semibold">Não cabe</span>` : ''}
                             </div>
                         `;
@@ -3146,56 +3162,58 @@
 
                 text += "--- STATUS ---\n";
                 if (card.attributes) {
-                    text += `Vida: ${card.attributes.vidaAtual || ''} / ${card.attributes.vida || ''}\n`;
-                    text += `Mana: ${card.attributes.manaAtual || ''} / ${card.attributes.mana || ''}\n`;
+                    text += `Vida: ${card.attributes.vidaAtual} / ${card.attributes.vida}\n`;
+                    text += `Mana: ${card.attributes.manaAtual} / ${card.attributes.mana}\n`;
                     text += `Armadura: ${card.attributes.armadura || 0}\n`;
                     text += `Esquiva: ${card.attributes.esquiva || 0}\n`;
                     text += `Bloqueio: ${card.attributes.bloqueio || 0}\n`;
                     text += `Deslocamento: ${card.attributes.deslocamento || 0}m\n\n`;
-                    
-                    text += "--- ATRIBUTOS ---\n";
+                }
+
+                text += "--- ATRIBUTOS ---\n";
+                if (card.attributes) {
                     text += `Força: ${card.attributes.forca || 0}\n`;
                     text += `Agilidade: ${card.attributes.agilidade || 0}\n`;
                     text += `Vigor: ${card.attributes.vigor || 0}\n`;
                     text += `Inteligência: ${card.attributes.inteligencia || 0}\n`;
                     text += `Sabedoria: ${card.attributes.sabedoria || 0}\n`;
                     text += `Carisma: ${card.attributes.carisma || 0}\n\n`;
+                }
 
+                if (card.attributes && card.attributes.pericias && card.attributes.pericias.length > 0) {
                     text += "--- PERÍCIAS ---\n";
-                    if(card.attributes.pericias && card.attributes.pericias.length > 0) {
-                        card.attributes.pericias.forEach(p => {
-                            text += `- ${p.name} (+${p.value})\n`;
-                        });
-                    } else {
-                        text += "Nenhuma perícia selecionada.\n";
-                    }
-                }
-                
-                if (card.items && card.items.length > 0) {
-                    text += "\n\n--- INVENTÁRIO ---\n";
-                    const itemCounts = card.items.reduce((acc, id) => { acc[id] = (acc[id] || 0) + 1; return acc; }, {});
-                    for (const itemId in itemCounts) {
-                        const item = itemsMap.get(itemId);
-                        if (item) {
-                            text += `\n- ${item.name} (x${itemCounts[itemId]})\n`;
-                            text += `  Tipo: ${item.type || 'N/A'} | Dano: ${item.damage || 'N/A'} | Carga: ${item.charge}\n`;
-                            if (item.effect) text += `  Efeito: ${item.effect.replace(/\n/g, '\n          ')}\n`;
-                        }
-                    }
+                    card.attributes.pericias.forEach(p => {
+                        text += `${p.name}: +${p.value}\n`;
+                    });
+                    text += "\n";
                 }
 
-                if (card.spells && card.spells.length > 0) {
-                    text += "\n\n--- MAGIAS E HABILIDADES ---\n";
-                    card.spells.forEach(spellId => {
-                        const spell = spellsMap.get(spellId);
-                        if(spell) {
-                            text += `\n- ${spell.name} (${spell.type})\n`;
-                            if (spell.description) text += `  Descrição: ${spell.description.replace(/\n/g, '\n             ')}\n`;
+                if (card.items && card.items.length > 0) {
+                    text += "--- INVENTÁRIO ---\n";
+                    const itemCounts = card.items.reduce((acc, id) => {
+                        acc[id] = (acc[id] || 0) + 1;
+                        return acc;
+                    }, {});
+                    Object.entries(itemCounts).forEach(([itemId, quantity]) => {
+                        const itemData = itemsMap.get(itemId);
+                        if(itemData) {
+                            text += `${itemData.name}${quantity > 1 ? ` (x${quantity})` : ''}\n`;
                         }
                     });
+                    text += "\n";
+                }
+                
+                if (card.spells && card.spells.length > 0) {
+                    text += "--- MAGIAS E HABILIDADES ---\n";
+                    card.spells.forEach(spellId => {
+                        const spellData = spellsMap.get(spellId);
+                        if(spellData) {
+                            text += `${spellData.name} (${spellData.type})\n`;
+                        }
+                    });
+                    text += "\n";
                 }
 
-                text += "\n========================================\n";
                 return text;
             }
 
@@ -3205,7 +3223,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'todas_as_fichas_rpg.txt';
+                a.download = 'fichas_de_personagens.txt';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -3213,21 +3231,17 @@
             });
 
             function showCustomAlert(message) {
-                const existingAlert = document.getElementById('custom-alert');
-                if (existingAlert) existingAlert.remove();
-
                 const alertBox = document.createElement('div');
-                alertBox.id = 'custom-alert';
                 alertBox.style.cssText = `
                     position: fixed;
                     top: 20px;
                     left: 50%;
                     transform: translateX(-50%);
-                    background-color: #b91c1c;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    background-color: #ef4444;
                     color: white;
-                    padding: 1rem 1.5rem;
-                    border-radius: 0.5rem;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                     z-index: 9999;
                     font-weight: bold;
                     opacity: 0;
@@ -3270,5 +3284,3 @@
      </script>
 </body>
 </html>
-
-
