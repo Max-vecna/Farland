@@ -237,6 +237,7 @@
         }
         #mainContent {
              padding-bottom: 70px;
+             overflow: hidden;
         }
         input:focus, textarea:focus, select:focus {
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5);
@@ -780,7 +781,7 @@
 /* --- FIM DOS NOVOS ESTILOS --- */
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-2">
+<body class="min-h-screen flex flex-col items-center">
     <audio id="background-music" loop autoplay>
         <!-- IMPORTANTE: Substitua o link abaixo pelo link do seu arquivo MP3 -->
         <source src="fundo.mp3" type="audio/mpeg">
@@ -802,7 +803,7 @@
     </div>
 
     <!-- Conteúdo Principal -->
-    <div id="mainContent" class="w-full max-w-5xl hidden">
+    <div id="mainContent" class="w-full max-w-5xl hidden p-4">
 
         <!-- Seção de Criação de Personagem -->
         <div id="creation-section" class="hidden">
@@ -1257,21 +1258,50 @@
 
             // --- NOVAS FUNÇÕES DE ANIMAÇÃO ---
 
-            /**
-             * Ativa a animação de "soco" no card.
-             * @param {HTMLElement} cardElement - O elemento .rpg-card a ser animado.
-             */
-            function triggerCardPunch(cardElement, status) {
-                const card3d = cardElement.querySelector('.card-3d');
-                if (card3d && status == "soco") {
-                    resetcard3d(card3d);
-                    card3d.classList.add('zoom-box', 'glowing-card', 'glow-red');
-                    triggerAnimation(card3d, 'animate');
-                    setTimeout(() => {
-                        playMp3Sound('dano.mp3');
-                    }, 800);
-                }
-                
+            //soco
+            function triggerCardPunch(card3d)
+            {
+                playMp3Sound('sopro.mp3');
+                                
+                createDamageOverlay(card3d);
+
+                // Adiciona as classes para iniciar a animação
+                card3d.classList.add('zoom-box', 'glow-red');                           
+                setTimeout(() => {
+                    playMp3Sound('dano.mp3');
+                }, 800);
+                // Remove a camada de dano depois que a animação terminar
+                setTimeout(() => {
+                    
+                    const overlay = card3d.querySelector('.damage-overlay');
+                    if (overlay) {
+                        overlay.remove();
+                    }
+                }, 1200);  
+            }
+
+            //recuperar vida
+            function triggerCardLifeIn(card3d, vidaIcon)
+            {
+                playMp3Sound('magia.mp3');
+                                
+                createHealOverlay(card3d);
+
+                // Adiciona as classes para iniciar a animação
+                card3d.classList.add('heal-container', 'glow-green');    
+                // Remove a camada de dano depois que a animação terminar
+                setTimeout(() => {
+                    const overlay = card3d.querySelector('.heal-overlay');
+                    if (overlay) {
+                        overlay.remove();
+                        
+                        createManaMist(vidaIcon, 'in', '#ff1a1a');
+                        
+                        resetcard3d(card3d); 
+                        card3d.classList.add('spill-container', 'glowing-card', 'glow-red');
+                        triggerAnimation(card3d, 'animate');
+                    }
+                }, 1200);  
             }
 
             /**
@@ -2784,38 +2814,35 @@
                 }
             });
 
+            async function openStatusModal(cardId, local) { // A função agora aceita 'local'
+                const cardData = await getData(CARD_STORE_NAME, cardId);
+                if (!cardData) return;
 
-            
+                currentStatusEditingCardId = cardId;
+                modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
+                modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
+                modalDinheiroInput.value = cardData.dinheiro || 0;
 
-async function openStatusModal(cardId, local) { // A função agora aceita 'local'
-    const cardData = await getData(CARD_STORE_NAME, cardId);
-    if (!cardData) return;
+                modalVidaAtualInput.max = cardData.attributes.vida;
+                modalManaAtualInput.max = cardData.attributes.mana;
 
-    currentStatusEditingCardId = cardId;
-    modalVidaAtualInput.value = cardData.attributes.vidaAtual || 0;
-    modalManaAtualInput.value = cardData.attributes.manaAtual || 0;
-    modalDinheiroInput.value = cardData.dinheiro || 0;
+                // Lógica para mostrar/ocultar os inputs
+                // Primeiro, esconde todos
+                vidaInputContainer.classList.add('hidden');
+                manaInputContainer.classList.add('hidden');
+                dinheiroInputContainer.classList.add('hidden');
 
-    modalVidaAtualInput.max = cardData.attributes.vida;
-    modalManaAtualInput.max = cardData.attributes.mana;
+                // Depois, mostra apenas o que foi clicado
+                if (local === 'life') {
+                    vidaInputContainer.classList.remove('hidden');
+                } else if (local === 'mana') {
+                    manaInputContainer.classList.remove('hidden');
+                } else if (local === 'money') {
+                    dinheiroInputContainer.classList.remove('hidden');
+                }
 
-    // Lógica para mostrar/ocultar os inputs
-    // Primeiro, esconde todos
-    vidaInputContainer.classList.add('hidden');
-    manaInputContainer.classList.add('hidden');
-    dinheiroInputContainer.classList.add('hidden');
-
-    // Depois, mostra apenas o que foi clicado
-    if (local === 'life') {
-        vidaInputContainer.classList.remove('hidden');
-    } else if (local === 'mana') {
-        manaInputContainer.classList.remove('hidden');
-    } else if (local === 'money') {
-        dinheiroInputContainer.classList.remove('hidden');
-    }
-
-    statusModal.classList.remove('hidden');
-}
+                statusModal.classList.remove('hidden');
+            }
             statusForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!currentStatusEditingCardId) return;
@@ -2838,47 +2865,55 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
                 if (cardOnScreen) {
                       
                     const vidaIcon = cardOnScreen.querySelector('.heart-container');
+                    const manaIcon = cardOnScreen.querySelector('.potion-container'); 
+                    const moneyIcon = cardOnScreen.querySelector('.money-container');
+
                     const card3d = cardOnScreen.querySelector('.card-3d');
                     resetcard3d(card3d);
 
-                    if (newLife !== oldLife) {
-                        if (newLife < oldLife) {
-                            playMp3Sound('sopro.mp3');
-                            triggerCardPunch(cardOnScreen, "soco"); // Efeito de soco
-                            
+                    if (newLife !== oldLife)
+                    {
+                        if (newLife < oldLife)
+                        {
+                           triggerCardPunch(card3d);                          
                         }
-                        if (newLife > oldLife) {
-                            playMp3Sound('magia.mp3');
-                            createManaMist(vidaIcon, 'in', '#ff1a1a'); 
-                            card3d.classList.add('star-container', 'jump-effect', 'glowing-card', 'glow-red');
+                        if (newLife > oldLife)
+                        {
+                            triggerCardLifeIn(card3d, vidaIcon);    
                         }
                     }
-                    if (newMana !== oldMana) {
-                        playMp3Sound('mana.mp3');
-                        const manaIcon = cardOnScreen.querySelector('.potion-container');
-                        if (manaIcon)
-                        {                           
-                            if (newMana < oldMana)
-                            {
-                                createManaMist(manaIcon, 'out', '#1a1a1a');  // Efeito de névoa/estrelas  
-                                card3d.classList.add('star-container', 'glowing-card', 'glow-dark'); 
-                            }
-                            if (newMana > oldMana)
-                            {
-                                createManaMist(manaIcon, 'in', '#a78bfa');                              
-                                card3d.classList.add('star-container', 'glowing-card', 'glow-purple');                                
-                            }                            
+                    if (newMana !== oldMana)
+                    {
+                        playMp3Sound('mana.mp3');                         
+
+                        if (newMana < oldMana)
+                        {
+                            createManaMist(manaIcon, 'out', '#1a1a1a');  // Efeito de névoa/estrelas  
+                            card3d.classList.add('star-container', 'glowing-card', 'glow-dark'); 
                         }
+                        if (newMana > oldMana)
+                        {
+                            createManaMist(manaIcon, 'in', '#a78bfa');                              
+                            
+                            card3d.classList.add('arcane-recharge', 'glowing-card', 'glow-purple');
+                            createRuneEffect(card3d);    
+                            
+                            setTimeout(() => {
+                                const rune = card3d.querySelector('.rune-container');
+                                if (rune) {
+                                    rune.remove();
+                                }
+                            }, 2500);
+                        }  
                     }
                     if (newMoney !== oldMoney) {
-                        playMp3Sound('money.mp3');
-                        const moneyIcon = cardOnScreen.querySelector('.money-container');
+                        playMp3Sound('money.mp3');                        
+
                         if(newMoney > oldMoney)
                         {                            
-                            createManaMist(moneyIcon, 'in', '#fcd34d');
-                            
+                            createManaMist(moneyIcon, 'in', '#fcd34d');                            
                         }
-                         if(newMoney < oldMoney)
+                        if(newMoney < oldMoney)
                         {                            
                             createManaMist(moneyIcon, 'out', '#fcd34d');
                         }
@@ -2928,7 +2963,7 @@ async function openStatusModal(cardId, local) { // A função agora aceita 'loca
                 window.requestAnimationFrame(step);
             }
             
-       async function useItem(templateId, characterId) {
+            async function useItem(templateId, characterId) {
             if (!templateId || !characterId) return;
 
             const itemToUse = await getData(ITEM_STORE_NAME, templateId);

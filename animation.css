@@ -1,116 +1,160 @@
- /* --- ANIMAÇÕES DE ESTRELAS E NÉVOA --- */
-        .card-3d.star-container::before { content: ''; position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; border-radius: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: blur(40px); }
-        .card-3d.star-purple::before { background-color: rgba(168, 85, 247, 0.2); }
-        .card-3d.star-dark::before { background-color: rgba(31, 41, 55, 0.4); }
-        .card-3d.star-container.animate::before { animation: fog-burst 2.5s ease-out forwards; }
-        @keyframes fog-burst {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
-            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
-        }
-        .star { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; border-radius: 50%; opacity: 0; }
-        .card-3d.star-container.animate .star { animation: star-burst 2.5s ease-out forwards; }
-        .star-purple .star { background-color: #c084fc; box-shadow: 0 0 6px #c084fc, 0 0 10px #a855f7; }
-        .star-dark .star { background-color: #4b5563; box-shadow: 0 0 6px #374151, 0 0 10px #1f2937; }
-        @keyframes star-burst {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; transform: translate(var(--end-x), var(--end-y)) scale(1.5); }
-        }
+        /* --- ANIMAÇÕES DE ESTRELAS E NÉVOA --- */
+                .card-3d.star-container::before { content: ''; position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; border-radius: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: blur(40px); }
+                .card-3d.star-purple::before { background-color: rgba(168, 85, 247, 0.2); }
+                .card-3d.star-dark::before { background-color: rgba(31, 41, 55, 0.4); }
+                .card-3d.star-container.animate::before { animation: fog-burst 2.5s ease-out forwards; }
+                @keyframes fog-burst {
+                    0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+                    100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+                }
+                .star { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; border-radius: 50%; opacity: 0; }
+                .card-3d.star-container.animate .star { animation: star-burst 2.5s ease-out forwards; }
+                .star-purple .star { background-color: #c084fc; box-shadow: 0 0 6px #c084fc, 0 0 10px #a855f7; }
+                .star-dark .star { background-color: #4b5563; box-shadow: 0 0 6px #374151, 0 0 10px #1f2937; }
+                @keyframes star-burst {
+                    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0; transform: translate(var(--end-x), var(--end-y)) scale(1.5); }
+                }
         
         /* --- ANIMAÇÃO DE IMPACTO --- */
-        .perspective-container { perspective: 800px; }
-        .card-3d.zoom-box.animate { animation: zoom-crack-animation 1.2s ease-out, glow-animation 1.2s ease-out; }
-        @keyframes zoom-crack-animation {
-            0%   { transform: scale(1) rotateX(0) rotateY(0); }
-            20%  { transform: scale(1.2) rotateX(20deg) rotateY(-20deg); }
-            40%  { transform: scale(1.2) rotateX(0) rotateY(0); }
-            60%  { transform: scale(1.2) rotateX(-20deg) rotateY(20deg); }
-            80%  { transform: scale(1) rotateX(0) rotateY(0); }
-            88%  { transform: translateX(-8px); }
-            92%  { transform: translateX(8px); }
-            96%  { transform: translateX(-4px); }
-            100% { transform: translateX(0); }
-        }
+                .perspective-container { 
+                    perspective: 800px; 
+                }
 
+                /* Camada de dano */
+                .damage-overlay {
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background-color: #b91c1c;
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 20000000;
+                    border-radius: 1.5rem;
+                }
+
+                .card-3d.zoom-box.animate { 
+                    /* Combina a animação de movimento com a de brilho */
+                    animation: zoom-crack-animation 1.2s ease-out forwards, glow-impact-animation 1.2s ease-out forwards; 
+                }
+
+                /* Anima a camada de dano quando o card principal está animando */
+                .card-3d.zoom-box.animate .damage-overlay {
+                    animation: damage-flash-animation 1.2s ease-out forwards;
+                }
+
+                @keyframes zoom-crack-animation {
+                    0%   { transform: scale(1) rotateX(0) rotateY(0); }
+                    20%  { transform: scale(1.2) rotateX(20deg) rotateY(-20deg); }
+                    40%  { transform: scale(1.2) rotateX(0) rotateY(0); }
+                    60%  { transform: scale(1.2) rotateX(-20deg) rotateY(20deg); }
+                    80%  { transform: scale(1) rotateX(0) rotateY(0); }
+                    88%  { transform: translateX(-8px); }
+                    92%  { transform: translateX(8px); }
+                    96%  { transform: translateX(-4px); }
+                    100% { transform: translateX(0); }
+                }
+
+                @keyframes damage-flash-animation {
+                    0%, 60% { opacity: 0; }
+                    88% { opacity: 0.6; }
+                    100% { opacity: 0; }
+                }
+                
+                /* Animação de brilho no final do impacto */
+                @keyframes glow-impact-animation {
+                    0%, 80% { box-shadow: none; }
+                    90% { box-shadow: 0 0 30px rgba(var(--glow-color), 0.8), 0 0 40px rgba(var(--glow-color), 0.6); }
+                    100% { box-shadow: none; }
+                }
+        
         /* --- ANIMAÇÃO DE RECUPERAR VIDA --- */
-        .heal-particle { position: absolute; bottom: -10px; width: 6px; height: 6px; border-radius: 50%; background-color: #4ade80; box-shadow: 0 0 8px #4ade80, 0 0 12px #22c55e; opacity: 0; }
-        .card-3d.heal-container.animate .heal-particle { animation: heal-float 3s ease-out forwards; }
-        @keyframes heal-float {
-            0% { transform: translateY(0); opacity: 0; }
-            25% { opacity: 1; }
-            100% { transform: translateY(-200px); opacity: 0; }
-        }
-        .card-3d.heal-container.glowing-card.animate { animation: glow-animation 3s ease-out; }
+                .heal-particle { position: absolute; bottom: -10px; width: 6px; height: 6px; border-radius: 50%; background-color: #4ade80; box-shadow: 0 0 8px #4ade80, 0 0 12px #22c55e; opacity: 0; }
+                .card-3d.heal-container.animate .heal-particle { animation: heal-float 3s ease-out forwards; }
+                @keyframes heal-float {
+                    0% { transform: translateY(0); opacity: 0; }
+                    25% { opacity: 1; }
+                    100% { transform: translateY(-200px); opacity: 0; }
+                }
+                .card-3d.heal-container.glowing-card.animate { animation: glow-animation 3s ease-out; }
 
         /* --- ANIMAÇÃO DE MOEDAS --- */
-        .coin { position: absolute; top: -50px; background: radial-gradient(circle, #fde047 0%, #facc15 50%, #eab308 100%); border: 3px solid #ca8a04; border-radius: 50%; opacity: 0; }
-        .card-3d.coin-container.animate .coin { animation-name: coin-fall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
-        @keyframes coin-fall {
-            0% { transform: translateY(0); opacity: 0; }
-            30% { opacity: 1; }
-            100% { transform: translateY(240px); opacity: 0; }
-        }
-        .card-3d.coin-container.glowing-card.animate { animation: glow-animation 1.8s ease-out; }
+                .coin { position: absolute; top: -50px; background: radial-gradient(circle, #fde047 0%, #facc15 50%, #eab308 100%); border: 3px solid #ca8a04; border-radius: 50%; opacity: 0; }
+                .card-3d.coin-container.animate .coin { animation-name: coin-fall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+                @keyframes coin-fall {
+                    0% { transform: translateY(0); opacity: 0; }
+                    30% { opacity: 1; }
+                    100% { transform: translateY(240px); opacity: 0; }
+                }
+                .card-3d.coin-container.glowing-card.animate { animation: glow-animation 1.8s ease-out; }
 
         /* --- ANIMAÇÃO DE BRILHO GERAL --- */
-        @keyframes glow-animation {
-            0%, 100% { box-shadow: none; }
-            50% { box-shadow: 0 0 25px rgba(var(--glow-color), 0.7), 0 0 35px rgba(var(--glow-color), 0.5); }
-        }
-        .card-3d.star-container.glowing-card.animate { animation: glow-animation 2.5s ease-out; }
+                @keyframes glow-animation {
+                    0%, 100% { box-shadow: none; }
+                    50% { box-shadow: 0 0 25px rgba(var(--glow-color), 0.7), 0 0 35px rgba(var(--glow-color), 0.5); }
+                }
+                .card-3d.star-container.glowing-card.animate { animation: glow-animation 2.5s ease-out; }
 
         /* --- CORES DO BRILHO --- */
-        .glow-purple { --glow-color: 168, 85, 247; }
-        .glow-dark { --glow-color: 0, 0, 0; }
-        .glow-red { --glow-color: 225, 25, 25; }
-        .glow-yellow { --glow-color: 252, 211, 77; }
-        .glow-green { --glow-color: 34, 197, 94; }
-        .glow-gold { --glow-color: 234, 179, 8; }
+                .glow-purple { --glow-color: 168, 85, 247; }
+                .glow-dark { --glow-color: 0, 0, 0; }
+                .glow-red { --glow-color: 225, 25, 25; }
+                .glow-yellow { --glow-color: 252, 211, 77; }
+                .glow-green { --glow-color: 34, 197, 94; }
+                .glow-gold { --glow-color: 234, 179, 8; }
 
-          /* --- NOVA ANIMAÇÃO DE RECUPERAR VIDA --- */
-        .card-3d.heal-container::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(74, 222, 128, 0.4) 0%, rgba(74, 222, 128, 0) 70%);
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 0;
-        }
-        .card-3d.heal-container.animate::before {
-            animation: heal-pulse 1s ease-out forwards;
-        }
-        @keyframes heal-pulse {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-        }
+        /* --- ANIMAÇÃO DE RECUPERAR VIDA --- */
+                .perspective-container { 
+                    perspective: 800px; 
+                }
 
-        .heal-particle { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%;
-            width: 6px; 
-            height: 6px; 
-            border-radius: 50%; 
-            background-color: #4ade80; 
-            box-shadow: 0 0 8px #4ade80, 0 0 12px #22c55e; 
-            opacity: 0; 
-            z-index: 1000;
-        }
-        .card-3d.heal-container.animate .heal-particle { 
-            animation: heal-float 2.5s ease-out forwards; 
-        }
-        @keyframes heal-float {
-            0%, 20% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: var(--heal-end-transform); opacity: 0; }
-        }
-        .card-3d.heal-container.glowing-card.animate { animation: glow-animation 2.5s ease-out; }
+                /* Camada verde de pulso */
+                .heal-overlay {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background-color: #22c55e; /* Verde */
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 20;
+                    border-radius: 1.5rem;
+                }
 
-          /* --- ANIMAÇÃO DE POÇÃO MÁGICA --- */
+                /* Anima o pulso, o brilho e o card ao mesmo tempo */
+                .card-3d.heal-container.animate { 
+                    animation: glow-animation 1.5s ease-out forwards, card-pulse-animation 1.5s ease-out forwards; 
+                }
+                .card-3d.heal-container.animate .heal-overlay {
+                    animation: heal-pulse-flash 1.5s ease-out forwards;
+                }
+
+                /* Keyframes para o pulso verde */
+                @keyframes heal-pulse-flash {
+                    0% { opacity: 0; }
+                    20% { opacity: 0.5; }
+                    40% { opacity: 0; }
+                    60% { opacity: 0.5; }
+                    80% { opacity: 0; }
+                    100% { opacity: 0; }
+                }
+                
+                /* Animação de brilho */
+                @keyframes glow-animation {
+                    0%, 100% { box-shadow: none; }
+                    50% { box-shadow: 0 0 30px rgba(var(--glow-color), 0.8), 0 0 40px rgba(var(--glow-color), 0.6); }
+                }
+                
+                /* Animação de pulso do card */
+                @keyframes card-pulse-animation {
+                    0% { transform: scale(1); }
+                    20% { transform: scale(1.05); }
+                    40% { transform: scale(1); }
+                    60% { transform: scale(1.05); }
+                    80% { transform: scale(1); }
+                    100% { transform: scale(1); }
+                }
+
+        /* --- ANIMAÇÃO DE POÇÃO MÁGICA --- */
         .potion-pulse {
             position: absolute;
             top: 50%;
@@ -235,4 +279,35 @@
             0%, 80% { box-shadow: none; }
             90% { box-shadow: 0 0 30px rgba(var(--glow-color), 0.8), 0 0 40px rgba(var(--glow-color), 0.6); }
             100% { box-shadow: none; }
+        }
+
+         /* --- ANIMAÇÃO DE RECARGA ARCANA (MANA) --- */
+        .rune-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            z-index: 10;
+        }
+        .card-3d.arcane-recharge.animate .rune-container {
+            animation: rune-fade-rotate 2.5s ease-out forwards;
+        }
+        @keyframes rune-fade-rotate {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5)}
+            25% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(4) }
+        }
+        .card-3d.arcane-recharge.glowing-card.animate { 
+            animation: glow-animation 2.5s ease-out, float-animation 2.5s ease-out forwards; 
+        }
+        
+        /* --- ANIMAÇÃO DE FLUTUAR --- */
+        @keyframes float-animation {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-40px) scale(1.2); }
+            100% { transform: translateY(0) scale(1); }
         }
