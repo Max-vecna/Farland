@@ -10,6 +10,51 @@
     <link rel="stylesheet" href="animation.css">
     <script src="animation.js"></script>
     <style>
+        /* --- ESTILOS PARA A LIXEIRA E ARRASTAR-E-SOLTAR --- */
+#trash-can {
+    width: 70px;
+    height: 70px;
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+    pointer-events: none; /* Impede que a lixeira intercepte cliques quando invisível */
+    z-index: 10000000000;
+}
+
+#trash-can.visible {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+    pointer-events: auto;
+}
+
+#trash-can.droppable-area {
+    transform: translateX(-50%) scale(1.2);
+    background-color: #ef4444; /* Vermelho mais vibrante */
+}
+
+.thumbnail-container.dragging {
+    opacity: 0.6;
+    transform: scale(1.1);
+    z-index: 1000;
+    cursor: grabbing;
+    position: relative; /* Garante que o z-index funcione */
+}
+
+/* Altera a posição dos botões de ação nos thumbnails */
+.thumb-btn {
+    position: absolute;
+    top: -8px; /* Posiciona os botões ligeiramente para fora */
+    z-index: 11;
+}
+
+.thumb-btn-edit {
+    left: -8px;
+}
+
+.thumb-btn-download {
+    right: -8px;
+}
+/* --- FIM DOS ESTILOS DA LIXEIRA --- */
+
          .heart-container {
              animation: beat var(--beat-duration) infinite cubic-bezier(0.215, 0.610, 0.355, 1);
         }
@@ -311,7 +356,6 @@
             min-height: 7rem;
             max-height: 8rem; overflow-y: hidden; overflow-x: auto; display: flex; flex-direction: row;
             flex-wrap: nowrap; justify-content: flex-start; align-items: center;
-            background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
         }
         .splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -345,6 +389,32 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.4);
         }
+
+        /* --- ESTILOS DAS MINIATURAS E AÇÕES --- */
+        .thumbnail-container .thumbnail-actions {
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .thumbnail-container:hover .thumbnail-actions {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .thumb-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            border: none;
+            cursor: pointer;
+        }
+        /* --- FIM DOS ESTILOS DAS MINIATURAS --- */
 
         /* --- NOVOS ESTILOS DAS BARRAS LATERAIS --- */
         .sidebar {
@@ -423,6 +493,26 @@
             color: #d1d5db;
             margin-bottom: 10px;
             font-size: 14px;
+        }
+        /* NOVO BOTÃO DE GERENCIAR NA BARRA LATERAL */
+        .manage-btn-sidebar {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #d1d5db;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .manage-btn-sidebar:hover {
+            background-color: #4f46e5;
+            color: white;
+            transform: scale(1.1);
         }
         .sidebar-list {
             height: 100%;
@@ -783,12 +873,10 @@
 </head>
 <body class="min-h-screen flex flex-col items-center">
     <audio id="background-music" loop autoplay>
-        <!-- IMPORTANTE: Substitua o link abaixo pelo link do seu arquivo MP3 -->
         <source src="fundo.mp3" type="audio/mpeg">
     </audio>
     
 
-    <!-- Tela de Carregamento -->
     <div id="splashScreen" class="splash-screen">
         <svg xmlns="http://www.w3.org/2000/svg" class="loading-icon text-indigo-400 w-20 h-20" viewBox="0 0 24 24" fill="currentColor">
             <defs><clipPath id="loaderClipPath"><rect id="loaderClipRect" x="0" y="0" width="24" height="0" /></clipPath></defs>
@@ -802,10 +890,7 @@
         <div class="absolute inset-0"></div>
     </div>
 
-    <!-- Conteúdo Principal -->
     <div id="mainContent" class="w-full max-w-5xl hidden p-4">
-
-        <!-- Seção de Criação de Personagem -->
         <div id="creation-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
                 <div class="flex justify-between items-center mb-6">
@@ -815,7 +900,6 @@
                     </button>
                 </div>
                 <form id="cardForm" class="space-y-6">
-                    <!-- Campos do formulário de personagem (sem alterações) -->
                     <div>
                         <label for="cardTitle" class="block text-sm font-semibold mb-1">Nome</label>
                         <input type="text" id="cardTitle" placeholder="Ex: Guerreiro Lendário" required class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
@@ -902,7 +986,6 @@
             </div>
         </div>
         
-        <!-- Seção de Exibição de Personagens -->
         <div id="display-section">
             <div id="thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
                 <p class="text-gray-500">Nenhum cartão salvo ainda. Crie um para começar!</p>
@@ -912,7 +995,6 @@
             </div>
         </div>
 
-        <!-- Seção de Criação de Magias/Habilidades -->
         <div id="spell-creation-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
                  <div class="flex justify-between items-center mb-6">
@@ -922,7 +1004,6 @@
                     </button>
                 </div>
                 <form id="spellForm" class="space-y-6">
-                    <!-- Campos do formulário de magias (sem alterações) -->
                     <div>
                         <label for="spellType" class="block text-sm font-semibold mb-1">Tipo</label>
                         <select id="spellType" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600">
@@ -953,7 +1034,6 @@
             </div>
         </div>
 
-        <!-- Seção de Exibição de Magias -->
         <div id="spell-display-section" class="hidden">
                 <div id="spell-thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
                     <p class="text-gray-500">Nenhuma magia/habilidade salva ainda. Crie uma para começar!</p>
@@ -963,7 +1043,6 @@
                 </div>
         </div>
 
-        <!-- Seção de Criação de Itens -->
         <div id="item-creation-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl">
                  <div class="flex justify-between items-center mb-6">
@@ -973,7 +1052,6 @@
                     </button>
                 </div>
                 <form id="itemForm" class="space-y-6">
-                    <!-- Campos do formulário de itens (sem alterações) -->
                     <div>
                         <h3 class="text-xl font-bold text-amber-300 mb-2">Ícone do Item</h3>
                         <div class="mt-4 text-center">
@@ -1014,7 +1092,6 @@
             </div>
         </div>
 
-        <!-- Seção de Exibição de Itens -->
         <div id="item-display-section" class="hidden">
                 <div id="item-thumbnail-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900/50 rounded-xl shadow-inner mb-4">
                     <p class="text-gray-500">Nenhum item salvo ainda. Crie um para começar!</p>
@@ -1024,20 +1101,18 @@
                 </div>
         </div>
 
-        <!-- Seção de Gerenciamento/Vínculo -->
         <div id="link-section" class="hidden">
             <div class="bg-slate-800 text-white p-6 rounded-3xl shadow-2xl space-y-6">
                 <div class="flex justify-between items-center">
                     <div class="text-center flex-grow">
                         <h2 id="link-section-title" class="text-2xl font-bold text-yellow-300">Gerenciar Personagem</h2>
-                        <p class="text-sm text-gray-400">Vincule itens, magias e habilidades ao seu personagem.</p>
                     </div>
                      <button class="back-btn text-gray-400 hover:text-white transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
                 
-                <div id="character-management-area" class="grid md:grid-cols-2 gap-6">
+                <div id="character-management-area" class="grid md:grid-cols-1 gap-6 justify-center">
                     <div id="inventory-management-area" class="bg-gray-900/50 p-4 rounded-xl border border-gray-700 space-y-4">
                         <div class="flex justify-between items-center">
                             <div>
@@ -1089,7 +1164,6 @@
 
     </div>
     
-    <!-- Modal de Seleção (para Itens/Magias) -->
     <div id="selection-modal" class="modal hidden">
       <div class="modal-content">
         <div class="flex justify-between items-center mb-4">
@@ -1100,7 +1174,6 @@
       </div>
     </div>
 
-    <!-- Modal de Status -->
     <div id="status-modal" class="modal hidden">
         <div class="modal-content" style="width: 50%;">
             <div class="flex justify-between items-center mb-4">
@@ -1128,7 +1201,10 @@
     </div>
 
 
-    <!-- Menu de Navegação -->
+     <div id="trash-can" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-red-800/80 backdrop-blur-sm rounded-full p-4 flex items-center justify-center z-40 shadow-lg text-white text-2xl transition-all duration-300 ease-in-out">
+        <i class="fas fa-trash-alt"></i>
+    </div>
+
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/80 backdrop-blur-sm rounded-full p-2 flex items-center gap-2 z-50 shadow-lg" id="nav">
         <button id="showDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Personagens">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>
@@ -1147,8 +1223,7 @@
             <span class="hidden md:inline">Ficha</span>
         </button>
         <button id="mute-button" title="Ativar/Desativar som"  class="px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2">
-        <!-- O ícone será alterado via JavaScript -->
-            <i id="volume-icon" class="fas fa-volume-mute"></i>
+        <i id="volume-icon" class="fas fa-volume-mute"></i>
         </button>
     </nav>
 
@@ -1561,7 +1636,7 @@
                 nav.classList.remove('hidden'); // Garante que o menu esteja visível
             }
             
-            async function showLinkViewForCharacter(characterId) {
+            async function showLinkViewForCharacter(characterId, viewType) {
                 const characters = await getData(CARD_STORE_NAME);
                 const character = characters.find(c => c.id === characterId);
                 if (!character) return;
@@ -1569,14 +1644,24 @@
                 hideAllSections();
                 linkSection.classList.remove('hidden');
                 updateActiveNav(null);
-                nav.classList.add('hidden'); // Oculta o menu de navegação
+                nav.classList.add('hidden'); // Oculta o menu de navegação principal
                 
-                linkSectionTitle.textContent = `Gerenciando: ${character.title}`;
                 currentLinkingCharacterId = characterId;
 
-                await renderInventoryManagement(characterId);
-                await renderLinkedSpells(characterId);
-                characterManagementArea.classList.remove('hidden');
+                // Mostra/Esconde as áreas de gerenciamento corretas
+                if (viewType === 'inventory') {
+                    linkSectionTitle.textContent = `Inventário de: ${character.title}`;
+                    linkSectionTitle.className = 'text-2xl font-bold text-amber-300 text-center'; // Cor de item
+                    inventoryManagementArea.classList.remove('hidden');
+                    spellManagementArea.classList.add('hidden');
+                    await renderInventoryManagement(characterId);
+                } else { // 'spells'
+                    linkSectionTitle.textContent = `Grimório de: ${character.title}`;
+                    linkSectionTitle.className = 'text-2xl font-bold text-teal-300 text-center'; // Cor de magia
+                    inventoryManagementArea.classList.add('hidden');
+                    spellManagementArea.classList.remove('hidden');
+                    await renderLinkedSpells(characterId);
+                }
             }
             
             showDisplayBtn.addEventListener('click', async () => {
@@ -1901,23 +1986,26 @@
                             <div class="card-front" style="border-color: ${palette.borderColor}">
                                 <div class="rounded-3xl relative w-full h-full p-4 ex-max" style="background-image:url(${cardData.backgroundURL}) !important; height: 700px; display: flex; flex-direction: column; align-items: center; background-color: rgb(0 0 0 / 50%); justify-content: space-between;">
                                     
-                                    <!-- Barras Laterais -->
                                     <div id="spell-sidebar" class="sidebar sidebar-left">
-                                        <div class="sidebar-content" >
-                                            <h4 class="sidebar-title"  style="margin-right: -40px;">Grimório</h4>
-                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px; direction: rtl;"></div>
+                                        <div class="sidebar-content">
+                                            <div class="items-center justify-center gap-2 mb-4" style="margin-right: -40px; display: flex; flex-direction: column;">
+                                                <h4 class="sidebar-title" style="margin: 0">Grimório</h4>
+                                                <button class="manage-btn-sidebar" data-action="manage-spells" title="Gerenciar Grimório"><i class="fas fa-book-open" style="font-size: 20px;"></i></button>
+                                            </div>
+                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px;"></div>
                                         </div>
                                         <button class="sidebar-toggle" style="background: rgb(20 184 166 / var(--tw-border-opacity, 1))"><i class="fas fa-chevron-right"></i></button>
                                     </div>
                                     <div id="item-sidebar" class="sidebar sidebar-right">
                                         <button class="sidebar-toggle" style="background: rgb(245 158 11 / var(--tw-border-opacity, 1));"><i class="fas fa-chevron-left"></i></button>
                                         <div class="sidebar-content">
-                                            <h4 class="sidebar-title" style="margin-left: -40px;">Inventário</h4>
-                                            <div id="item-sidebar-content" class="sidebar-list"  style="margin-left: -40px;"></div>
+                                            <div class="items-center justify-center gap-2 mb-4" style="margin-left: -40px; display: flex; flex-direction: column;">
+                                                <h4 class="sidebar-title" style="margin: 0">Inventário</h4>
+                                                <button class="manage-btn-sidebar" data-action="manage-inventory" title="Gerenciar Inventário"><i class="fas fa-box" style="font-size: 20px;"></i></button>
+                                            </div>
+                                            <div id="item-sidebar-content" class="sidebar-list" style="margin-left: -40px;"></div>
                                         </div>
                                     </div>
-                                    <!-- Fim das Barras Laterais -->
-
                                     <div class="absolute top-4 left-2 rounded-full w-14 h-14 flex items-center justify-center font-bold" data-action="open-status-modal" data-local="mana" title="Alterar Mana">
                                         <div class="icon-container potion-container">
                                             <svg class="potion-svg" viewBox="0 0 50 50">
@@ -1984,13 +2072,6 @@
                             </div>
                         </div>
                     </div>`;
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.className = 'flex justify-center w-full';
-                buttonsDiv.innerHTML = `
-                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-btn" data-card-id="${cardData.id}" style="margin: 0px 5px 0px 0px;border-radius: 50px 0 0 50px; background-color: #23426d;"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 manage-btn" data-card-id="${cardData.id}" style="margin: 0px 5px 0px 5px;background-color: #7e22ce;"><i class="fas fa-cogs"></i></button>
-                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-btn" data-card-id="${cardData.id}" style="margin: 0px 5px 0px 5px;background-color: #b91c1c;"><i class="fas fa-trash-alt"></i></button>
-                    <button class="w-1/4 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 download-btn" data-card-id="${cardData.id}" style="margin: 0px 0px 0px 5px;border-radius: 0 50px 50px 0; background-color: #166534;"><i class="fas fa-file-download"></i></button>`;
                 
                 cardWrapper.appendChild(cardDiv);
                 
@@ -2038,25 +2119,54 @@
                     }
                 });
 
-
-                cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
             }
 
             function createThumbnailElement(cardData) {
+                const thumbContainer = document.createElement('div');
+                thumbContainer.className = 'relative thumbnail-container';
+                thumbContainer.style.minWidth = '5rem';
+                // Adiciona um ID único ao contêiner para referência no evento de arrastar
+                thumbContainer.dataset.cardId = cardData.id;
+
                 const thumb = document.createElement('div');
                 thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-indigo-500 transition-colors duration-200';
-                thumb.dataset.cardId = cardData.id;
+                // Mova o data-card-id para o contêiner principal
+                // thumb.dataset.cardId = cardData.id; 
                 thumb.style.backgroundImage = `url(${cardData.backgroundURL})`;
                 thumb.style.backgroundSize = 'cover';
                 thumb.style.backgroundPosition = 'center';
-                thumb.style.minWidth = '5rem';
                 thumb.innerHTML = `<div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center"><img src="${cardData.imageURL}" onerror="this.src='https://placehold.co/40x40/E5E7EB/4B5563?text=P';" alt="Miniatura" class="w-10 h-10 object-cover rounded-full border-2 border-white"></div><div class="absolute bottom-1 left-1 bg-gray-800 text-white text-xs px-2 py-1 rounded-full font-bold">Lv.${cardData.level}</div>`;
                 
+                // O clique no card ainda exibe os detalhes
                 thumb.addEventListener('click', () => displayCard(cardData.id));
-                return thumb;
-            }
 
+                // Remove o 'actionsDiv' antigo e cria os botões individualmente
+                const editBtn = document.createElement('button');
+                editBtn.className = 'thumb-btn thumb-btn-edit bg-blue-700 hover:bg-blue-600';
+                editBtn.dataset.action = 'edit';
+                editBtn.dataset.cardId = cardData.id;
+                editBtn.title = 'Editar';
+                editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'thumb-btn thumb-btn-download bg-green-700 hover:bg-green-600';
+                downloadBtn.dataset.action = 'download';
+                downloadBtn.dataset.cardId = cardData.id;
+                downloadBtn.title = 'Baixar Ficha';
+                downloadBtn.innerHTML = '<i class="fas fa-file-download"></i>';
+                
+                // O botão de exclusão foi removido daqui
+
+                thumbContainer.appendChild(thumb);
+                // Adiciona os botões diretamente no contêiner
+                thumbContainer.appendChild(editBtn);
+                thumbContainer.appendChild(downloadBtn);
+
+                // A lógica de arrastar será adicionada a 'thumbnailList' por delegação de evento
+                return thumbContainer;
+            }
+            
             async function removeCard(cardId) { 
                 playMp3Sound("excluir.mp3");
                 await removeData(CARD_STORE_NAME, cardId); 
@@ -2717,7 +2827,7 @@
                 const spellContentDiv = cardElement.querySelector("#spell-sidebar-content");
                 spellContentDiv.innerHTML = '';
                 if (!character.spells || character.spells.length === 0) {
-                    spellContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Feitiço.</p>`;
+                    spellContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Vazio.</p>`;
                 } else {
                     character.spells.forEach(spellId => {
                         const spellData = spellsMap.get(spellId);
@@ -2739,7 +2849,7 @@
                 const itemContentDiv = cardElement.querySelector("#item-sidebar-content");
                 itemContentDiv.innerHTML = '';
                 if (!character.items || character.items.length === 0) {
-                    itemContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Item.</p>`;
+                    itemContentDiv.innerHTML = `<p class="text-xs text-gray-500 w-full text-center self-center">Vazio.</p>`;
                 } else {
                     const itemCounts = character.items.reduce((acc, id) => {
                         acc[id] = (acc[id] || 0) + 1;
@@ -2767,22 +2877,21 @@
                 }
             }
 
-            cardDisplayArea.addEventListener('click', async (e) => {
-                const actionElement = e.target.closest('[data-action]');
-                const cardElement = e.target.closest('.rpg-card');
-                
-                if (!cardElement) {
-                    const cardId = e.target.dataset.cardId || e.target.closest('button')?.dataset.cardId;
-                    if (!cardId) return;
+            // NOVO Event Listener para ações nas miniaturas
+            thumbnailList.addEventListener('click', async (e) => {
+                const button = e.target.closest('.thumb-btn');
+                if (!button) return;
 
-                    if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+                const action = button.dataset.action;
+                const cardId = button.dataset.cardId;
+
+                if (!action || !cardId) return;
+
+                switch (action) {
+                    case 'edit':
                         await editCard(cardId);
-                    } else if (e.target.classList.contains('manage-btn') || e.target.closest('.manage-btn')) {
-                        playMp3Sound("ziper.mp3");
-                        await showLinkViewForCharacter(cardId);
-                    } else if (e.target.classList.contains('remove-btn') || e.target.closest('.remove-btn')) {
-                        await removeCard(cardId);
-                    } else if (e.target.classList.contains('download-btn') || e.target.closest('.download-btn')) {
+                        break;
+                    case 'download':
                         const textContent = await generateSingleCharacterSheetText(cardId);
                         const cardData = await getData(CARD_STORE_NAME, cardId);
                         const filename = `ficha_${cardData.title.replace(/\s+/g, '_')}.txt`;
@@ -2795,22 +2904,35 @@
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
-                    }
-                    return;
+                        break;
+                    case 'remove':
+                        await removeCard(cardId);
+                        break;
                 }
+            });
+
+
+            cardDisplayArea.addEventListener('click', async (e) => {
+                const actionElement = e.target.closest('[data-action]');
+                const cardElement = e.target.closest('.rpg-card');
+                
+                if (!cardElement || !actionElement) return;
 
                 const cardId = cardElement.dataset.cardId;
-                if (actionElement) {
-                    if (actionElement.dataset.action === 'open-status-modal') {
-                        // Captura o valor de data-local (ex: "life", "mana", "money")
-                        const local = actionElement.dataset.local; 
-                        openStatusModal(cardId, local); // Passa o valor para a função
-                    } else if (actionElement.dataset.action === 'toggle-lore') {
-                        const loreCard = cardElement.querySelector('.lore-card');
-                        if (loreCard) {
-                            loreCard.classList.toggle('visible');
-                        }
-                    }
+                const action = actionElement.dataset.action;
+
+                if (action === 'open-status-modal') {
+                    const local = actionElement.dataset.local; 
+                    openStatusModal(cardId, local);
+                } else if (action === 'toggle-lore') {
+                    const loreCard = cardElement.querySelector('.lore-card');
+                    if (loreCard) loreCard.classList.toggle('visible');
+                } else if (action === 'manage-inventory') {
+                    playMp3Sound("ziper.mp3");
+                    await showLinkViewForCharacter(cardId, 'inventory');
+                } else if (action === 'manage-spells') {
+                    playMp3Sound("ziper.mp3");
+                    await showLinkViewForCharacter(cardId, 'spells');
                 }
             });
 
@@ -3508,6 +3630,121 @@
                     await renderItemsAndThumbnails();
                     showDisplayView();
                     setTimeout(hideSplash, 1000);
+
+                    // --- NOVA LÓGICA DE ARRASTAR E SOLTAR PARA EXCLUSÃO ---
+                    const trashCan = document.getElementById('trash-can');
+                    let draggedElement = null;
+                    let draggedCardId = null;
+                    let dragTimer = null;
+                    let isDragging = false;
+                    let offsetX = 0, offsetY = 0;
+
+                    // Função para verificar se um elemento está sobre outro
+                    function isOver(element, target) {
+                        const elRect = element.getBoundingClientRect();
+                        const targetRect = target.getBoundingClientRect();
+                        return !(
+                            elRect.right < targetRect.left ||
+                            elRect.left > targetRect.right ||
+                            elRect.bottom < targetRect.top ||
+                            elRect.top > targetRect.bottom
+                        );
+                    }
+
+                    // Inicia o processo ao pressionar (mouse ou toque)
+                    thumbnailList.addEventListener('pointerdown', (e) => {
+                        // Permite que os botões de editar/download funcionem normalmente
+                        if (e.target.closest('.thumb-btn')) {
+                            return;
+                        }
+                        
+                        const target = e.target.closest('.thumbnail-container');
+                        if (!target) return;
+
+                        // Previne o comportamento padrão (ex: seleção de imagem)
+                        e.preventDefault();
+
+                        draggedElement = target;
+                        draggedCardId = target.dataset.cardId;
+
+                        // Inicia um timer. Se o usuário segurar por 300ms, o modo de arrastar é ativado.
+                        dragTimer = setTimeout(() => {
+                            isDragging = true;
+                            const rect = draggedElement.getBoundingClientRect();
+                            offsetX = e.clientX - rect.left;
+                            offsetY = e.clientY - rect.top;
+
+                            // Aplica estilos visuais
+                            draggedElement.classList.add('dragging');
+                            draggedElement.style.touchAction = 'none'; // Melhora a performance em mobile
+                            trashCan.classList.add('visible');
+                            trashCan.classList.remove('hidden');
+                            
+                            // Move o elemento para a posição inicial do cursor
+                            draggedElement.style.position = 'fixed';
+                            draggedElement.style.left = `${e.clientX - offsetX}px`;
+                            draggedElement.style.top = `${e.clientY - offsetY}px`;
+
+                        }, 300); // 300ms de espera para iniciar o arrasto
+                    });
+
+                    // Move o elemento enquanto arrasta
+                    document.addEventListener('pointermove', (e) => {
+                        if (!isDragging || !draggedElement) return;
+
+                        // Atualiza a posição do elemento
+                        draggedElement.style.left = `${e.clientX - offsetX}px`;
+                        draggedElement.style.top = `${e.clientY - offsetY}px`;
+
+                        // Verifica se está sobre a lixeira e aplica o feedback visual
+                        if (isOver(draggedElement, trashCan)) {
+                            trashCan.classList.add('droppable-area');
+                        } else {
+                            trashCan.classList.remove('droppable-area');
+                        }
+                    });
+
+                    // Finaliza o processo ao soltar
+                    document.addEventListener('pointerup', (e) => {
+                        // Limpa o timer se o usuário soltar antes de ativar o arrasto
+                        clearTimeout(dragTimer);
+
+                        if (!isDragging || !draggedElement) return;
+
+                        // Verifica se o item foi solto sobre a lixeira
+                        if (isOver(draggedElement, trashCan)) {
+                            // Remove o card se foi solto na lixeira
+                            removeCard(draggedCardId);
+                        }
+
+                        // Limpa os estilos e reseta as variáveis
+                        draggedElement.classList.remove('dragging');
+                        draggedElement.style.position = '';
+                        draggedElement.style.left = '';
+                        draggedElement.style.top = '';
+                        draggedElement.style.touchAction = 'auto';
+
+                        trashCan.classList.remove('visible');
+                            trashCan.classList.add('hidden');
+
+                        trashCan.classList.remove('droppable-area');
+
+                        draggedElement = null;
+                        draggedCardId = null;
+                        isDragging = false;
+                    });
+
+                    // Cancela o arrasto se algo inesperado acontecer (ex: sair da janela)
+                    document.addEventListener('pointercancel', (e) => {
+                        clearTimeout(dragTimer);
+                        if (!isDragging || !draggedElement) return;
+                        
+                        // Limpa tudo
+                        draggedElement.classList.remove('dragging');
+                        trashCan.classList.remove('visible');
+                        draggedElement = null;
+                        isDragging = false;
+                    });
                 } catch (e) {
                     console.error("Falha ao inicializar o app:", e);
                     hideSplash();
