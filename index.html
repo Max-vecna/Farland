@@ -10,51 +10,6 @@
     <link rel="stylesheet" href="animation.css">
     <script src="animation.js"></script>
     <style>
-        /* --- ESTILOS PARA A LIXEIRA E ARRASTAR-E-SOLTAR --- */
-#trash-can {
-    width: 70px;
-    height: 70px;
-    opacity: 0;
-    transform: translateX(-50%) scale(0.8);
-    pointer-events: none; /* Impede que a lixeira intercepte cliques quando invisível */
-    z-index: 10000000000;
-}
-
-#trash-can.visible {
-    opacity: 1;
-    transform: translateX(-50%) scale(1);
-    pointer-events: auto;
-}
-
-#trash-can.droppable-area {
-    transform: translateX(-50%) scale(1.2);
-    background-color: #ef4444; /* Vermelho mais vibrante */
-}
-
-.thumbnail-container.dragging {
-    opacity: 0.6;
-    transform: scale(1.1);
-    z-index: 1000;
-    cursor: grabbing;
-    position: relative; /* Garante que o z-index funcione */
-}
-
-/* Altera a posição dos botões de ação nos thumbnails */
-.thumb-btn {
-    position: absolute;
-    top: -8px; /* Posiciona os botões ligeiramente para fora */
-    z-index: 11;
-}
-
-.thumb-btn-edit {
-    left: -8px;
-}
-
-.thumb-btn-download {
-    right: -8px;
-}
-/* --- FIM DOS ESTILOS DA LIXEIRA --- */
-
          .heart-container {
              animation: beat var(--beat-duration) infinite cubic-bezier(0.215, 0.610, 0.355, 1);
         }
@@ -1201,10 +1156,7 @@
     </div>
 
 
-     <div id="trash-can" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-red-800/80 backdrop-blur-sm rounded-full p-4 flex items-center justify-center z-40 shadow-lg text-white text-2xl transition-all duration-300 ease-in-out">
-        <i class="fas fa-trash-alt"></i>
-    </div>
-
+    
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/80 backdrop-blur-sm rounded-full p-2 flex items-center gap-2 z-50 shadow-lg" id="nav">
         <button id="showDisplayBtn" class="nav-button px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2" title="Personagens">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 011-1h14a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>
@@ -2126,47 +2078,31 @@
                 const thumbContainer = document.createElement('div');
                 thumbContainer.className = 'relative thumbnail-container';
                 thumbContainer.style.minWidth = '5rem';
-                // Adiciona um ID único ao contêiner para referência no evento de arrastar
-                thumbContainer.dataset.cardId = cardData.id;
 
                 const thumb = document.createElement('div');
                 thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-indigo-500 transition-colors duration-200';
-                // Mova o data-card-id para o contêiner principal
-                // thumb.dataset.cardId = cardData.id; 
+                thumb.dataset.cardId = cardData.id;
                 thumb.style.backgroundImage = `url(${cardData.backgroundURL})`;
                 thumb.style.backgroundSize = 'cover';
                 thumb.style.backgroundPosition = 'center';
                 thumb.innerHTML = `<div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center"><img src="${cardData.imageURL}" onerror="this.src='https://placehold.co/40x40/E5E7EB/4B5563?text=P';" alt="Miniatura" class="w-10 h-10 object-cover rounded-full border-2 border-white"></div><div class="absolute bottom-1 left-1 bg-gray-800 text-white text-xs px-2 py-1 rounded-full font-bold">Lv.${cardData.level}</div>`;
                 
-                // O clique no card ainda exibe os detalhes
                 thumb.addEventListener('click', () => displayCard(cardData.id));
 
-                // Remove o 'actionsDiv' antigo e cria os botões individualmente
-                const editBtn = document.createElement('button');
-                editBtn.className = 'thumb-btn thumb-btn-edit bg-blue-700 hover:bg-blue-600';
-                editBtn.dataset.action = 'edit';
-                editBtn.dataset.cardId = cardData.id;
-                editBtn.title = 'Editar';
-                editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i>';
-
-                const downloadBtn = document.createElement('button');
-                downloadBtn.className = 'thumb-btn thumb-btn-download bg-green-700 hover:bg-green-600';
-                downloadBtn.dataset.action = 'download';
-                downloadBtn.dataset.cardId = cardData.id;
-                downloadBtn.title = 'Baixar Ficha';
-                downloadBtn.innerHTML = '<i class="fas fa-file-download"></i>';
-                
-                // O botão de exclusão foi removido daqui
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'absolute -top-2 -right-2 flex flex-col gap-1 p-1';
+                actionsDiv.innerHTML = `
+                    <button class="thumb-btn bg-blue-700 hover:bg-blue-600" data-action="edit" data-card-id="${cardData.id}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="thumb-btn bg-green-700 hover:bg-green-600" data-action="download" data-card-id="${cardData.id}" title="Baixar Ficha"><i class="fas fa-file-download"></i></button>
+                    <button class="thumb-btn bg-red-700 hover:bg-red-600" data-action="remove" data-card-id="${cardData.id}" title="Excluir" style="margin-top: 20px;"><i class="fas fa-trash-alt"></i></button>
+                `;
 
                 thumbContainer.appendChild(thumb);
-                // Adiciona os botões diretamente no contêiner
-                thumbContainer.appendChild(editBtn);
-                thumbContainer.appendChild(downloadBtn);
-
-                // A lógica de arrastar será adicionada a 'thumbnailList' por delegação de evento
+                thumbContainer.appendChild(actionsDiv);
                 return thumbContainer;
             }
-            
+
+
             async function removeCard(cardId) { 
                 playMp3Sound("excluir.mp3");
                 await removeData(CARD_STORE_NAME, cardId); 
@@ -3630,121 +3566,6 @@
                     await renderItemsAndThumbnails();
                     showDisplayView();
                     setTimeout(hideSplash, 1000);
-
-                    // --- NOVA LÓGICA DE ARRASTAR E SOLTAR PARA EXCLUSÃO ---
-                    const trashCan = document.getElementById('trash-can');
-                    let draggedElement = null;
-                    let draggedCardId = null;
-                    let dragTimer = null;
-                    let isDragging = false;
-                    let offsetX = 0, offsetY = 0;
-
-                    // Função para verificar se um elemento está sobre outro
-                    function isOver(element, target) {
-                        const elRect = element.getBoundingClientRect();
-                        const targetRect = target.getBoundingClientRect();
-                        return !(
-                            elRect.right < targetRect.left ||
-                            elRect.left > targetRect.right ||
-                            elRect.bottom < targetRect.top ||
-                            elRect.top > targetRect.bottom
-                        );
-                    }
-
-                    // Inicia o processo ao pressionar (mouse ou toque)
-                    thumbnailList.addEventListener('pointerdown', (e) => {
-                        // Permite que os botões de editar/download funcionem normalmente
-                        if (e.target.closest('.thumb-btn')) {
-                            return;
-                        }
-                        
-                        const target = e.target.closest('.thumbnail-container');
-                        if (!target) return;
-
-                        // Previne o comportamento padrão (ex: seleção de imagem)
-                        e.preventDefault();
-
-                        draggedElement = target;
-                        draggedCardId = target.dataset.cardId;
-
-                        // Inicia um timer. Se o usuário segurar por 300ms, o modo de arrastar é ativado.
-                        dragTimer = setTimeout(() => {
-                            isDragging = true;
-                            const rect = draggedElement.getBoundingClientRect();
-                            offsetX = e.clientX - rect.left;
-                            offsetY = e.clientY - rect.top;
-
-                            // Aplica estilos visuais
-                            draggedElement.classList.add('dragging');
-                            draggedElement.style.touchAction = 'none'; // Melhora a performance em mobile
-                            trashCan.classList.add('visible');
-                            trashCan.classList.remove('hidden');
-                            
-                            // Move o elemento para a posição inicial do cursor
-                            draggedElement.style.position = 'fixed';
-                            draggedElement.style.left = `${e.clientX - offsetX}px`;
-                            draggedElement.style.top = `${e.clientY - offsetY}px`;
-
-                        }, 300); // 300ms de espera para iniciar o arrasto
-                    });
-
-                    // Move o elemento enquanto arrasta
-                    document.addEventListener('pointermove', (e) => {
-                        if (!isDragging || !draggedElement) return;
-
-                        // Atualiza a posição do elemento
-                        draggedElement.style.left = `${e.clientX - offsetX}px`;
-                        draggedElement.style.top = `${e.clientY - offsetY}px`;
-
-                        // Verifica se está sobre a lixeira e aplica o feedback visual
-                        if (isOver(draggedElement, trashCan)) {
-                            trashCan.classList.add('droppable-area');
-                        } else {
-                            trashCan.classList.remove('droppable-area');
-                        }
-                    });
-
-                    // Finaliza o processo ao soltar
-                    document.addEventListener('pointerup', (e) => {
-                        // Limpa o timer se o usuário soltar antes de ativar o arrasto
-                        clearTimeout(dragTimer);
-
-                        if (!isDragging || !draggedElement) return;
-
-                        // Verifica se o item foi solto sobre a lixeira
-                        if (isOver(draggedElement, trashCan)) {
-                            // Remove o card se foi solto na lixeira
-                            removeCard(draggedCardId);
-                        }
-
-                        // Limpa os estilos e reseta as variáveis
-                        draggedElement.classList.remove('dragging');
-                        draggedElement.style.position = '';
-                        draggedElement.style.left = '';
-                        draggedElement.style.top = '';
-                        draggedElement.style.touchAction = 'auto';
-
-                        trashCan.classList.remove('visible');
-                            trashCan.classList.add('hidden');
-
-                        trashCan.classList.remove('droppable-area');
-
-                        draggedElement = null;
-                        draggedCardId = null;
-                        isDragging = false;
-                    });
-
-                    // Cancela o arrasto se algo inesperado acontecer (ex: sair da janela)
-                    document.addEventListener('pointercancel', (e) => {
-                        clearTimeout(dragTimer);
-                        if (!isDragging || !draggedElement) return;
-                        
-                        // Limpa tudo
-                        draggedElement.classList.remove('dragging');
-                        trashCan.classList.remove('visible');
-                        draggedElement = null;
-                        isDragging = false;
-                    });
                 } catch (e) {
                     console.error("Falha ao inicializar o app:", e);
                     hideSplash();
