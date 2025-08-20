@@ -11,45 +11,45 @@
     <script src="animation.js"></script>
     <style>
         /* --- ESTILOS DO MENU DE AÇÕES DA MINIATURA --- */
-.thumbnail-actions .thumb-btn-menu {
-    position: relative;
-}
-.thumbnail-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background-color: #1f2937;
-    border: 1px solid #4b5563;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    z-index: 20;
-    width: 120px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    display: none; /* Começa escondido */
-}
-.thumbnail-menu.visible {
-    display: block;
-}
-.thumbnail-menu button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: none;
-    border: none;
-    color: #d1d5db;
-    width: 100%;
-    padding: 0.5rem;
-    text-align: left;
-    border-radius: 0.25rem;
-    font-size: 14px;
-}
-.thumbnail-menu button:hover {
-    background-color: #374151;
-}
-.thumbnail-menu button i {
-    width: 16px;
-    text-align: center;
-}
+        .thumbnail-actions .thumb-btn-menu {
+            position: relative;
+        }
+        .thumbnail-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            z-index: 20;
+            width: max-content; /* Aumentado para caber o texto */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: none; /* Começa escondido */
+        }
+        .thumbnail-menu.visible {
+            display: block;
+        }
+        .thumbnail-menu button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: #d1d5db;
+            width: 100%;
+            padding: 0.5rem;
+            text-align: left;
+            border-radius: 0.25rem;
+            font-size: 14px;
+        }
+        .thumbnail-menu button:hover {
+            background-color: #374151;
+        }
+        .thumbnail-menu button i {
+            width: 16px;
+            text-align: center;
+        }
          .heart-container {
              animation: beat var(--beat-duration) infinite cubic-bezier(0.215, 0.610, 0.355, 1);
         }
@@ -387,7 +387,6 @@
 
         /* --- ESTILOS DAS MINIATURAS E AÇÕES --- */
         .thumbnail-container .thumbnail-actions {
-            opacity: 0;
             transition: opacity 0.2s ease-in-out;
             pointer-events: none;
             z-index: 10;
@@ -871,6 +870,8 @@
         <source src="fundo.mp3" type="audio/mpeg">
     </audio>
     
+    <!-- Input oculto para importação de JSON -->
+    <input type="file" id="jsonImportInput" class="hidden" accept=".json">
 
     <div id="splashScreen" class="splash-screen">
         <svg xmlns="http://www.w3.org/2000/svg" class="loading-icon text-indigo-400 w-20 h-20" viewBox="0 0 24 24" fill="currentColor">
@@ -1486,6 +1487,9 @@
             const spellImagePreview = document.getElementById('spellImagePreview');
             const itemImageUpload = document.getElementById('itemImageUpload');
             const itemImagePreview = document.getElementById('itemImagePreview');
+            
+            // Input de importação
+            const jsonImportInput = document.getElementById('jsonImportInput');
 
             // Elementos da UI principal
             const splashScreen = document.getElementById('splashScreen');
@@ -1738,6 +1742,7 @@
             let currentEditingItemId = null;
             let currentLinkingCharacterId = null;
             let currentStatusEditingCardId = null;
+            let currentStoreForImport = null;
 
             let db;
             const DB_NAME = 'rpgCreatorDB', DB_VERSION = 11;
@@ -1748,6 +1753,29 @@
 
             // --- Funções Utilitárias ---
             function bufferToBlob(buffer, mimeType) { return new Blob([buffer], { type: mimeType }); }
+           
+             // ADICIONE ESTA FUNÇÃO
+            function arrayBufferToBase64(buffer) {
+                let binary = '';
+                const bytes = new Uint8Array(buffer);
+                const len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return window.btoa(binary);
+            }
+
+            // ADICIONE ESTA FUNÇÃO
+            function base64ToArrayBuffer(base64) {
+                const binary_string = window.atob(base64);
+                const len = binary_string.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binary_string.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+            
             function rgbToHsl(r, g, b) { r /= 255; g /= 255; b /= 255; let max = Math.max(r, g, b), min = Math.min(r, g, b); let h, s, l = (max + min) / 2; if (max === min) { h = s = 0; } else { let d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min); switch (max) { case r: h = (g - b) / d + (g < b ? 6 : 0); break; case g: h = (b - r) / d + 2; break; case b: h = (r - g) / d + 4; break; } h /= 6; } return [h, s, l]; }
             function hslToRgb(h, s, l) { let r, g, b; if (s === 0) { r = g = b = l; } else { const hue2rgb = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; }; const q = l < 0.5 ? l * (1 + s) : l + s - l * s; const p = 2 * l - q; r = hue2rgb(p, q, h + 1 / 3); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1 / 3); } return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`; }
             function getPredominantColorAndPalette(imageUrl) { return new Promise((resolve, reject) => { const img = new Image(); img.crossOrigin = "Anonymous"; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0, img.width, img.height); try { const imageData = ctx.getImageData(0, 0, img.width, img.height).data; let r = 0, g = 0, b = 0, count = 0; const step = 4 * 10; for (let i = 0; i < imageData.length; i += step) { r += imageData[i]; g += imageData[i + 1]; b += imageData[i + 2]; count++; } const avgR = Math.floor(r / count), avgG = Math.floor(g / count), avgB = Math.floor(b / count); let [h, s, l] = rgbToHsl(avgR, avgG, avgB); const isLight = l > 0.5; resolve({ cardBg: isLight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(31, 41, 55, 0.9)', highlightColor: hslToRgb(h, Math.min(s*1.5,1), isLight ? Math.max(l*0.7,0.3) : Math.min(l*1.5,0.7)), textColor: isLight ? 'rgb(31, 41, 55)' : 'rgb(243, 244, 246)', borderColor: hslToRgb(h, s, isLight ? Math.max(l*0.7,0.3) : Math.min(l*1.5,0.7)) }); } catch (e) { reject(e); } }; img.onerror = (e) => reject(e); img.src = imageUrl; }); }
@@ -1869,22 +1897,48 @@
             }
             
             function createAddThumbnail(type) {
-                const thumb = document.createElement('div');
-                let colorClass = 'border-indigo-500 hover:bg-indigo-500';
-                if(type === 'spell') colorClass = 'border-teal-500 hover:bg-teal-500';
-                if(type === 'item') colorClass = 'border-amber-500 hover:bg-amber-500';
-
-                thumb.className = `relative w-20 h-24 rounded-lg flex items-center justify-center border-2 border-dashed ${colorClass} cursor-pointer transition-colors duration-200`;
-                thumb.style.minWidth = '5rem';
-                thumb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
+                const container = document.createElement('div');
+                container.className = 'flex flex-col items-center justify-center';
                 
-                let clickHandler;
-                if(type === 'character') clickHandler = () => showCreationView(false);
-                if(type === 'spell') clickHandler = () => showSpellCreationView(false);
-                if(type === 'item') clickHandler = () => showItemCreationView(false);
+                let colorClass = 'border-indigo-500 hover:bg-indigo-500';
+                let importColorClass = 'bg-indigo-500 hover:bg-indigo-600';
+                let storeName = CARD_STORE_NAME;
 
-                thumb.addEventListener('click', clickHandler);
-                return thumb;
+                if(type === 'spell') {
+                    colorClass = 'border-teal-500 hover:bg-teal-500';
+                    importColorClass = 'bg-teal-500 hover:bg-teal-600';
+                    storeName = SPELL_STORE_NAME;
+                }
+                if(type === 'item') {
+                    colorClass = 'border-amber-500 hover:bg-amber-500';
+                    importColorClass = 'bg-amber-500 hover:bg-amber-600';
+                    storeName = ITEM_STORE_NAME;
+                }
+
+                const addThumb = document.createElement('div');
+                addThumb.className = `relative w-20 h-24 rounded-lg flex items-center justify-center border-2 border-dashed ${colorClass} cursor-pointer transition-colors duration-200`;
+                addThumb.style.minWidth = '5rem';
+                addThumb.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
+                
+                const importBtn = document.createElement('button');
+                importBtn.className = `absolute -bottom-2 thumb-btn ${importColorClass}`;
+                importBtn.title = 'Importar JSON';
+                importBtn.innerHTML = `<i class="fas fa-upload"></i>`;
+
+                let addClickHandler;
+                if(type === 'character') addClickHandler = () => showCreationView(false);
+                if(type === 'spell') addClickHandler = () => showSpellCreationView(false);
+                if(type === 'item') addClickHandler = () => showItemCreationView(false);
+
+                addThumb.addEventListener('click', addClickHandler);
+                importBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    initiateImport(storeName);
+                });
+
+                addThumb.appendChild(importBtn);
+                container.appendChild(addThumb);
+                return container;
             }
 
             async function renderCardsAndThumbnails() {
@@ -1904,7 +1958,7 @@
                     if (cardData.image) imageURL = URL.createObjectURL(bufferToBlob(cardData.image, cardData.imageMimeType));
                     if (cardData.backgroundImage) backgroundURL = URL.createObjectURL(bufferToBlob(cardData.backgroundImage, cardData.backgroundMimeType));
                     
-                    const thumbnail = createThumbnailElement({...cardData, imageURL, backgroundURL});
+                    const thumbnail = createThumbnailElement({...cardData, imageURL, backgroundURL}, CARD_STORE_NAME);
                     thumbnailList.appendChild(thumbnail);
                     
                     cardsLoaded++;
@@ -2116,7 +2170,7 @@
                 return cardWrapper;
             }
 
-            function createThumbnailElement(cardData) {
+            function createThumbnailElement(cardData, storeName) {
                 const thumbContainer = document.createElement('div');
                 thumbContainer.className = 'relative thumbnail-container';
                 thumbContainer.style.minWidth = '5rem';
@@ -2132,11 +2186,14 @@
                 thumb.addEventListener('click', () => displayCard(cardData.id));
 
                 const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'absolute -top-2 -right-2 flex flex-col gap-1 p-1';
+                actionsDiv.className = 'absolute -top-2 -right-2 flex flex-col gap-1 thumbnail-actions';
                 actionsDiv.innerHTML = `
-                    <button class="thumb-btn bg-blue-700 hover:bg-blue-600" data-action="edit" data-card-id="${cardData.id}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="thumb-btn bg-green-700 hover:bg-green-600" data-action="download" data-card-id="${cardData.id}" title="Baixar Ficha"><i class="fas fa-file-download"></i></button>
-                    <button class="thumb-btn bg-red-700 hover:bg-red-600" data-action="remove" data-card-id="${cardData.id}" title="Excluir" style="margin-top: 20px;"><i class="fas fa-trash-alt"></i></button>
+                    <button class="thumb-btn bg-gray-700 hover:bg-gray-600 thumb-btn-menu" data-action="toggle-menu" title="Menu"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="thumbnail-menu">
+                        <button data-action="edit" data-card-id="${cardData.id}" data-store="${storeName}"><i class="fas fa-pencil-alt"></i> Editar</button>
+                        <button data-action="download-json" data-card-id="${cardData.id}" data-store="${storeName}"><i class="fas fa-file-code"></i> Baixar</button>
+                        <button data-action="remove" data-card-id="${cardData.id}" data-store="${storeName}"><i class="fas fa-trash-alt"></i> Excluir</button>
+                    </div>
                 `;
 
                 thumbContainer.appendChild(thumb);
@@ -2273,16 +2330,15 @@
                     });
                 }
 
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.className = 'flex justify-center space-x-2 w-full';
-                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;"><i class="fas fa-pencil-alt"></i></button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-spell-btn" data-spell-id="${spellData.id}" style="border-radius: 0 50px 50px 0; background-color: #dc2626;"><i class="fas fa-trash-alt"></i></button>`;
-                
                 cardWrapper.appendChild(cardDiv);
-                cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
             }
 
             function createSpellThumbnailElement(spellData) {
+                const thumbContainer = document.createElement('div');
+                thumbContainer.className = 'relative thumbnail-container';
+                thumbContainer.style.minWidth = '5rem';
+
                 const thumb = document.createElement('div');
                 const isMagia = spellData.type === 'magia';
                 const borderColor = isMagia ? 'border-teal-500' : 'border-purple-500';
@@ -2305,7 +2361,21 @@
                 `;
                 
                 thumb.addEventListener('click', () => displaySpell(spellData.id));
-                return thumb;
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'absolute -top-2 -right-2 flex flex-col gap-1 thumbnail-actions';
+                actionsDiv.innerHTML = `
+                    <button class="thumb-btn bg-gray-700 hover:bg-gray-600 thumb-btn-menu" data-action="toggle-menu" title="Menu"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="thumbnail-menu">
+                        <button data-action="edit" data-card-id="${spellData.id}" data-store="${SPELL_STORE_NAME}"><i class="fas fa-pencil-alt"></i> Editar</button>
+                        <button data-action="download-json" data-card-id="${spellData.id}" data-store="${SPELL_STORE_NAME}"><i class="fas fa-file-code"></i> Baixar JSON</button>
+                        <button data-action="remove" data-card-id="${spellData.id}" data-store="${SPELL_STORE_NAME}"><i class="fas fa-trash-alt"></i> Excluir</button>
+                    </div>
+                `;
+
+                thumbContainer.appendChild(thumb);
+                thumbContainer.appendChild(actionsDiv);
+                return thumbContainer;
             }
 
             async function editSpell(spellId) {
@@ -2355,20 +2425,6 @@
                     await updateSidebarsContent(displayedCard, displayedCard.dataset.cardId);
                 }
             }
-
-            spellCardDisplayArea.addEventListener('click', e => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                
-                const spellId = button.dataset.spellId;
-                if (!spellId) return;
-
-                if (button.classList.contains('edit-spell-btn')) {
-                    editSpell(spellId);
-                } else if (button.classList.contains('remove-spell-btn')) {
-                    removeSpell(spellId);
-                }
-            });
 
             // --- Funções CRUD para Itens (Modelos) ---
             async function renderItemsAndThumbnails() {
@@ -2471,17 +2527,16 @@
                         card3d.style.transform = card3d.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
                     });
                 }
-
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.className = 'flex justify-center space-x-2 w-full';
-                buttonsDiv.innerHTML = `<button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 edit-item-btn" data-item-id="${itemData.id}" style="border-radius: 50px 0 0 50px; background-color: #23426d;"><i class="fas fa-pencil-alt"></i></button><button class="w-1/3 py-3 px-4 text-sm font-bold text-white transition-colors duration-200 remove-item-btn" data-item-id="${itemData.id}" style="border-radius: 0 50px 50px 0;background-color: #dc2626;"><i class="fas fa-trash-alt"></i></button>`;
                 
                 cardWrapper.appendChild(cardDiv);
-                cardWrapper.appendChild(buttonsDiv);
                 return cardWrapper;
             }
             
             function createItemThumbnailElement(itemData) {
+                const thumbContainer = document.createElement('div');
+                thumbContainer.className = 'relative thumbnail-container';
+                thumbContainer.style.minWidth = '5rem';
+
                 const thumb = document.createElement('div');
                 thumb.className = 'relative w-20 h-24 rounded-lg overflow-hidden shadow-lg border-2 border-gray-400 cursor-pointer hover:border-amber-500 transition-colors duration-200';
                 thumb.dataset.itemId = itemData.id;
@@ -2498,7 +2553,21 @@
                     </div>`;
                 
                 thumb.addEventListener('click', () => displayItem(itemData.id));
-                return thumb;
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'absolute -top-2 -right-2 flex flex-col gap-1 thumbnail-actions';
+                actionsDiv.innerHTML = `
+                    <button class="thumb-btn bg-gray-700 hover:bg-gray-600 thumb-btn-menu" data-action="toggle-menu" title="Menu"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="thumbnail-menu">
+                        <button data-action="edit" data-card-id="${itemData.id}" data-store="${ITEM_STORE_NAME}"><i class="fas fa-pencil-alt"></i> Editar</button>
+                        <button data-action="download-json" data-card-id="${itemData.id}" data-store="${ITEM_STORE_NAME}"><i class="fas fa-file-code"></i> Baixar JSON</button>
+                        <button data-action="remove" data-card-id="${itemData.id}" data-store="${ITEM_STORE_NAME}"><i class="fas fa-trash-alt"></i> Excluir</button>
+                    </div>
+                `;
+
+                thumbContainer.appendChild(thumb);
+                thumbContainer.appendChild(actionsDiv);
+                return thumbContainer;
             }
 
             async function editItem(itemId) {
@@ -2548,21 +2617,6 @@
                     await updateSidebarsContent(displayedCard, displayedCard.dataset.cardId);
                 }
             }
-
-            itemCardDisplayArea.addEventListener('click', e => {
-                const button = e.target.closest('button');
-                if (!button) return;
-
-                const itemId = button.dataset.itemId;
-                if (!itemId) return;
-
-                if (button.classList.contains('edit-item-btn')) {
-                    editItem(itemId);
-                } else if (button.classList.contains('remove-item-btn')) {
-                    removeItem(itemId);
-                }
-            });
-
 
             // --- Gerenciamento de Imagens e Submissão de Formulários ---
             characterImageUpload.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { characterImageFile = file; showImagePreview(characterImagePreview, URL.createObjectURL(file), true); } });
@@ -2751,8 +2805,6 @@
                 }
                 
                 const cardItself = cardWrapper.querySelector('.rpg-card');
-                const oldButtons = cardWrapper.querySelector('.flex.justify-center');
-                if(oldButtons) oldButtons.remove();
                 
                 const closeButton = document.createElement('button');
                 closeButton.innerHTML = '&times;';
@@ -2855,40 +2907,106 @@
                 }
             }
 
-            // NOVO Event Listener para ações nas miniaturas
-            thumbnailList.addEventListener('click', async (e) => {
-                const button = e.target.closest('.thumb-btn');
-                if (!button) return;
+            // --- Lógica do Menu de Ações e Delegação de Eventos ---
+           // --- Lógica do Menu de Ações e Delegação de Eventos (VERSÃO ATUALIZADA) ---
+            document.addEventListener('click', async (e) => {
+                const menuButton = e.target.closest('.thumb-btn-menu');
+                const activeMenu = document.querySelector('.thumbnail-menu-active');
 
-                const action = button.dataset.action;
-                const cardId = button.dataset.cardId;
+                // --- Lógica para FECHAR o menu ---
+                // Se um menu está aberto e o clique foi fora dele e fora de um botão de menu, fecha o menu.
+                if (activeMenu && !activeMenu.contains(e.target) && !menuButton) {
+                    activeMenu.remove();
+                    return;
+                }
 
-                if (!action || !cardId) return;
+                // --- Lógica para ABRIR/TROCAR o menu ---
+                if (menuButton) {
+                    // Se o usuário clicou no mesmo botão que abriu o menu, fecha o menu.
+                    if (activeMenu && activeMenu.dataset.ownerId === menuButton.parentElement.id) {
+                        activeMenu.remove();
+                        return;
+                    }
+                    
+                    // Se clicou em um botão de menu, primeiro remove qualquer outro menu que esteja aberto.
+                    if (activeMenu) {
+                        activeMenu.remove();
+                    }
 
-                switch (action) {
-                    case 'edit':
-                        await editCard(cardId);
-                        break;
-                    case 'download':
-                        const textContent = await generateSingleCharacterSheetText(cardId);
-                        const cardData = await getData(CARD_STORE_NAME, cardId);
-                        const filename = `ficha_${cardData.title.replace(/\s+/g, '_')}.txt`;
-                        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        break;
-                    case 'remove':
-                        await removeCard(cardId);
-                        break;
+                    // Pega o modelo do menu que está escondido no HTML
+                    const menuTemplate = menuButton.nextElementSibling;
+                    if (menuTemplate && menuTemplate.classList.contains('thumbnail-menu')) {
+                        // Clona o menu para não remover o original do DOM
+                        const newMenu = menuTemplate.cloneNode(true);
+                        
+                        // Adiciona uma classe para identificar o menu ativo e o torna visível
+                        //newMenu.classList.remove('thumbnail-menu');
+                        newMenu.classList.add('thumbnail-menu-active');
+                        newMenu.style.display = 'block';
+                        
+                        // Garante que o menu tenha um ID único para referência
+                        if (!menuButton.parentElement.id) {
+                            menuButton.parentElement.id = `thumb-action-${Date.now()}`;
+                        }
+                        newMenu.dataset.ownerId = menuButton.parentElement.id;
+
+                        // Anexa o novo menu ao corpo do documento
+                        document.body.appendChild(newMenu);
+
+                        // Calcula a posição ideal
+                        const btnRect = menuButton.getBoundingClientRect();
+                        const menuRect = newMenu.getBoundingClientRect();
+                        
+                        newMenu.style.position = 'fixed'; // Posição fixa relativa à janela
+                        newMenu.style.zIndex = '2000';   // Z-index alto para ficar na frente de tudo
+                        
+                        // Posicionamento horizontal (tenta alinhar à direita do botão)
+                        let leftPos = btnRect.right - menuRect.width;
+                        if (leftPos < 10) { // Se sair da tela pela esquerda, alinha à esquerda do botão
+                           leftPos = btnRect.left;
+                        }
+                        newMenu.style.left = `${leftPos}px`;
+                        
+                        // Posicionamento vertical (tenta colocar abaixo do botão)
+                        let topPos = btnRect.bottom + 5;
+                        if (topPos + menuRect.height > window.innerHeight) { // Se sair da tela por baixo, coloca acima
+                            topPos = btnRect.top - menuRect.height - 5;
+                        }
+                        newMenu.style.top = `${topPos}px`;
+                    }
+                    return;
+                }
+
+                // --- Lógica para os BOTÕES DE AÇÃO dentro do menu ---
+                const actionButton = e.target.closest('.thumbnail-menu-active button');
+                if (actionButton) {
+                    const action = actionButton.dataset.action;
+                    const cardId = actionButton.dataset.cardId;
+                    const storeName = actionButton.dataset.store;
+
+                    if (!action || !cardId || !storeName) return;
+
+                    // Ação acontece normalmente
+                    switch (action) {
+                        case 'edit':
+                            if (storeName === CARD_STORE_NAME) await editCard(cardId);
+                            if (storeName === SPELL_STORE_NAME) await editSpell(cardId);
+                            if (storeName === ITEM_STORE_NAME) await editItem(cardId);
+                            break;
+                        case 'download-json':
+                            await downloadCardAsJson(storeName, cardId);
+                            break;
+                        case 'remove':
+                            if (storeName === CARD_STORE_NAME) await removeCard(cardId);
+                            if (storeName === SPELL_STORE_NAME) await removeSpell(cardId);
+                            if (storeName === ITEM_STORE_NAME) await removeItem(cardId);
+                            break;
+                    }
+
+                    // Esconde e remove o menu após a ação
+                    actionButton.closest('.thumbnail-menu-active').remove();
                 }
             });
-
 
             cardDisplayArea.addEventListener('click', async (e) => {
                 const actionElement = e.target.closest('[data-action]');
@@ -3459,7 +3577,92 @@
             }
 
 
-            // --- Lógica de Download de Ficha ---
+            // --- Lógica de Download/Import ---
+           async function downloadCardAsJson(storeName, cardId) {
+                const cardData = await getData(storeName, cardId);
+                if (!cardData) {
+                    console.error("Card not found for download");
+                    return;
+                }
+
+                // Cria uma cópia do objeto para exportação
+                const dataToExport = { ...cardData };
+
+                // Converte os dados binários da imagem para Base64 para incluir no JSON
+                if (cardData.image) {
+                    dataToExport.imageBase64 = arrayBufferToBase64(cardData.image);
+                }
+                if (cardData.backgroundImage) {
+                    dataToExport.backgroundImageBase64 = arrayBufferToBase64(cardData.backgroundImage);
+                }
+
+                // Remove as propriedades de buffer que não podem ser convertidas para JSON
+                delete dataToExport.image;
+                delete dataToExport.backgroundImage;
+
+                const jsonString = JSON.stringify(dataToExport, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const safeTitle = (dataToExport.title || dataToExport.name || 'card' ).replace(/\s+/g, '_') + "-"+storeName;
+                a.download = `${safeTitle}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            function initiateImport(storeName) {
+                currentStoreForImport = storeName;
+                jsonImportInput.value = null; // Reseta para permitir selecionar o mesmo arquivo novamente
+                jsonImportInput.click();
+            }
+
+        jsonImportInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file || !currentStoreForImport) return;
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        // Validação básica
+                        if (typeof importedData !== 'object' || importedData === null) {
+                            throw new Error("Arquivo JSON inválido.");
+                        }
+
+                        // Gera um novo ID para evitar conflitos
+                        importedData.id = Date.now().toString();
+
+                        // Converte imagens de Base64 para ArrayBuffer, se existirem
+                        if (importedData.imageBase64 && importedData.imageMimeType) {
+                            importedData.image = base64ToArrayBuffer(importedData.imageBase64);
+                            delete importedData.imageBase64; // Limpa o campo Base64 após a conversão
+                        }
+                        if (importedData.backgroundImageBase64 && importedData.backgroundMimeType) {
+                            importedData.backgroundImage = base64ToArrayBuffer(importedData.backgroundImageBase64);
+                            delete importedData.backgroundImageBase64; // Limpa o campo Base64 após a conversão
+                        }
+
+                        await saveData(currentStoreForImport, importedData);
+                        
+                        // Atualiza a visualização correta
+                        if (currentStoreForImport === CARD_STORE_NAME) await renderCardsAndThumbnails();
+                        if (currentStoreForImport === SPELL_STORE_NAME) await renderSpellCards();
+                        if (currentStoreForImport === ITEM_STORE_NAME) await renderItemsAndThumbnails();
+
+                    } catch (error) {
+                        console.error("Erro ao importar JSON:", error);
+                        showCustomAlert("Erro ao importar o arquivo. Verifique se é um JSON válido.");
+                    } finally {
+                        currentStoreForImport = null;
+                    }
+                };
+                reader.readAsText(file);
+            });
+
             async function generateCharacterSheetText() {
                 const allCards = await getData(CARD_STORE_NAME);
                 let text = "FICHA DE PERSONAGENS\n========================================\n\n";
