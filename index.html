@@ -514,8 +514,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            align-items: center;            
-            direction: rtl;
+            align-items: center; 
         }
         .sidebar-list::-webkit-scrollbar { width: 4px; }
         .sidebar-list::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
@@ -2040,7 +2039,7 @@
                                                 <h4 class="sidebar-title" style="margin: 0">Grimório</h4>
                                                 <button class="manage-btn-sidebar" data-action="manage-spells" title="Gerenciar Grimório"><i class="fas fa-book-open" style="font-size: 20px;"></i></button>
                                             </div>
-                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px;"></div>
+                                            <div id="spell-sidebar-content" class="sidebar-list" style="margin-right: -40px; direction: rtl;"></div>
                                         </div>
                                         <button class="sidebar-toggle" style="background: rgb(20 184 166 / var(--tw-border-opacity, 1))"><i class="fas fa-chevron-right"></i></button>
                                     </div>
@@ -3896,5 +3895,6 @@
      </script>
 </body>
 </html>
+
 
 
