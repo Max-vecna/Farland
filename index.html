@@ -2435,17 +2435,17 @@
                                             <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;
     border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
                                                 <h4 class="font-semibold text-gray-300">Descrição</h4>
-                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:normal;overflow-wrap:break-word;">${spellData.description || 'Nenhuma descrição.'}</p>
+                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre;overflow-wrap:break-word;">${spellData.description || 'Nenhuma descrição.'}</p>
                                             </div>
                                             <div class="mb-4 p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;min-width: 100%;
     border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
                                                 <h4 class="font-semibold text-gray-300">Aprimorar</h4>
-                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:normal;overflow-wrap:break-word;">${spellData.enhance|| 'Nenhuma descrição.'}</p>
+                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre;overflow-wrap:break-word;">${spellData.enhance|| 'Nenhuma descrição.'}</p>
                                             </div>
                                             <div class="p-3 rounded-3xl w-full" style="scroll-snap-align: start;flex-shrink: 0;flex-shrink: 0;min-width: 100%;
     border-color: ${palette.borderColor}; position: relative; z-index: 1; overflow-y: visible;">
                                                 <h4 class="font-semibold text-gray-300">Verdadeiro</h4>
-                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:normal;overflow-wrap:break-word;">${spellData.true|| 'Nenhuma descrição.'}</p>
+                                                <p class="text-gray-300 text-xs" style="text-align:justify;white-space:pre;overflow-wrap:break-word;">${spellData.true|| 'Nenhuma descrição.'}</p>
                                             </div>
                                         </div>
             </div>
@@ -2682,7 +2682,7 @@
                     <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-1 text-center">
                         <img src="${itemData.imageURL}" onerror="this.src='https://placehold.co/40x40/f59e0b/422006?text=I';"
     alt="Miniatura do Item" class="w-10 h-10 object-cover rounded-full border-2 border-amber-400 mb-1">
-                        <p class="text-white text-[10px] font-bold leading-tight" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 80%;">${itemData.name}</p>
+                        <p class="text-white text-[10px] font-bold leading-tight" style="text-shadow: 1px 1px 2px black; overflow: hidden; white-space: normal; overflow: hidden; text-overflow: ellipsis; width: 80%;">${itemData.name}</p>
                         <p class="text-amber-300 text-[9px] font-semibold">Carga: ${itemData.charge}</p>
                     </div>`;
                 thumb.addEventListener('click', () => displayItem(itemData.id));
@@ -3979,4 +3979,5 @@
 </body>
 
 </html>
+
 
