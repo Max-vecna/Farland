@@ -495,9 +495,12 @@
             <i class="fas fa-share-alt"></i>
             <span class="hidden md:inline">Compartilhar</span>
         </button>
-        <button id="downloadDbBtn" class="nav-button ..." title="Baixar Backup Local">
-    <i class="fas fa-database"></i>
-</button>
+        <button id="importDbBtn" class="nav-btn" title="Importar Backup Local" style="display: none;">
+            <i class="fas fa-upload"></i>
+        </button>
+        <button id="downloadDbBtn" class="nav-button ..." title="Baixar Backup Local" style="display: none;">
+            <i class="fas fa-database"></i>
+        </button>
         <button id="mute-button" title="Ativar/Desativar som"  class="px-4 py-2 text-sm md:px-6 md:py-3 md:text-lg font-semibold rounded-full focus:outline-none flex items-center gap-2">
             <i id="volume-icon" class="fas fa-volume-mute"></i>
         </button>
@@ -721,6 +724,17 @@
                 "Fortitude": "Resistência física e imunológica do personagem..."
             }
         };
+
+          function initiateFullImport() {
+            // Reutiliza o input de arquivo JSON já existente
+            currentStoreForImport = 'full_database'; // Um identificador especial para o import completo
+            jsonImportInput.value = null; // Reseta para permitir selecionar o mesmo arquivo novamente
+            jsonImportInput.click();
+        }
+
+        // Adicione o novo event listener para o botão de importação
+        document.getElementById('importDbBtn').addEventListener('click', initiateFullImport);
+
         const cardForm = document.getElementById('cardForm');
         const spellForm = document.getElementById('spellForm');
         const itemForm = document.getElementById('itemForm');
@@ -1618,6 +1632,7 @@
                     if(!spellCreationSection.classList.contains('hidden')) showSpellDisplayView();
                     if(!itemCreationSection.classList.contains('hidden')) showItemDisplayView();
                     if(!linkSection.classList.contains('hidden')) showDisplayView();
+                    nav.classList.remove('hidden'); 
                 });
             });
         function showSplash() {
@@ -3578,30 +3593,68 @@
             jsonImportInput.value = null; 
             jsonImportInput.click();
         }
-        jsonImportInput.addEventListener('change', (e) => {
+       jsonImportInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if(!file || !currentStoreForImport) return;
+            if (!file || !currentStoreForImport) return;
+
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
                     const importedData = JSON.parse(event.target.result);
-                    if(typeof importedData !== 'object' || importedData === null) {
+
+                    if (typeof importedData !== 'object' || importedData === null) {
                         throw new Error("Arquivo JSON inválido.");
                     }
-                    importedData.id = Date.now()
-                        .toString();
-                    if(importedData.imageBase64 && importedData.imageMimeType) {
-                        importedData.image = base64ToArrayBuffer(importedData.imageBase64);
-                        delete importedData.imageBase64;
+
+                    // Verifica se é um backup completo ou um card individual
+                    if (currentStoreForImport === 'full_database') {
+                        // Limpa o banco de dados atual para evitar duplicatas
+                        const storeNames = [CARD_STORE_NAME, SPELL_STORE_NAME, ITEM_STORE_NAME];
+                        for (const storeName of storeNames) {
+                            const allItems = await getData(storeName);
+                            for (const item of allItems) {
+                                await removeData(storeName, item.id);
+                            }
+                        }
+                        
+                        // Importa os dados para cada store
+                        for (const storeName of storeNames) {
+                            if (importedData[storeName]) {
+                                for (const item of importedData[storeName]) {
+                                    // Converte imagens de Base64 de volta para ArrayBuffer
+                                    if (item.imageBase64) {
+                                        item.image = base64ToArrayBuffer(item.imageBase64);
+                                        delete item.imageBase64;
+                                    }
+                                    if (item.backgroundImageBase64) {
+                                        item.backgroundImage = base64ToArrayBuffer(item.backgroundImageBase64);
+                                        delete item.backgroundImageBase64;
+                                    }
+                                    await saveData(storeName, item);
+                                }
+                            }
+                        }
+                        showCustomAlert("Backup importado com sucesso!");
+
+                    } else { // Lógica para importação de card individual (já existente)
+                        importedData.id = Date.now().toString();
+
+                        if (importedData.imageBase64 && importedData.imageMimeType) {
+                            importedData.image = base64ToArrayBuffer(importedData.imageBase64);
+                            delete importedData.imageBase64;
+                        }
+                        if (importedData.backgroundImageBase64 && importedData.backgroundMimeType) {
+                            importedData.backgroundImage = base64ToArrayBuffer(importedData.backgroundImageBase64);
+                            delete importedData.backgroundImageBase64;
+                        }
+                        await saveData(currentStoreForImport, importedData);
                     }
-                    if(importedData.backgroundImageBase64 && importedData.backgroundMimeType) {
-                        importedData.backgroundImage = base64ToArrayBuffer(importedData.backgroundImageBase64);
-                        delete importedData.backgroundImageBase64; 
-                    }
-                    await saveData(currentStoreForImport, importedData);
-                    if(currentStoreForImport === CARD_STORE_NAME) await renderCardsAndThumbnails();
-                    if(currentStoreForImport === SPELL_STORE_NAME) await renderSpellCards();
-                    if(currentStoreForImport === ITEM_STORE_NAME) await renderItemsAndThumbnails();
+                    
+                    // Atualiza todas as visualizações
+                    await renderCardsAndThumbnails();
+                    await renderSpellCards();
+                    await renderItemsAndThumbnails();
+
                 } catch (error) {
                     console.error("Erro ao importar JSON:", error);
                     showCustomAlert("Erro ao importar o arquivo. Verifique se é um JSON válido.");
