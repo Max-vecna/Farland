@@ -1,14 +1,14 @@
         /* --- ANIMAÇÕES DE ESTRELAS E NÉVOA --- */
-                .card-3d.star-container::before { content: ''; position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; border-radius: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: blur(40px); }
-                .card-3d.star-purple::before { background-color: rgba(168, 85, 247, 0.2); }
-                .card-3d.star-dark::before { background-color: rgba(31, 41, 55, 0.4); }
-                .card-3d.star-container.animate::before { animation: fog-burst 2.5s ease-out forwards; }
+                .nebula-sky.star-container::before { content: ''; position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; border-radius: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: blur(40px); }
+                .nebula-sky.star-purple::before { background-color: rgba(168, 85, 247, 0.2); }
+                .nebula-sky.star-dark::before { background-color: rgba(31, 41, 55, 0.4); }
+                .nebula-sky.star-container.animate::before { animation: fog-burst 2.5s ease-out forwards; }
                 @keyframes fog-burst {
                     0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
                     100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
                 }
                 .star { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; border-radius: 50%; opacity: 0; }
-                .card-3d.star-container.animate .star { animation: star-burst 2.5s ease-out forwards; }
+                .nebula-sky.star-container.animate .star { animation: star-burst 2.5s ease-out forwards; }
                 .star-purple .star { background-color: #c084fc; box-shadow: 0 0 6px #c084fc, 0 0 10px #a855f7; }
                 .star-dark .star { background-color: #4b5563; box-shadow: 0 0 6px #374151, 0 0 10px #1f2937; }
                 @keyframes star-burst {
@@ -33,13 +33,13 @@
                     border-radius: 1.5rem;
                 }
 
-                .card-3d.zoom-box.animate { 
+                .nebula-sky.zoom-box.animate { 
                     /* Combina a animação de movimento com a de brilho */
                     animation: zoom-crack-animation 1.2s ease-out forwards, glow-impact-animation 1.2s ease-out forwards; 
                 }
 
                 /* Anima a camada de dano quando o card principal está animando */
-                .card-3d.zoom-box.animate .damage-overlay {
+                .nebula-sky.zoom-box.animate .damage-overlay {
                     animation: damage-flash-animation 1.2s ease-out forwards;
                 }
 
@@ -70,30 +70,30 @@
         
         /* --- ANIMAÇÃO DE RECUPERAR VIDA --- */
                 .heal-particle { position: absolute; bottom: -10px; width: 6px; height: 6px; border-radius: 50%; background-color: #4ade80; box-shadow: 0 0 8px #4ade80, 0 0 12px #22c55e; opacity: 0; }
-                .card-3d.heal-container.animate .heal-particle { animation: heal-float 3s ease-out forwards; }
+                .nebula-sky.heal-container.animate .heal-particle { animation: heal-float 3s ease-out forwards; }
                 @keyframes heal-float {
                     0% { transform: translateY(0); opacity: 0; }
                     25% { opacity: 1; }
                     100% { transform: translateY(-200px); opacity: 0; }
                 }
-                .card-3d.heal-container.glowing-card.animate { animation: glow-animation 3s ease-out; }
+                .nebula-sky.heal-container.glowing-card.animate { animation: glow-animation 3s ease-out; }
 
         /* --- ANIMAÇÃO DE MOEDAS --- */
                 .coin { position: absolute; top: -50px; background: radial-gradient(circle, #fde047 0%, #facc15 50%, #eab308 100%); border: 3px solid #ca8a04; border-radius: 50%; opacity: 0; }
-                .card-3d.coin-container.animate .coin { animation-name: coin-fall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+                .nebula-sky.coin-container.animate .coin { animation-name: coin-fall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
                 @keyframes coin-fall {
                     0% { transform: translateY(0); opacity: 0; }
                     30% { opacity: 1; }
                     100% { transform: translateY(240px); opacity: 0; }
                 }
-                .card-3d.coin-container.glowing-card.animate { animation: glow-animation 1.8s ease-out; }
+                .nebula-sky.coin-container.glowing-card.animate { animation: glow-animation 1.8s ease-out; }
 
         /* --- ANIMAÇÃO DE BRILHO GERAL --- */
                 @keyframes glow-animation {
                     0%, 100% { box-shadow: none; }
                     50% { box-shadow: 0 0 25px rgba(var(--glow-color), 0.7), 0 0 35px rgba(var(--glow-color), 0.5); }
                 }
-                .card-3d.star-container.glowing-card.animate { animation: glow-animation 2.5s ease-out; }
+                .nebula-sky.star-container.glowing-card.animate { animation: glow-animation 2.5s ease-out; }
 
         /* --- CORES DO BRILHO --- */
                 .glow-purple { --glow-color: 168, 85, 247; }
@@ -121,10 +121,10 @@
                 }
 
                 /* Anima o pulso, o brilho e o card ao mesmo tempo */
-                .card-3d.heal-container.animate { 
+                .nebula-sky.heal-container.animate { 
                     animation: glow-animation 1.5s ease-out forwards, card-pulse-animation 1.5s ease-out forwards; 
                 }
-                .card-3d.heal-container.animate .heal-overlay {
+                .nebula-sky.heal-container.animate .heal-overlay {
                     animation: heal-pulse-flash 1.5s ease-out forwards;
                 }
 
@@ -167,14 +167,14 @@
             opacity: 0;
             z-index: 10000;
         }
-        .card-3d.spill-container.animate .potion-pulse {
+        .nebula-sky.spill-container.animate .potion-pulse {
             animation: potion-pulse-expand 1.5s ease-out forwards;
         }
         @keyframes potion-pulse-expand {
             0% { transform: translate(-50%, -50%) scale(0); opacity: 0.7; }
             100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
         }
-        .card-3d.spill-container.glowing-card.animate { animation: glow-animation 2s ease-out; }
+        .nebula-sky.spill-container.glowing-card.animate { animation: glow-animation 2s ease-out; }
 
           /* --- ANIMAÇÃO DE POÇÃO MÁGICA (SVG) --- */
         .potion-svg-container {
@@ -262,7 +262,7 @@
         .spill-container.glowing-card.animate { animation: glow-animation 3.5s ease-out; }
 
          /* --- ANIMAÇÃO DE PULO --- */
-       .card-3d.heal-container.animate .aura-particle {
+       .nebula-sky.heal-container.animate .aura-particle {
             animation: aura-rise 3s ease-out forwards;
         }
         @keyframes aura-rise {
@@ -271,7 +271,7 @@
             100% { transform: translateY(-300px); opacity: 0; }
         }
         
-        .card-3d.star-container.jump-effect.glowing-card.animate {
+        .nebula-sky.star-container.jump-effect.glowing-card.animate {
             animation: glow-animation 2.5s ease-out, bounce-animation 0.5s ease-out;
         }
 
@@ -292,7 +292,7 @@
             opacity: 0;
             z-index: 10;
         }
-        .card-3d.arcane-recharge.animate .rune-container {
+        .nebula-sky.arcane-recharge.animate .rune-container {
             animation: rune-fade-rotate 2.5s ease-out forwards;
         }
         @keyframes rune-fade-rotate {
@@ -301,7 +301,7 @@
             80% { opacity: 1; }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(4) }
         }
-        .card-3d.arcane-recharge.glowing-card.animate { 
+        .nebula-sky.arcane-recharge.glowing-card.animate { 
             animation: glow-animation 2.5s ease-out, float-animation 2.5s ease-out forwards; 
         }
         
